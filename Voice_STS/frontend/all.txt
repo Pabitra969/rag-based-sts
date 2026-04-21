@@ -1,0 +1,221 @@
+ 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Support Chatbot</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="chat-container">
+  <div class="chat-header">Customer Support</div>
+
+  <div id="chatBody" class="chat-body"></div>
+
+  <div class="chat-input">
+    <textarea
+      id="textInput"
+      placeholder="Type or speak..."
+      rows="1"
+    ></textarea>
+
+    <button id="micBtn">
+       <svg fill="#000000" height="20px" width="20px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 478 478" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g id="XMLID_22_"> <path id="XMLID_24_" d="M394,196.1c0-11.9-9.7-21.6-21.6-21.6s-21.6,9.7-21.6,21.6c0,61.7-50.2,111.8-111.8,111.8 s-111.8-50.2-111.8-111.8c0-11.9-9.7-21.6-21.6-21.6S84,184.2,84,196.1c0,78.2,58.1,143,133.4,153.5v85.2h-55.6 c-11.9,0-21.6,9.7-21.6,21.6s9.7,21.6,21.6,21.6h154.5c11.9,0,21.6-9.7,21.6-21.6s-9.7-21.6-21.6-21.6h-55.6v-85.2 C335.9,339.1,394,274.2,394,196.1z"></path> <path id="XMLID_23_" d="M239,0L239,0c-46.4,0-84,37.6-84,84v110.7c0,46.4,37.6,84,84,84l0,0c46.4,0,84-37.6,84-84V84 C323,37.6,285.4,0,239,0z M239.1,55.9c-15.1,0-27.4,12.3-27.4,27.4c0,0.2,0,0.4,0,0.6l0,0l-0.2,99.9c0,6.9-5.6,12.4-12.4,12.4l0,0 c-6.9,0-12.4-5.6-12.4-12.4V83.3l0,0v-0.1c0-28.9,23.5-52.4,52.4-52.4c6.9,0,12.5,5.6,12.5,12.5C251.6,50.3,246,55.9,239.1,55.9z"></path> </g> </g> </g></svg>
+    </button>
+    <button id="sendBtn" class="hidden">➤</button>
+  </div>
+</div>
+
+<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+<!-- <script>
+  window.__STT_PROVIDER__ = "azure"; 
+  // tomorrow: " webspeech | azure | local"
+</script> -->
+
+<script type="module" src="speech.js"></script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+body {
+  font-family: Arial, sans-serif;
+  background: #ece5dd;
+}
+
+.chat-container {
+  width: 400px;
+  height: 600px;
+  margin: 50px auto;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chat-header {
+  background: #075e54;
+  color: white;
+  padding: 12px;
+  font-weight: bold;
+}
+
+.chat-body {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background: #e5ddd5;
+  display: flex;
+  flex-direction: column;
+}
+
+.message {
+  max-width: 75%;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.user {
+  background: #dcf8c6;
+  align-self: flex-end;
+}
+
+.bot {
+  background: #fff;
+  align-self: flex-start;
+}
+
+.chat-input {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  background: #f0f0f0;
+}
+
+.chat-input textarea {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  resize: none; /* disable manual resizing */
+  font-family: Arial, sans-serif; /* inherit font */
+  font-size: 14px; /* match message font size */
+  max-height: 100px; /* limit growth to about 5 lines */
+  overflow-y: auto; /* enable scrolling when max-height is reached */
+}
+
+.chat-input button {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.hidden {
+  display: none;
+}
+
+#micBtn {
+  border: none;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import { getSTTProvider } from "./stt/index.js";
+
+const textInput = document.getElementById("textInput");
+const micBtn = document.getElementById("micBtn");
+const sendBtn = document.getElementById("sendBtn");
+const chatBody = document.getElementById("chatBody");
+
+let stt = null;
+
+function addMessage(text, sender) {
+  const div = document.createElement("div");
+  div.className = `message ${sender}`;
+  div.textContent = text;
+  chatBody.appendChild(div);
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+textInput.addEventListener("click", () => {
+  if (textInput.value.trim()) {
+    micBtn.classList.add("hidden");
+    sendBtn.classList.remove("hidden");
+  } else {
+    micBtn.classList.remove("hidden");
+    sendBtn.classList.add("hidden");
+  }
+});
+
+textInput.addEventListener("input", () => {
+  if (textInput.value.trim()) {
+    micBtn.classList.add("hidden");
+    sendBtn.classList.remove("hidden");
+  } else {
+    micBtn.classList.remove("hidden");
+    sendBtn.classList.add("hidden");
+  }
+})
+
+sendBtn.addEventListener("click", () => {
+  const text = textInput.value.trim();
+  if (!text) return;
+
+  addMessage(text, "user");
+  textInput.value = "";
+
+  setTimeout(() => {
+    addMessage("Thanks for contacting support.", "bot");
+  }, 400);
+
+  sendBtn.classList.add("hidden");
+  micBtn.classList.remove("hidden");
+});
+
+micBtn.addEventListener("click", () => {
+  if (!stt) {
+    stt = getSTTProvider();
+    stt.start({
+      onPartial: (text) => (textInput.value = text),
+      onStatus: () => (micBtn.innerHTML = `<svg fill="#000000" height="20px" width="20px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M256,0C114.615,0,0,114.615,0,256s114.615,256,256,256s256-114.615,256-256S397.385,0,256,0z M336,320 c0,8.837-7.163,16-16,16H192c-8.837,0-16-7.163-16-16V192c0-8.837,7.163-16,16-16h128c8.837,0,16,7.163,16,16V320z"></path> </g></svg>`),
+    });
+  } else {
+    stt.stop();
+    stt = null;
+    micBtn.innerHTML = `
+  <svg fill="#000000" height="20px" width="20px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 478 478" xml:space="preserve"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g> <g id="XMLID_22_"> <path id="XMLID_24_" d="M394,196.1c0-11.9-9.7-21.6-21.6-21.6s-21.6,9.7-21.6,21.6c0,61.7-50.2,111.8-111.8,111.8 s-111.8-50.2-111.8-111.8c0-11.9-9.7-21.6-21.6-21.6S84,184.2,84,196.1c0,78.2,58.1,143,133.4,153.5v85.2h-55.6 c-11.9,0-21.6,9.7-21.6,21.6s9.7,21.6,21.6,21.6h154.5c11.9,0,21.6-9.7,21.6-21.6s-9.7-21.6-21.6-21.6h-55.6v-85.2 C335.9,339.1,394,274.2,394,196.1z"></path> <path id="XMLID_23_" d="M239,0L239,0c-46.4,0-84,37.6-84,84v110.7c0,46.4,37.6,84,84,84l0,0c46.4,0,84-37.6,84-84V84 C323,37.6,285.4,0,239,0z M239.1,55.9c-15.1,0-27.4,12.3-27.4,27.4c0,0.2,0,0.4,0,0.6l0,0l-0.2,99.9c0,6.9-5.6,12.4-12.4,12.4l0,0 c-6.9,0-12.4-5.6-12.4-12.4V83.3l0,0v-0.1c0-28.9,23.5-52.4,52.4-52.4c6.9,0,12.5,5.6,12.5,12.5C251.6,50.3,246,55.9,239.1,55.9z"></path> </g> </g> </g></svg>
+`;
+
+  }
+});

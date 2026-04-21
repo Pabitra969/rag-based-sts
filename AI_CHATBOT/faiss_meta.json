@@ -1,0 +1,162 @@
+[
+  {
+    "id": 1,
+    "content": "id: 1 | title: Red Cotton T-Shirt | description: Soft organic cotton t-shirt for men | price: 499 | category: clothing",
+    "title": "Red Cotton T-Shirt",
+    "description": "Soft organic cotton t-shirt for men",
+    "price": 499,
+    "category": "clothing"
+  },
+  {
+    "id": 2,
+    "content": "id: 2 | title: Blue Denim Jeans | description: Regular fit blue jeans with stretch | price: 1299 | category: clothing",
+    "title": "Blue Denim Jeans",
+    "description": "Regular fit blue jeans with stretch",
+    "price": 1299,
+    "category": "clothing"
+  },
+  {
+    "id": 3,
+    "content": "id: 3 | title: Wireless Mouse | description: Ergonomic wireless mouse | price: 899 | category: electronics",
+    "title": "Wireless Mouse",
+    "description": "Ergonomic wireless mouse",
+    "price": 899,
+    "category": "electronics"
+  },
+  {
+    "id": 4,
+    "content": "id: 4 | title: Smart LED Bulb | description: WiFi-enabled multicolor LED bulb compatible with Alexa and Google Home | price: 699 | category: home_appliance",
+    "title": "Smart LED Bulb",
+    "description": "WiFi-enabled multicolor LED bulb compatible with Alexa and Google Home",
+    "price": 699,
+    "category": "home_appliance"
+  },
+  {
+    "id": 5,
+    "content": "id: 5 | title: Leather Wallet | description: Genuine leather bi-fold wallet with RFID protection | price: 999 | category: accessories",
+    "title": "Leather Wallet",
+    "description": "Genuine leather bi-fold wallet with RFID protection",
+    "price": 999,
+    "category": "accessories"
+  },
+  {
+    "id": 6,
+    "content": "id: 6 | title: Noise Cancelling Headphones | description: Over-ear Bluetooth headphones with active noise cancellation and 30hr battery | price: 3499 | category: electronics",
+    "title": "Noise Cancelling Headphones",
+    "description": "Over-ear Bluetooth headphones with active noise cancellation and 30hr battery",
+    "price": 3499,
+    "category": "electronics"
+  },
+  {
+    "id": 7,
+    "content": "id: 7 | title: Silk Saree | description: Handwoven Banarasi silk saree with golden zari border | price: 5499 | category: clothing",
+    "title": "Silk Saree",
+    "description": "Handwoven Banarasi silk saree with golden zari border",
+    "price": 5499,
+    "category": "clothing"
+  },
+  {
+    "id": 8,
+    "content": "id: 8 | title: Espresso Coffee Maker | description: Automatic espresso and cappuccino maker with stainless steel body | price: 7999 | category: home_appliance",
+    "title": "Espresso Coffee Maker",
+    "description": "Automatic espresso and cappuccino maker with stainless steel body",
+    "price": 7999,
+    "category": "home_appliance"
+  },
+  {
+    "id": 9,
+    "content": "id: 9 | title: Running Shoes | description: Breathable lightweight running shoes with memory foam sole | price: 2599 | category: clothing",
+    "title": "Running Shoes",
+    "description": "Breathable lightweight running shoes with memory foam sole",
+    "price": 2599,
+    "category": "clothing"
+  },
+  {
+    "id": 10,
+    "content": "id: 10 | title: Smart Watch | description: Fitness tracking smartwatch with heart rate and SpO2 monitoring | price: 4299 | category: electronics",
+    "title": "Smart Watch",
+    "description": "Fitness tracking smartwatch with heart rate and SpO2 monitoring",
+    "price": 4299,
+    "category": "electronics"
+  },
+  {
+    "id": 11,
+    "content": "id: 11 | title: Wooden Study Table | description: Compact foldable wooden study table with adjustable height | price: 2599 | category: furniture",
+    "title": "Wooden Study Table",
+    "description": "Compact foldable wooden study table with adjustable height",
+    "price": 2599,
+    "category": "furniture"
+  },
+  {
+    "id": 12,
+    "content": "id: 12 | title: Organic Face Cream | description: Moisturizing face cream enriched with aloe vera and vitamin E | price: 599 | category: skincare",
+    "title": "Organic Face Cream",
+    "description": "Moisturizing face cream enriched with aloe vera and vitamin E",
+    "price": 599,
+    "category": "skincare"
+  },
+  {
+    "id": 13,
+    "content": "id: 13 | title: Power Bank | description: 20000mAh fast-charging power bank with dual USB output | price: 1899 | category: electronics",
+    "title": "Power Bank",
+    "description": "20000mAh fast-charging power bank with dual USB output",
+    "price": 1899,
+    "category": "electronics"
+  },
+  {
+    "id": 14,
+    "content": "id: 14 | title: Non-stick Frying Pan | description: Induction-compatible non-stick frying pan with heat-resistant handle | price: 1299 | category: kitchen",
+    "title": "Non-stick Frying Pan",
+    "description": "Induction-compatible non-stick frying pan with heat-resistant handle",
+    "price": 1299,
+    "category": "kitchen"
+  },
+  {
+    "id": 15,
+    "content": "id: 15 | title: Travel Backpack | description: Water-resistant travel backpack with USB charging port and 15-inch laptop sleeve | price: 2199 | category: accessories",
+    "title": "Travel Backpack",
+    "description": "Water-resistant travel backpack with USB charging port and 15-inch laptop sleeve",
+    "price": 2199,
+    "category": "accessories"
+  },
+  {
+    "id": 16,
+    "content": "id: 16 | title: Air Purifier | description: HEPA filter air purifier suitable for rooms up to 400 sq. ft. | price: 8999 | category: home_appliance",
+    "title": "Air Purifier",
+    "description": "HEPA filter air purifier suitable for rooms up to 400 sq. ft.",
+    "price": 8999,
+    "category": "home_appliance"
+  },
+  {
+    "id": 17,
+    "content": "id: 17 | title: Electric Toothbrush | description: Rechargeable electric toothbrush with 3 brushing modes and 2-minute timer | price: 2299 | category: personal_care",
+    "title": "Electric Toothbrush",
+    "description": "Rechargeable electric toothbrush with 3 brushing modes and 2-minute timer",
+    "price": 2299,
+    "category": "personal_care"
+  },
+  {
+    "id": 18,
+    "content": "id: 18 | title: Bluetooth Speaker | description: Portable Bluetooth speaker with deep bass and splash resistance | price: 1699 | category: electronics",
+    "title": "Bluetooth Speaker",
+    "description": "Portable Bluetooth speaker with deep bass and splash resistance",
+    "price": 1699,
+    "category": "electronics"
+  },
+  {
+    "id": 19,
+    "content": "id: 19 | title: Office Chair | description: Ergonomic mesh office chair with lumbar support and adjustable height | price: 6999 | category: furniture",
+    "title": "Office Chair",
+    "description": "Ergonomic mesh office chair with lumbar support and adjustable height",
+    "price": 6999,
+    "category": "furniture"
+  },
+  {
+    "id": 20,
+    "content": "id: 20 | title: Perfume Set | description: Unisex long-lasting fragrance set with citrus and woody notes | price: 1499 | category: personal_care",
+    "title": "Perfume Set",
+    "description": "Unisex long-lasting fragrance set with citrus and woody notes",
+    "price": 1499,
+    "category": "personal_care"
+  }
+]

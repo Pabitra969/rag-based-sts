@@ -1,0 +1,21 @@
+id,title,description,price,category
+1,Red Cotton T-Shirt,Soft organic cotton t-shirt for men,499,clothing
+2,Blue Denim Jeans,Regular fit blue jeans with stretch,1299,clothing
+3,Wireless Mouse,Ergonomic wireless mouse,899,electronics
+4,Smart LED Bulb,WiFi-enabled multicolor LED bulb compatible with Alexa and Google Home,699,home_appliance
+5,Leather Wallet,Genuine leather bi-fold wallet with RFID protection,999,accessories
+6,Noise Cancelling Headphones,Over-ear Bluetooth headphones with active noise cancellation and 30hr battery,3499,electronics
+7,Silk Saree,Handwoven Banarasi silk saree with golden zari border,5499,clothing
+8,Espresso Coffee Maker,Automatic espresso and cappuccino maker with stainless steel body,7999,home_appliance
+9,Running Shoes,Breathable lightweight running shoes with memory foam sole,2599,clothing
+10,Smart Watch,Fitness tracking smartwatch with heart rate and SpO2 monitoring,4299,electronics
+11,Wooden Study Table,Compact foldable wooden study table with adjustable height,2599,furniture
+12,Organic Face Cream,Moisturizing face cream enriched with aloe vera and vitamin E,599,skincare
+13,Power Bank,20000mAh fast-charging power bank with dual USB output,1899,electronics
+14,Non-stick Frying Pan,Induction-compatible non-stick frying pan with heat-resistant handle,1299,kitchen
+15,Travel Backpack,Water-resistant travel backpack with USB charging port and 15-inch laptop sleeve,2199,accessories
+16,Air Purifier,HEPA filter air purifier suitable for rooms up to 400 sq. ft.,8999,home_appliance
+17,Electric Toothbrush,Rechargeable electric toothbrush with 3 brushing modes and 2-minute timer,2299,personal_care
+18,Bluetooth Speaker,Portable Bluetooth speaker with deep bass and splash resistance,1699,electronics
+19,Office Chair,Ergonomic mesh office chair with lumbar support and adjustable height,6999,furniture
+20,Perfume Set,Unisex long-lasting fragrance set with citrus and woody notes,1499,personal_care

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Support Chatbot</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <div class="chat-container">
+    <div class="chat-header">Customer Support</div>
+
+    <div id="chatBody" class="chat-body"></div>
+
+    <div class="chat-input">
+      <!-- Voice Chat Button (left) -->
+      <button id="voiceChatBtn" title="Voice Chat">🎧</button>
+
+      <textarea id="textInput" placeholder="Type or speak..." rows="1"></textarea>
+      <div class="action-btn">
+        <button id="micTranscribeBtn" title="Speak">🎤</button>
+        <button id="sendBtn" title="Send">➤</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+  <script type="module" src="speech.js"></script>
+
+</body>
+
+</html>
