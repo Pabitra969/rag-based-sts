@@ -3,7 +3,7 @@ let recognizer = null;
 let finalText = "";
 
 async function getToken() {
-  const res = await fetch("http://localhost:5000/api/speech-token");
+  const res = await fetch("http://localhost:5/api/speech-token");
   return res.json();
 }
 

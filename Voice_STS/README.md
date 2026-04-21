@@ -89,7 +89,7 @@ cp .env.example .env
 Now, open the `.env` file and add your Azure credentials. Set the `SPEECH_PROVIDER` to `azure`.
 
 ```.env
-PORT=5000
+PORT=5005
 SPEECH_PROVIDER=azure/openai/ollama or if you set local
 AZURE_SPEECH_KEY=YOUR_AZURE_SPEECH_API_KEY
 AZURE_SPEECH_REGION=YOUR_AZURE_SPEECH_REGION
@@ -103,7 +103,7 @@ LOCAL_LLM_URL=http://localhost:11434/api/chat
 npm start
 ```
 
-The server will be running at `http://localhost:5000`.
+The server will be running at `http://localhost:5005`.
 
 ### 2. Frontend Setup
 
@@ -124,7 +124,7 @@ Your browser will open to the chat application, and it will be able to communica
 
 *   On **Chrome/Edge**, it will use the Web Speech API.
 *   On **Firefox/Safari**, it will automatically fall back to using Azure by fetching a token from your backend.
-*   Voice mode connects via WebSocket at `ws://localhost:5000/ws/voice` by default. If you host the backend elsewhere, set `window.VOICE_WS_URL` in `index.html` before loading `speech.js`.
+*   Voice mode connects via WebSocket at `ws://localhost:5005/ws/voice` by default. If you host the backend elsewhere, set `window.VOICE_WS_URL` in `index.html` before loading `speech.js`.
 *   LLM replies default to a canned response unless you set `LOCAL_LLM_URL` to your own model endpoint (e.g., Ollama / LM Studio / custom HTTP).
 
 

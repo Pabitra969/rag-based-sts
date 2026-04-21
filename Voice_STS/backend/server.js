@@ -13,7 +13,7 @@ app.use(express.json());
 
 app.use("/api/speech-token", speechTokenRouter);
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5005;
 
 // HTTP server (single source of truth)
 const server = http.createServer(app);

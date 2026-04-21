@@ -55,7 +55,7 @@ async function sendAudioToBackend(blob, onPartial) {
     const formData = new FormData();
     formData.append("audio", blob, "speech.webm");
 
-    const res = await fetch("http://localhost:5000/api/stt/local", {
+    const res = await fetch("http://localhost:5005/api/stt/local", {
       method: "POST",
       body: formData
     });

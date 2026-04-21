@@ -4,7 +4,7 @@
 const VAD_THRESHOLD = 0.6; // Voice Activity Detection sensitivity
 const VAD_SILENCE_TIMEOUT = 1000; // ms of silence before stopping
 const AUDIO_SAMPLE_RATE = 16000; // Required by Azure
-const DEFAULT_WS = "ws://localhost:5000/ws/voice";
+const DEFAULT_WS = "ws://localhost:5005/ws/voice";
 const WEBSOCKET_URL = window.VOICE_WS_URL || DEFAULT_WS;
 
 // --- State ---
