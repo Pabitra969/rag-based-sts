@@ -1,6 +1,6 @@
 # nlp_core.py
 import re
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import json, os
 
 # Load full catalog once (for counts and deterministic suggestions)
@@ -59,7 +59,7 @@ def _format_item_line(item: Dict[str, Any]) -> str:
     d = item.get("description", "")
     return f"- {t} ₹{p} [{c}] - {d}"
 
-def extract_fact(query: str, results: List[Dict[str, Any]]) -> str | None:
+def extract_fact(query: str, results: List[Dict[str, Any]]) -> Optional[str]:
     """
     Extract deterministic facts from results only if query matches product-specific intent.
     Returns None if facts are unreliable or query is general knowledge.

@@ -21,8 +21,7 @@ from controller.intent_detector import detect_intent
 from nlp_core import extract_fact
 
 # ============ CONFIG ============
-MODEL_PATH = "models/tinyllama-1.1b-chat-v1.0.Q4_K_M.gguf"
-#MODEL_PATH = "models/Phi-3-mini-4k-instruct-q4.gguf"
+MODEL_PATH = "models/Phi-3-mini-4k-instruct-q4.gguf"
 FAISS_INDEX_PATH = "./faiss_index.index"
 FAISS_META_PATH = "./faiss_meta.json"
 DATA_CSV = "./data/products2.csv"
