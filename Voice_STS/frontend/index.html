@@ -1,35 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <title>Support Chatbot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice STS</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-
-  <div class="chat-container">
-    <div class="chat-header">Customer Support</div>
-
-    <div id="chatBody" class="chat-body"></div>
-
-    <div class="chat-input">
-      <!-- Voice Chat Button (left) -->
-      <button id="voiceChatBtn" title="Voice Chat">🎧</button>
-
-      <textarea id="textInput" placeholder="Type or speak..." rows="1"></textarea>
-      <div class="action-btn">
-        <button id="micTranscribeBtn" title="Speak">🎤</button>
-        <button id="sendBtn" title="Send">➤</button>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div>
+          <p class="eyebrow">Voice STS</p>
+          <h1>Conversations</h1>
+        </div>
+        <button id="newChatBtn" class="ghost-btn" type="button">New chat</button>
       </div>
 
-    </div>
+      <div id="conversationList" class="conversation-list"></div>
+    </aside>
+
+    <main class="chat-panel">
+      <header class="chat-header">
+        <div>
+          <p class="eyebrow">Active Chat</p>
+          <h2 id="chatTitle">New conversation</h2>
+        </div>
+        <button id="voiceChatBtn" class="voice-chat-btn" type="button" title="Start voice chat">
+          <span class="btn-icon">🎧</span>
+          <span class="btn-label">Voice chat</span>
+        </button>
+      </header>
+
+      <section id="chatBody" class="chat-body"></section>
+
+      <form id="composerForm" class="composer" novalidate>
+        <div class="composer-input-wrap">
+          <textarea
+            id="textInput"
+            placeholder="Type a message or use the mic..."
+            rows="1"
+          ></textarea>
+        </div>
+
+        <div class="composer-actions">
+          <button id="micTranscribeBtn" class="icon-btn" type="button" title="Transcribe speech">🎤</button>
+          <button id="sendBtn" class="send-btn" type="submit" title="Send message">Send</button>
+        </div>
+      </form>
+    </main>
   </div>
 
   <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
-  <script type="module" src="speech.js"></script>
-
+  <script type="module" src="speech.js?v=20260421-2"></script>
 </body>
-
 </html>

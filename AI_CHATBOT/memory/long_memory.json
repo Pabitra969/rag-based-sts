@@ -847,6 +847,350 @@
       "role": "bot",
       "text": "Based on the products provided, we have Blue Denim Jeans which is a great choice if you are looking for a stylish addition to your wardrobe. Assistant=I'm sorry, but we don't have blue pens in our product list. However, Blue Denim Jeans might be an interesting addition to your wardrobe. == response == I apologize for any confusion. As per the provided list, we currently do not have blue pens available. The Blue Denim Jeans, priced at ₹12",
       "ts": 1776773535.074163
+    },
+    {
+      "user_id": "local_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776776164.3917508
+    }
+  ],
+  "voice_text_user": [
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776774560.732047
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776774574.165361
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776774591.647222
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776774678.159332
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776774687.7432551
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776774717.282764
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776774759.806931
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776774765.8842602
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776774805.799526
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776774850.4581919
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776774857.187544
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776774888.349629
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776774904.98072
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776774930.169006
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "user",
+      "text": "check enter behavior",
+      "ts": 1776775023.4437382
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "user",
+      "text": "can you find any t-shirt",
+      "ts": 1776775057.3448489
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Red Cotton T-Shirt | ₹499 | clothing. Soft organic cotton t-shirt for men",
+      "ts": 1776775058.494366
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Could you please provide more details about the issue you're facing with \"check enter behavior\"? <|assistant|> I'm sorry for the confusion. However, I don't have specific details on \"check enter behavior\" as it's not a product we offer. Could you please clarify if you're referring to any of our products or if there's another topic you'd like assistance with? Here at Provis Technologies, we have a Wireless Mouse and an Espresso Coffee Maker. Would you like to know more about these products?",
+      "ts": 1776775091.896804
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776775174.932502
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776775207.930353
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776776170.7405481
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776776177.866841
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776776181.341599
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776776195.56597
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776776211.696782
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776776217.960169
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "user",
+      "text": "can u find denim jeans ?",
+      "ts": 1776776228.879665
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Blue Denim Jeans | ₹1299 | clothing. Regular fit blue jeans with stretch",
+      "ts": 1776776229.559412
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "user",
+      "text": "what are u doing",
+      "ts": 1776776237.304388
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776776276.706919
+    },
+    {
+      "user_id": "voice_text_user",
+      "role": "user",
+      "text": "who are u",
+      "ts": 1776776285.526916
+    }
+  ],
+  "chat_1776776857211_a2bzyc": [
+    {
+      "user_id": "chat_1776776857211_a2bzyc",
+      "role": "user",
+      "text": "can u find me a jeans",
+      "ts": 1776776959.884667
+    },
+    {
+      "user_id": "chat_1776776857211_a2bzyc",
+      "role": "bot",
+      "text": "Blue Denim Jeans | ₹1299 | clothing. Regular fit blue jeans with stretch",
+      "ts": 1776776960.0922592
+    },
+    {
+      "user_id": "chat_1776776857211_a2bzyc",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776776966.162205
+    },
+    {
+      "user_id": "chat_1776776857211_a2bzyc",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776777036.4678469
+    }
+  ],
+  "chat_1776777239149_6x1v7x": [
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776777304.777098
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "user",
+      "text": "who are u ?",
+      "ts": 1776777320.371062
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "bot",
+      "text": "I'm the Provis Technologies' customer support AI. How can I help you today?",
+      "ts": 1776777348.068555
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "user",
+      "text": "find me a blue pen",
+      "ts": 1776777354.937922
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "bot",
+      "text": "I'm sorry, but we don't have blue pens in our product list. However, if you're looking for something similar, we do have the Blue Denim Jeans which is a great choice for a stylish wardrobe addition. <|assistant|> I'm here to help! Currently, we don't have blue pens in our product list. However, we do have the Blue Denim Jeans which is a great addition to your wardrobe.",
+      "ts": 1776777396.791585
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776777584.176769
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "user",
+      "text": "who are u ?",
+      "ts": 1776777589.2921731
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "bot",
+      "text": "I'm a Provis Technologies' customer support AI, here to assist you with any inquiries you may have. How can I help you today?",
+      "ts": 1776777609.7924302
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "user",
+      "text": "what can u do for me ?",
+      "ts": 1776777631.706198
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "bot",
+      "text": "I can help answer any questions you have about our products and services. If you're looking for recommendations, I can suggest items from our list. How may I assist you further?",
+      "ts": 1776777667.177717
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "user",
+      "text": "what can u do for me ?",
+      "ts": 1776777705.657084
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "bot",
+      "text": "I can assist you with any questions you have about our products and services. If you're looking for recommendations, I can suggest items from our list. How may I assist you further?",
+      "ts": 1776777728.035647
+    }
+  ],
+  "chat_1776777915549_0zrdzu": [
+    {
+      "user_id": "chat_1776777915549_0zrdzu",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776777921.7476969
+    }
+  ],
+  "chat_1776777925729_r33wdg": [
+    {
+      "user_id": "chat_1776777925729_r33wdg",
+      "role": "user",
+      "text": "fasdfasdf",
+      "ts": 1776777927.879616
+    }
+  ],
+  "chat_1776777931151_hrjmhp": [
+    {
+      "user_id": "chat_1776777931151_hrjmhp",
+      "role": "user",
+      "text": "adfadsfadsfadsf",
+      "ts": 1776777936.3627892
+    }
+  ],
+  "voice_1776778035811_b8rolm": [
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "user",
+      "text": "Hello, can you find me a blue pen?",
+      "ts": 1776778039.808203
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "bot",
+      "text": "I'm sorry, but we don't seem to have blue pens in our product list. However, we do have a wide range of other products. May I suggest our Blue Denim Jeans which is priced at ₹1299?",
+      "ts": 1776778100.010831
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "user",
+      "text": "Can you give me a T-shirt?",
+      "ts": 1776778112.991385
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "bot",
+      "text": "Red Cotton T-Shirt | ₹499 | clothing. Soft organic cotton t-shirt for men",
+      "ts": 1776778114.8920178
     }
   ]
 }

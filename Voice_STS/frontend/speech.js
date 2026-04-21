@@ -1,285 +1,187 @@
-// // frontend/speech.js
-// import { getSTTProvider } from "./stt/index.js";
-// import { initVoiceMode } from "./voice/voiceMode.js";
-
-// // --- DOM Elements ---
-// const textInput = document.getElementById("textInput");
-// const micTranscribeBtn = document.getElementById("micTranscribeBtn");
-// const voiceChatBtn = document.getElementById("voiceChatBtn");
-// const sendBtn = document.getElementById("sendBtn");
-// const chatBody = document.getElementById("chatBody");
-
-// // --- State ---
-// let sttProvider = null;
-// let voiceMode = null;
-
-// // --- Button Toggle Helper ---
-// function updateButtonVisibility() {
-//     // Don't change buttons during recording or voice mode
-//     if (sttProvider || voiceMode?.isActive()) {
-//         return;
-//     }
-
-//     const isFocused = document.activeElement === textInput;
-//     const hasText = textInput.value.trim().length > 0;
-
-//     // Show send button when: textfield is focused OR there's text
-//     // Show mic button when: textfield is NOT focused AND there's no text
-//     if (isFocused || hasText) {
-//         sendBtn.classList.remove("hidden");
-//         micTranscribeBtn.classList.add("hidden");
-//     } else {
-//         sendBtn.classList.add("hidden");
-//         micTranscribeBtn.classList.remove("hidden");
-//     }
-// }
-
-// // --- UI Helpers ---
-// function addMessage(text, sender) {
-//     const div = document.createElement("div");
-//     div.className = `message ${sender}`;
-//     div.textContent = text;
-//     chatBody.appendChild(div);
-//     chatBody.scrollTop = chatBody.scrollHeight;
-// }
-
-// function setVoiceChatStatus(status) {
-//     // Simple visual indicator, can be expanded (e.g., icons, text)
-//     voiceChatBtn.dataset.status = status;
-//     switch (status) {
-//         case "listening":
-//             voiceChatBtn.textContent = "🎧";
-//             break;
-//         case "speaking":
-//             voiceChatBtn.textContent = "💬";
-//             break;
-//         case "connecting":
-//             voiceChatBtn.textContent = "🔌";
-//             break;
-//         case "error":
-//             voiceChatBtn.textContent = "⚠️";
-//             break;
-//         default:
-//             voiceChatBtn.textContent = "🎧";
-//             break;
-//     }
-// }
-
-
-// // --- Voice Mode (Full Duplex) Callbacks ---
-// const voiceModeCallbacks = {
-//     onStateChange: (state) => {
-//         setVoiceChatStatus(state);
-//         if (state === "error" || state === "idle") {
-//             // Re-enable text input when voice mode stops or fails
-//             textInput.disabled = false;
-//             micTranscribeBtn.disabled = false;
-//             voiceChatBtn.classList.remove("active");
-//             // Restore button state based on current input state
-//             updateButtonVisibility();
-//         } else {
-//             // Disable text input during voice mode
-//             textInput.disabled = true;
-//             micTranscribeBtn.disabled = true;
-//             voiceChatBtn.classList.add("active");
-//         }
-//     },
-//     onPartialTranscript: (text) => {
-//         textInput.value = text; // Show real-time transcription in input box
-//         // Voice mode manages its own UI, keep buttons as is during voice mode
-//     },
-//     onFinalTranscript: (text) => {
-//         addMessage(text, "user");
-//         textInput.value = ""; // Clear input after final transcript
-//         // After final transcript in voice mode, show mic button
-//         if (document.activeElement !== textInput) {
-//             sendBtn.classList.add("hidden");
-//             micTranscribeBtn.classList.remove("hidden");
-//         }
-//     },
-//     onBotResponse: (text) => {
-//         addMessage(text, "bot");
-//     },
-// };
-
-// // --- Initialization ---
-// document.addEventListener("DOMContentLoaded", () => {
-//     voiceMode = initVoiceMode(voiceModeCallbacks);
-
-//     // Initialize button state: show mic button, hide send button
-//     updateButtonVisibility();
-
-//     // Handle clicks outside to update button visibility
-//     document.addEventListener("click", (e) => {
-//         // Small delay to let focus/blur events fire first
-//         setTimeout(() => {
-//             updateButtonVisibility();
-//         }, 0);
-//     });
-
-//     // --- Event Listeners ---
-
-//     // 1. Text Input Events - Toggle between mic and send button
-//     textInput.addEventListener("focus", () => {
-//         updateButtonVisibility();
-//     });
-
-//     textInput.addEventListener("blur", () => {
-//         // Small delay to let other events settle
-//         setTimeout(() => {
-//             updateButtonVisibility();
-//         }, 0);
-//     });
-
-//     textInput.addEventListener("input", () => {
-//         updateButtonVisibility();
-//     });
-
-//     sendBtn.addEventListener("click", () => {
-//         const text = textInput.value.trim();
-//         if (text) {
-//             addMessage(text, "user");
-//             textInput.value = "";
-//             // Dummy bot reply for text messages
-//             setTimeout(() => addMessage("I am a text-only bot.", "bot"), 500);
-//         }
-//         // Update button visibility after sending
-//         setTimeout(() => {
-//             updateButtonVisibility();
-//         }, 0);
-//     });
-
-
-//     // 2. Real-time Transcription Button
-//     micTranscribeBtn.addEventListener("click", () => {
-//         if (voiceMode.isActive()) return; // Should be disabled, but as a safeguard
-
-//         if (sttProvider) {
-//             // Stop recording
-//             sttProvider.stop();
-//             sttProvider = null;
-//             micTranscribeBtn.classList.remove("active");
-//             micTranscribeBtn.textContent = "🎤";
-//             // After stopping, update button visibility
-//             setTimeout(() => {
-//                 updateButtonVisibility();
-//             }, 0);
-//         } else {
-//             // Start recording - show mic button with stop indicator
-//             sttProvider = getSTTProviderWithUI();
-//             sttProvider.start({
-//                 onPartial: (text) => {
-//                     textInput.value = text;
-//                     // Keep mic button visible while recording (with stop indicator)
-//                     micTranscribeBtn.classList.remove("hidden");
-//                     sendBtn.classList.add("hidden");
-//                 },
-//                 onFinal: (text) => {
-//                     textInput.value = text;
-//                     // After final transcript, update button visibility
-//                     setTimeout(() => {
-//                         updateButtonVisibility();
-//                     }, 0);
-//                 },
-//                 onStatus: (status) => {
-//                     if (status === "ended" || status === "error") {
-//                         sttProvider = null;
-//                         micTranscribeBtn.classList.remove("active");
-//                         micTranscribeBtn.textContent = "🎤";
-//                         // Update button visibility after transcription ends
-//                         setTimeout(() => {
-//                             updateButtonVisibility();
-//                         }, 0);
-//                     } else if (status === "recording") {
-//                         micTranscribeBtn.classList.add("active");
-//                         micTranscribeBtn.textContent = "⏹️";
-//                     }
-//                 }
-//             });
-//             // Update button state immediately - show mic with stop indicator
-//             micTranscribeBtn.classList.add("active");
-//             micTranscribeBtn.textContent = "⏹️";
-//             micTranscribeBtn.classList.remove("hidden");
-//             sendBtn.classList.add("hidden");
-//         }
-//     });
-
-
-//     // 3. Full Voice Chat Button
-//     voiceChatBtn.addEventListener("click", () => {
-//         if (sttProvider) return; // Should be disabled, but as a safeguard
-
-//         if (voiceMode.isActive()) {
-//             voiceMode.stop();
-//         } else {
-//             voiceMode.start();
-//         }
-//     });
-// });
-
-
-// // Override sttProvider start to attach a status handler that shows send button on end/error
-// const originalGetProvider = getSTTProvider;
-// function getSTTProviderWithUI() {
-//     const provider = originalGetProvider();
-//     const originalStart = provider.start;
-//     provider.start = (opts = {}) => {
-//         const wrappedOpts = {
-//             ...opts,
-//             onFinal: (text) => {
-//                 opts.onFinal?.(text);
-//                 setTimeout(() => {
-//                     updateButtonVisibility();
-//                 }, 0);
-//             },
-//             onStatus: (status) => {
-//                 opts.onStatus?.(status);
-//                 if (status === "ended" || status === "error") {
-//                     setTimeout(() => {
-//                         updateButtonVisibility();
-//                     }, 0);
-//                 }
-//             },
-//         };
-//         originalStart.call(provider, wrappedOpts);
-//     };
-//     return provider;
-// }
-
-
-
-
-// frontend/speech.js
 import { getSTTProvider } from "./stt/index.js";
 import { initVoiceMode } from "./voice/voiceMode.js";
 
-/* ---------------- DOM ---------------- */
 const textInput = document.getElementById("textInput");
 const micTranscribeBtn = document.getElementById("micTranscribeBtn");
 const voiceChatBtn = document.getElementById("voiceChatBtn");
 const sendBtn = document.getElementById("sendBtn");
 const chatBody = document.getElementById("chatBody");
-sendBtn.classList.add("hidden");
-micTranscribeBtn.classList.remove("hidden");
+const chatTitle = document.getElementById("chatTitle");
+const conversationList = document.getElementById("conversationList");
+const newChatBtn = document.getElementById("newChatBtn");
+const composerForm = document.getElementById("composerForm");
 
+const CHAT_API_URL = window.TEXT_CHAT_API_URL || "http://127.0.0.1:5005/api/chat";
+const STORAGE_KEY = "voice_sts_conversations_v1";
 
-/* ---------------- UI STATE ---------------- */
 const UI_STATE = {
-  IDLE: "idle",              // no text, no recording
-  TYPING: "typing",          // user typing / text present
-  TRANSCRIBING: "transcribing", // push-to-talk STT
-  VOICE_CHAT: "voice_chat"   // full duplex voice mode
+  IDLE: "idle",
+  TYPING: "typing",
+  TRANSCRIBING: "transcribing",
+  VOICE_CHAT: "voice_chat",
 };
 
 let uiState = UI_STATE.IDLE;
 let sttProvider = null;
 let voiceMode = null;
+let conversations = [];
+let activeConversationId = null;
+let voiceConversationId = null;
 
-/* ---------------- UI RENDER ---------------- */
+function createConversation(title = "New conversation") {
+  return {
+    id: `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    title,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    messages: [],
+  };
+}
+
+function loadConversations() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    if (Array.isArray(stored) && stored.length > 0) {
+      conversations = stored;
+      activeConversationId = stored[0].id;
+      return;
+    }
+  } catch (error) {
+    console.warn("Failed to load conversation history:", error);
+  }
+
+  const initialConversation = createConversation();
+  conversations = [initialConversation];
+  activeConversationId = initialConversation.id;
+  persistConversations();
+}
+
+function persistConversations() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(conversations));
+}
+
+function getActiveConversation() {
+  let activeConversation = conversations.find((conversation) => conversation.id === activeConversationId);
+
+  if (!activeConversation) {
+    activeConversation = conversations[0] || createConversation();
+
+    if (!conversations.length) {
+      conversations = [activeConversation];
+    }
+
+    activeConversationId = activeConversation.id;
+    persistConversations();
+  }
+
+  return activeConversation;
+}
+
+function getConversationPreview(conversation) {
+  const lastMessage = conversation.messages[conversation.messages.length - 1];
+
+  if (!lastMessage) {
+    return "No messages yet";
+  }
+
+  return lastMessage.text.length > 52
+    ? `${lastMessage.text.slice(0, 52)}...`
+    : lastMessage.text;
+}
+
+function getConversationTitle(conversation) {
+  const firstUserMessage = conversation.messages.find((message) => message.sender === "user");
+
+  if (!firstUserMessage) {
+    return conversation.title || "New conversation";
+  }
+
+  const trimmed = firstUserMessage.text.replace(/\s+/g, " ").trim();
+  return trimmed.length > 28 ? `${trimmed.slice(0, 28)}...` : trimmed;
+}
+
+function formatTimestamp(value) {
+  return new Date(value).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function autosizeInput() {
+  textInput.style.height = "auto";
+  textInput.style.height = `${Math.min(textInput.scrollHeight, 168)}px`;
+}
+
+function renderConversationList() {
+  const sortedConversations = [...conversations].sort((a, b) => b.updatedAt - a.updatedAt);
+
+  conversationList.innerHTML = "";
+
+  sortedConversations.forEach((conversation) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "conversation-card";
+
+    if (conversation.id === activeConversationId) {
+      button.classList.add("active");
+    }
+
+    button.innerHTML = `
+      <p class="conversation-card-title">${escapeHtml(getConversationTitle(conversation))}</p>
+      <p class="conversation-card-preview">${escapeHtml(getConversationPreview(conversation))}</p>
+      <p class="conversation-card-time">Updated ${formatTimestamp(conversation.updatedAt)}</p>
+    `;
+
+    button.addEventListener("click", () => {
+      activeConversationId = conversation.id;
+      renderApp();
+    });
+
+    conversationList.appendChild(button);
+  });
+}
+
+function renderMessages() {
+  const activeConversation = getActiveConversation();
+  chatTitle.textContent = getConversationTitle(activeConversation);
+  chatBody.innerHTML = "";
+
+  if (!activeConversation.messages.length) {
+    const emptyState = document.createElement("div");
+    emptyState.className = "empty-state";
+    emptyState.innerHTML = `
+      <h3>Start a fresh conversation</h3>
+      <p>Your saved chats appear on the left. Open one anytime and continue where you left off.</p>
+    `;
+    chatBody.appendChild(emptyState);
+    return;
+  }
+
+  activeConversation.messages.forEach((message) => {
+    const bubble = document.createElement("div");
+    bubble.className = `message ${message.sender}`;
+
+    const text = document.createElement("p");
+    text.className = "message-text";
+    text.textContent = message.text;
+
+    const meta = document.createElement("p");
+    meta.className = "message-meta";
+    meta.textContent = formatTimestamp(message.createdAt);
+
+    bubble.appendChild(text);
+    bubble.appendChild(meta);
+    chatBody.appendChild(bubble);
+  });
+
+  chatBody.scrollTop = chatBody.scrollHeight;
+}
+
 function renderUI() {
-  // default
   sendBtn.classList.add("hidden");
   micTranscribeBtn.classList.add("hidden");
+  micTranscribeBtn.textContent = "🎤";
+  micTranscribeBtn.classList.remove("active");
 
   switch (uiState) {
     case UI_STATE.IDLE:
@@ -292,103 +194,187 @@ function renderUI() {
 
     case UI_STATE.TRANSCRIBING:
       micTranscribeBtn.classList.remove("hidden");
-      micTranscribeBtn.textContent = "⏹️";
+      micTranscribeBtn.textContent = "⏹";
       micTranscribeBtn.classList.add("active");
       break;
 
     case UI_STATE.VOICE_CHAT:
-      // buttons stay disabled / unchanged
       break;
   }
 }
 
-/* ---------------- CHAT HELPERS ---------------- */
-function addMessage(text, sender) {
-  const div = document.createElement("div");
-  div.className = `message ${sender}`;
-  div.textContent = text;
-  chatBody.appendChild(div);
-  chatBody.scrollTop = chatBody.scrollHeight;
+function renderApp() {
+  renderConversationList();
+  renderMessages();
+  renderUI();
+  autosizeInput();
 }
 
-/* ---------------- VOICE MODE ---------------- */
+function addMessageToConversation(sender, text, conversationId = activeConversationId) {
+  const messageText = String(text || "").trim();
+  if (!messageText) return;
+
+  const conversation = conversations.find((item) => item.id === conversationId);
+  if (!conversation) return;
+
+  conversation.messages.push({
+    id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    sender,
+    text: messageText,
+    createdAt: Date.now(),
+  });
+
+  conversation.title = getConversationTitle(conversation);
+  conversation.updatedAt = Date.now();
+  persistConversations();
+
+  if (conversationId === activeConversationId) {
+    renderApp();
+  } else {
+    renderConversationList();
+  }
+}
+
+function ensureActiveConversationHasRoom() {
+  const activeConversation = getActiveConversation();
+
+  if (activeConversation.messages.length === 0) {
+    return activeConversation;
+  }
+
+  const nextConversation = createConversation();
+  conversations.unshift(nextConversation);
+  activeConversationId = nextConversation.id;
+  persistConversations();
+  renderApp();
+  return nextConversation;
+}
+
+function setInputStateFromText() {
+  if (uiState === UI_STATE.TRANSCRIBING || uiState === UI_STATE.VOICE_CHAT) return;
+
+  uiState = textInput.value.trim() ? UI_STATE.TYPING : UI_STATE.IDLE;
+  renderUI();
+}
+
+function escapeHtml(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+async function sendTextMessage() {
+  const text = textInput.value.trim();
+  if (!text) return;
+
+  const conversation = getActiveConversation();
+  const targetConversationId = conversation.id;
+
+  addMessageToConversation("user", text, targetConversationId);
+  textInput.value = "";
+  uiState = UI_STATE.IDLE;
+  renderUI();
+  autosizeInput();
+
+  try {
+    const response = await fetch(CHAT_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: targetConversationId,
+        query: text,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    const answer = (data.answer || data.text || "").toString().trim();
+    addMessageToConversation("bot", answer || "Sorry, no response received.", targetConversationId);
+  } catch (error) {
+    console.error("Text chat failed:", error);
+    addMessageToConversation(
+      "bot",
+      "Could not reach chatbot backend. Make sure Voice_STS backend is running on 127.0.0.1:5005 and AI_CHATBOT is running on 127.0.0.1:5010.",
+      targetConversationId
+    );
+  }
+}
+
 const voiceModeCallbacks = {
   onStateChange: (state) => {
     if (state === "idle" || state === "error") {
-      uiState = UI_STATE.IDLE;
+      voiceConversationId = null;
+      uiState = textInput.value.trim() ? UI_STATE.TYPING : UI_STATE.IDLE;
       textInput.disabled = false;
       micTranscribeBtn.disabled = false;
+      sendBtn.disabled = false;
       voiceChatBtn.classList.remove("active");
       renderUI();
-    } else {
-      uiState = UI_STATE.VOICE_CHAT;
-      textInput.disabled = true;
-      micTranscribeBtn.disabled = true;
-      voiceChatBtn.classList.add("active");
+      autosizeInput();
+      return;
     }
+
+    uiState = UI_STATE.VOICE_CHAT;
+    voiceConversationId = activeConversationId;
+    textInput.disabled = true;
+    micTranscribeBtn.disabled = true;
+    sendBtn.disabled = true;
+    voiceChatBtn.classList.add("active");
+    renderUI();
   },
 
   onPartialTranscript: (text) => {
     textInput.value = text;
+    autosizeInput();
   },
 
   onFinalTranscript: (text) => {
-    addMessage(text, "user");
+    addMessageToConversation("user", text, voiceConversationId || activeConversationId);
     textInput.value = "";
-    uiState = UI_STATE.IDLE;
-    renderUI();
+    autosizeInput();
   },
 
   onBotResponse: (text) => {
-    addMessage(text, "bot");
-  }
+    addMessageToConversation("bot", text, voiceConversationId || activeConversationId);
+  },
 };
 
-/* ---------------- INIT ---------------- */
 document.addEventListener("DOMContentLoaded", () => {
+  loadConversations();
   voiceMode = initVoiceMode(voiceModeCallbacks);
-  renderUI();
+  renderApp();
 
-  /* -------- TEXT INPUT -------- */
-  function updateInputState() {
-    if (uiState === UI_STATE.TRANSCRIBING || uiState === UI_STATE.VOICE_CHAT) return;
-
-    const hasText = textInput.value.trim().length > 0;
-    const isFocused = document.activeElement === textInput;
-
-    // Strict toggle: If Focused OR Has Text -> TYPING (Send Btn). Else -> IDLE (Mic Btn).
-    uiState = (hasText || isFocused) ? UI_STATE.TYPING : UI_STATE.IDLE;
-    renderUI();
-  }
-
-  textInput.addEventListener("input", updateInputState);
-  textInput.addEventListener("focus", updateInputState);
-  textInput.addEventListener("blur", () => {
-    // Small delay to allow click events on buttons to register before hiding
-    setTimeout(updateInputState, 100);
+  newChatBtn.addEventListener("click", () => {
+    ensureActiveConversationHasRoom();
+    textInput.focus();
   });
 
-  /* -------- SEND -------- */
-  sendBtn.addEventListener("click", () => {
-    const text = textInput.value.trim();
-    if (!text) return;
-
-    addMessage(text, "user");
-    textInput.value = "";
-    uiState = UI_STATE.IDLE;
-    renderUI();
-
-    setTimeout(() => {
-      addMessage("I am a text-only bot.", "bot");
-    }, 400);
+  composerForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await sendTextMessage();
   });
 
-  /* -------- MIC TRANSCRIBE -------- */
+  textInput.addEventListener("input", () => {
+    autosizeInput();
+    setInputStateFromText();
+  });
+
+  textInput.addEventListener("keydown", async (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      await sendTextMessage();
+    }
+  });
+
   micTranscribeBtn.addEventListener("click", () => {
     if (uiState === UI_STATE.TRANSCRIBING) {
-      if (sttProvider) {
-        sttProvider.stop();
-      }
+      sttProvider?.stop();
       return;
     }
 
@@ -399,37 +385,32 @@ document.addEventListener("DOMContentLoaded", () => {
     sttProvider.start({
       onPartial: (text) => {
         textInput.value = text;
+        autosizeInput();
       },
       onFinal: (text) => {
         textInput.value = text;
+        autosizeInput();
       },
       onStatus: (status) => {
         if (status === "ended" || status === "error") {
           sttProvider = null;
-          micTranscribeBtn.textContent = "🎤";
-          micTranscribeBtn.classList.remove("active");
+          setInputStateFromText();
+          autosizeInput();
 
-          // Directly check text presence to set state immediately
-          const hasText = textInput.value.trim().length > 0;
-          if (hasText) {
-            uiState = UI_STATE.TYPING;
-            // Optionally focus, but ensure state is set first
+          if (textInput.value.trim()) {
             textInput.focus();
-          } else {
-            uiState = UI_STATE.IDLE;
           }
-          renderUI();
         }
-      }
+      },
     });
   });
 
-  /* -------- FULL VOICE CHAT -------- */
   voiceChatBtn.addEventListener("click", () => {
     if (voiceMode.isActive()) {
       voiceMode.stop();
-    } else {
-      voiceMode.start();
+      return;
     }
+
+    voiceMode.start();
   });
 });

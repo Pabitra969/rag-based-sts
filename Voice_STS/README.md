@@ -5,7 +5,7 @@ A web-based chat application with a modular speech-to-text (STT) system that int
 ## Features
 
 *   **Dual Input Modes**: Supports both traditional text input and voice input via microphone.
-*   **Voice Chat (full duplex)**: A headset button opens a live voice session; speech is transcribed, answered by the (pluggable) LLM, and streamed back as TTS audio.
+*   **Voice Chat (full duplex)**: A headset button opens a live voice session; speech is transcribed, answered by your AI chatbot API, and streamed back as TTS audio.
 *   **Dynamic UI**: The input controls (mic/send button) adapt based on user interaction.
 *   **Smart STT Provider Switching**: Automatically uses the browser's free Web Speech API on supported browsers (like Chrome/Edge) and falls back to Microsoft Azure Speech for others, ensuring wide compatibility.
 *   **Secure Backend**: A Node.js/Express backend securely manages and provides temporary access tokens for the Azure Speech service, keeping sensitive API keys off the client-side.
@@ -93,9 +93,15 @@ PORT=5005
 SPEECH_PROVIDER=azure/openai/ollama or if you set local
 AZURE_SPEECH_KEY=YOUR_AZURE_SPEECH_API_KEY
 AZURE_SPEECH_REGION=YOUR_AZURE_SPEECH_REGION
-# Voice chat (LLM) – optional
-# Point to your own local LLM HTTP endpoint (expects {text} in response)
-LOCAL_LLM_URL=http://localhost:11434/api/chat
+# Voice chat LLM source (primary)
+# Voice_STS will call AI_CHATBOT endpoint with { user_id, query }
+AI_CHATBOT_API_URL=http://127.0.0.1:5010/api/chat
+
+# Optional timeout override (ms)
+LLM_TIMEOUT_MS=15000
+
+# Optional fallback if AI_CHATBOT is unavailable
+# LOCAL_LLM_URL=http://localhost:11434/api/chat
 ```
 
 ```bash
@@ -125,7 +131,8 @@ Your browser will open to the chat application, and it will be able to communica
 *   On **Chrome/Edge**, it will use the Web Speech API.
 *   On **Firefox/Safari**, it will automatically fall back to using Azure by fetching a token from your backend.
 *   Voice mode connects via WebSocket at `ws://localhost:5005/ws/voice` by default. If you host the backend elsewhere, set `window.VOICE_WS_URL` in `index.html` before loading `speech.js`.
-*   LLM replies default to a canned response unless you set `LOCAL_LLM_URL` to your own model endpoint (e.g., Ollama / LM Studio / custom HTTP).
+*   Voice replies are sourced from AI_CHATBOT by default using `AI_CHATBOT_API_URL`.
+*   If AI_CHATBOT is unavailable and `LOCAL_LLM_URL` is set, backend falls back to that endpoint.
 
 
 

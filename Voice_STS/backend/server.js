@@ -6,12 +6,31 @@ require("dotenv").config();
 
 const speechTokenRouter = require("./routes/speechToken.route");
 const initVoiceSocket = require("./routes/voice.socket");
+const LLMProvider = require("./services/sts/llm.provider");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 app.use("/api/speech-token", speechTokenRouter);
+
+app.post("/api/chat", async (req, res) => {
+  const query = String(req.body?.query || "").trim();
+  const userId = String(req.body?.user_id || "voice-text-user");
+
+  if (!query) {
+    return res.status(400).json({ error: "query is required" });
+  }
+
+  try {
+    const llm = new LLMProvider();
+    const answer = await llm.generateReply(query, [], userId);
+    return res.json({ answer });
+  } catch (err) {
+    console.error("/api/chat error:", err.message);
+    return res.status(500).json({ error: "failed to generate reply" });
+  }
+});
 
 const port = process.env.PORT || 5005;
 

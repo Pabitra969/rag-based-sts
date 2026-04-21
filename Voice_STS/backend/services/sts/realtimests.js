@@ -5,6 +5,7 @@ const LLMProvider = require("./llm.provider");
 module.exports = function handleVoiceSession(ws) {
     const azure = new AzureSTS();
     const llm = new LLMProvider();
+    const sessionUserId = `voice_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
     const format = sdk.AudioStreamFormat.getWaveFormatPCM(16000, 16, 1);
     const pushStream = sdk.AudioInputStream.createPushStream(format);
@@ -52,7 +53,7 @@ module.exports = function handleVoiceSession(ws) {
         );
 
         try {
-            const replyText = await llm.generateReply(userText, history);
+            const replyText = await llm.generateReply(userText, history, sessionUserId);
             history.push({ role: "assistant", content: replyText });
 
             ws.send(
