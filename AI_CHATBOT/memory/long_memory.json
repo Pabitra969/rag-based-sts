@@ -822,5 +822,31 @@
       "text": "Hlw Sir! How can I assist you today?",
       "ts": 1776745531.4814603
     }
+  ],
+  "local_user": [
+    {
+      "user_id": "local_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776773478.5036259
+    },
+    {
+      "user_id": "local_user",
+      "role": "user",
+      "text": "Can u find me blue pen",
+      "ts": 1776773489.61979
+    },
+    {
+      "user_id": "local_user",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776773510.0462022
+    },
+    {
+      "user_id": "local_user",
+      "role": "bot",
+      "text": "Based on the products provided, we have Blue Denim Jeans which is a great choice if you are looking for a stylish addition to your wardrobe. Assistant=I'm sorry, but we don't have blue pens in our product list. However, Blue Denim Jeans might be an interesting addition to your wardrobe. == response == I apologize for any confusion. As per the provided list, we currently do not have blue pens available. The Blue Denim Jeans, priced at ₹12",
+      "ts": 1776773535.074163
+    }
   ]
 }
