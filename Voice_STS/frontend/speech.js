@@ -36,19 +36,19 @@ const VOICE_COPY = {
     hint: "Open voice chat to start a live back-and-forth session.",
   },
   connecting: {
-    label: "Connecting",
+    label: "Connecting.....",
     hint: "Preparing microphone and live speech channel...",
   },
   listening: {
-    label: "Listening",
+    label: "Listening.....",
     hint: "Speak naturally. You can interrupt the assistant any time.",
   },
   thinking: {
-    label: "Thinking",
+    label: "Thinking.....",
     hint: "Your last utterance is locked in. The assistant is preparing a reply.",
   },
   speaking: {
-    label: "Speaking",
+    label: "Speaking.....",
     hint: "Assistant audio is playing. Start talking to barge in and take the turn.",
   },
   interrupted: {
@@ -71,6 +71,7 @@ let isVoicePanelOpen = false;
 let lastVoiceFinalText = "";
 let lastVoiceBotText = "";
 let currentVoiceAssistantState = "idle";
+let renderedConversationId = null;
 
 function createConversation(title = "New conversation") {
   return {
@@ -214,6 +215,7 @@ function renderMessages() {
   const activeConversation = getActiveConversation();
   chatTitle.textContent = getConversationTitle(activeConversation);
   chatBody.innerHTML = "";
+  renderedConversationId = activeConversation.id;
 
   if (!activeConversation.messages.length) {
     const emptyState = document.createElement("div");
@@ -227,23 +229,33 @@ function renderMessages() {
   }
 
   activeConversation.messages.forEach((message) => {
-    const bubble = document.createElement("div");
-    bubble.className = `message ${message.sender}`;
-
-    const text = document.createElement("p");
-    text.className = "message-text";
-    text.textContent = message.text;
-
-    const meta = document.createElement("p");
-    meta.className = "message-meta";
-    meta.textContent = formatTimestamp(message.createdAt);
-
-    bubble.appendChild(text);
-    bubble.appendChild(meta);
-    chatBody.appendChild(bubble);
+    chatBody.appendChild(createMessageBubble(message));
   });
 
-  chatBody.scrollTop = chatBody.scrollHeight;
+  scrollChatToBottom();
+}
+
+function createMessageBubble(message) {
+  const bubble = document.createElement("div");
+  bubble.className = `message ${message.sender}`;
+
+  const text = document.createElement("p");
+  text.className = "message-text";
+  text.textContent = message.text;
+
+  const meta = document.createElement("p");
+  meta.className = "message-meta";
+  meta.textContent = formatTimestamp(message.createdAt);
+
+  bubble.appendChild(text);
+  bubble.appendChild(meta);
+  return bubble;
+}
+
+function scrollChatToBottom() {
+  requestAnimationFrame(() => {
+    chatBody.scrollTop = chatBody.scrollHeight;
+  });
 }
 
 function renderUI() {
@@ -316,7 +328,16 @@ function addMessageToConversation(sender, text, conversationId = activeConversat
   persistConversations();
 
   if (conversationId === activeConversationId) {
-    renderApp();
+    if (renderedConversationId === conversationId) {
+      const message = conversation.messages[conversation.messages.length - 1];
+      chatBody.querySelector(".empty-state")?.remove();
+      chatBody.appendChild(createMessageBubble(message));
+      scrollChatToBottom();
+      renderConversationList();
+      updateVoiceAssistant(currentVoiceAssistantState);
+    } else {
+      renderApp();
+    }
   } else {
     renderConversationList();
   }

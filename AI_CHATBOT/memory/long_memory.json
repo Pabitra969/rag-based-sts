@@ -1445,6 +1445,30 @@
       "role": "bot",
       "text": "The color of the sky is typically blue during the day due to the scattering of sunlight by the Earth's atmosphere. New Conversation for Scenario:",
       "ts": 1776887329.307181
+    },
+    {
+      "user_id": "chat_1776887290956_ov6l6d",
+      "role": "user",
+      "text": "what is the color of sky ?",
+      "ts": 1776889422.3266916
+    },
+    {
+      "user_id": "chat_1776887290956_ov6l6d",
+      "role": "bot",
+      "text": "The color of the sky is blue during the daytime due to the scattering of sunlight by the atmosphere.",
+      "ts": 1776889436.5437293
+    },
+    {
+      "user_id": "chat_1776887290956_ov6l6d",
+      "role": "user",
+      "text": "what is 2 + 2\\",
+      "ts": 1776889443.3017833
+    },
+    {
+      "user_id": "chat_1776887290956_ov6l6d",
+      "role": "bot",
+      "text": "2 + 2 equals 4.",
+      "ts": 1776889449.2153194
     }
   ],
   "voice_1776887346922_d2gaiv": [
@@ -1527,6 +1551,238 @@
       "role": "bot",
       "text": "The color of the sky is typically blue during the daytime. However, it can appear in different shades of blue, orange, pink, or black during sunrise and sunset.",
       "ts": 1776888930.1970484
+    }
+  ],
+  "voice_1776889455102_1opx5t": [
+    {
+      "user_id": "voice_1776889455102_1opx5t",
+      "role": "user",
+      "text": "What is 2 + 2?",
+      "ts": 1776889459.6080067
+    },
+    {
+      "user_id": "voice_1776889455102_1opx5t",
+      "role": "bot",
+      "text": "2 + 2 equals 4.",
+      "ts": 1776889467.8297822
+    },
+    {
+      "user_id": "voice_1776889455102_1opx5t",
+      "role": "user",
+      "text": "OK, very good.",
+      "ts": 1776889475.9648664
+    },
+    {
+      "user_id": "voice_1776889455102_1opx5t",
+      "role": "user",
+      "text": "You know you're very sweet.",
+      "ts": 1776889480.8665373
+    }
+  ],
+  "voice_1776890066154_rsb9tm": [
+    {
+      "user_id": "voice_1776890066154_rsb9tm",
+      "role": "user",
+      "text": "Hi there.",
+      "ts": 1776890070.8842025
+    },
+    {
+      "user_id": "voice_1776890066154_rsb9tm",
+      "role": "bot",
+      "text": "Hello! I'm the Provis Technologies' AI support agent. How can I assist you today?",
+      "ts": 1776890101.3153734
+    },
+    {
+      "user_id": "voice_1776890066154_rsb9tm",
+      "role": "user",
+      "text": "Do you have any, uh, idea how to click a mouse?",
+      "ts": 1776890122.9414144
+    },
+    {
+      "user_id": "voice_1776890066154_rsb9tm",
+      "role": "bot",
+      "text": "Wireless Mouse | ₹899 | electronics. Ergonomic wireless mouse",
+      "ts": 1776890127.5101953
+    },
+    {
+      "user_id": "voice_1776890066154_rsb9tm",
+      "role": "user",
+      "text": "Oh sorry sorry. I want to know how to.",
+      "ts": 1776890127.8397882
+    },
+    {
+      "user_id": "voice_1776890066154_rsb9tm",
+      "role": "user",
+      "text": "Rani Mouse.",
+      "ts": 1776890130.2265291
+    },
+    {
+      "user_id": "voice_1776890066154_rsb9tm",
+      "role": "user",
+      "text": "Actually, do you know what the colour of sky?",
+      "ts": 1776890137.8584564
+    },
+    {
+      "user_id": "voice_1776890066154_rsb9tm",
+      "role": "bot",
+      "text": "I understand. You are looking for information. How may I assist you further?",
+      "ts": 1776890161.649733
+    },
+    {
+      "user_id": "voice_1776890066154_rsb9tm",
+      "role": "bot",
+      "text": "I'm here to help! It sounds like you're interested in a wireless mouse. We have a great selection available. One popular option is the Wireless Mouse priced at ₹899. Would you like to know more about it?",
+      "ts": 1776890191.5838509
+    },
+    {
+      "user_id": "voice_1776890066154_rsb9tm",
+      "role": "bot",
+      "text": "Yes, the color of the sky is blue during the day due to the scattering of sunlight by the atmosphere. The sky appears to have different colors at sunrise and sunset due to the scattering of sunlight by the atmosphere and the presence of dust and other particles in the air.",
+      "ts": 1776890217.2076008
+    }
+  ],
+  "voice_1776890335195_yissbs": [
+    {
+      "user_id": "voice_1776890335195_yissbs",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776890339.654831
+    },
+    {
+      "user_id": "voice_1776890335195_yissbs",
+      "role": "user",
+      "text": "What is your name?",
+      "ts": 1776890349.7540658
+    },
+    {
+      "user_id": "voice_1776890335195_yissbs",
+      "role": "user",
+      "text": "OK, tell me my name.",
+      "ts": 1776890376.8560324
+    },
+    {
+      "user_id": "voice_1776890335195_yissbs",
+      "role": "bot",
+      "text": "I'm the Provis Technologies' AI assistant. How can I help you further?",
+      "ts": 1776890386.3461778
+    },
+    {
+      "user_id": "voice_1776890335195_yissbs",
+      "role": "bot",
+      "text": "I'm a virtual support agent here at Provis Technologies. How can I assist you today?",
+      "ts": 1776890400.625059
+    },
+    {
+      "user_id": "voice_1776890335195_yissbs",
+      "role": "user",
+      "text": "So tell me what is 2 + 2?",
+      "ts": 1776890415.2579389
+    },
+    {
+      "user_id": "voice_1776890335195_yissbs",
+      "role": "bot",
+      "text": "2 + 2 equals 4.",
+      "ts": 1776890433.7141519
+    },
+    {
+      "user_id": "voice_1776890335195_yissbs",
+      "role": "user",
+      "text": "OK, can you tell me what is the value of three Pi?",
+      "ts": 1776890443.9151654
+    },
+    {
+      "user_id": "voice_1776890335195_yissbs",
+      "role": "bot",
+      "text": "The value of three Pi is approximately 9.42. New Conversation for",
+      "ts": 1776890470.508961
+    }
+  ],
+  "chat_1776890331523_ec6jmq": [
+    {
+      "user_id": "chat_1776890331523_ec6jmq",
+      "role": "user",
+      "text": "what is color of sky ?",
+      "ts": 1776890543.872702
+    },
+    {
+      "user_id": "chat_1776890331523_ec6jmq",
+      "role": "bot",
+      "text": "The color of the sky is blue during the day due to the way Earth's atmosphere scatters sunlight.",
+      "ts": 1776890554.1139066
+    },
+    {
+      "user_id": "chat_1776890331523_ec6jmq",
+      "role": "user",
+      "text": "who is pm of india ?",
+      "ts": 1776890563.4010465
+    },
+    {
+      "user_id": "chat_1776890331523_ec6jmq",
+      "role": "bot",
+      "text": "The Prime Minister of India is Mr. Narendra Modi.",
+      "ts": 1776890569.9417713
+    },
+    {
+      "user_id": "chat_1776890331523_ec6jmq",
+      "role": "user",
+      "text": "president of America",
+      "ts": 1776890586.1949577
+    },
+    {
+      "user_id": "chat_1776890331523_ec6jmq",
+      "role": "bot",
+      "text": "The President of the United States is Mr. Joe Biden.",
+      "ts": 1776890592.846749
+    }
+  ],
+  "voice_1776890597475_2ufpne": [
+    {
+      "user_id": "voice_1776890597475_2ufpne",
+      "role": "user",
+      "text": "Who is the PM of India?",
+      "ts": 1776890604.8899891
+    },
+    {
+      "user_id": "voice_1776890597475_2ufpne",
+      "role": "bot",
+      "text": "As of the last update in my knowledge, the Prime Minister of India is Narendra Modi. However, for the most recent information, please check the latest news sources.",
+      "ts": 1776890626.5676506
+    },
+    {
+      "user_id": "voice_1776890597475_2ufpne",
+      "role": "user",
+      "text": "Do you know uh, who is the?",
+      "ts": 1776890649.977839
+    },
+    {
+      "user_id": "voice_1776890597475_2ufpne",
+      "role": "user",
+      "text": "President of America.",
+      "ts": 1776890652.8094456
+    },
+    {
+      "user_id": "voice_1776890597475_2ufpne",
+      "role": "user",
+      "text": "I want to know who is the president of America?",
+      "ts": 1776890677.3633041
+    },
+    {
+      "user_id": "voice_1776890597475_2ufpne",
+      "role": "bot",
+      "text": "I can provide information on our products. How may I assist you with our Smart Watch or Bluetooth Speaker?",
+      "ts": 1776890700.3744676
+    },
+    {
+      "user_id": "voice_1776890597475_2ufpne",
+      "role": "bot",
+      "text": "Yes, currently the President of the United States is Joe Biden.",
+      "ts": 1776890709.1538434
+    },
+    {
+      "user_id": "voice_1776890597475_2ufpne",
+      "role": "bot",
+      "text": "The current President of the United States is Joe Biden.",
+      "ts": 1776890717.4496124
     }
   ]
 }

@@ -16,6 +16,7 @@ class ModelSessionManager:
         self.model_path = model_path
         self.session_file = session_file
         self.verbose = verbose
+        self._lock = asyncio.Lock()
 
         self.llm = Llama(
             model_path=self.model_path,
@@ -67,6 +68,11 @@ class ModelSessionManager:
                 print(f"💾 Context saved → {self.session_file}")
         except Exception as e:
             print(f"⚠️ Context save failed safely: {e}")
+
+    async def save_context_async(self):
+        loop = asyncio.get_running_loop()
+        async with self._lock:
+            await loop.run_in_executor(None, self.save_context)
 
     def get_model(self):
         return self.llm
@@ -120,7 +126,8 @@ class ModelSessionManager:
             )
 
         try:
-            out = await loop.run_in_executor(None, _infer)
+            async with self._lock:
+                out = await loop.run_in_executor(None, _infer)
             text = out.get("choices", [{}])[0].get("text", "") or ""
             # Clean output: remove role prefixes and extra whitespace
             cleaned = text.strip()

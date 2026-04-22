@@ -29,12 +29,13 @@ async def chat_endpoint(request: Request):
     data = await request.json()
     user_id = data.get("user_id", "default")
     query = data.get("query", "").strip()
+    voice_mode = bool(data.get("voice_mode"))
     if not query:
         return JSONResponse({"error": "Empty query"}, status_code=400)
 
     try:
         # Call your chatbot's async answer function
-        answer = await answer_query_async(user_id, query)
+        answer = await answer_query_async(user_id, query, voice_mode=voice_mode)
         return JSONResponse({"answer": answer})
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)

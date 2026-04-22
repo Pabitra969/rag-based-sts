@@ -139,7 +139,7 @@ def build_product_context(results, max_items: int = 4) -> str:
     return "\n".join(lines) if lines else "No product info found."
 
 # ============ INTENT ROUTING LOGIC ============
-async def answer_query_async(user_id: str, query: str) -> str:
+async def answer_query_async(user_id: str, query: str, voice_mode: bool = False) -> str:
     """
     Smart routing based on query intent:
     1. Greeting → QuickResponder (fast)
@@ -149,6 +149,11 @@ async def answer_query_async(user_id: str, query: str) -> str:
     """
     timings = {}
     start = time.time()
+    retrieval_k = 2 if voice_mode else TOP_K
+    product_max_tokens = 48 if voice_mode else 80
+    personalized_max_tokens = 72 if voice_mode else 120
+    general_max_tokens = 64 if voice_mode else 120
+    general_history_turns = 1 if voice_mode else 2
 
     # ===== PATH 1: QUICK RESPONSES (GREETINGS) =====
     with timed("quick", timings):
@@ -176,7 +181,7 @@ async def answer_query_async(user_id: str, query: str) -> str:
             print(f"[ROUTE] PRODUCT QUERY → Direct DB retrieval + Light LLM humanize")
 
         with timed("retrieval", timings):
-            results = await retrieve(query, top_k=TOP_K)
+            results = await retrieve(query, top_k=retrieval_k)
 
         # Try deterministic extraction first
         with timed("extract", timings):
@@ -195,14 +200,15 @@ async def answer_query_async(user_id: str, query: str) -> str:
                     context_text=context,
                     history_text="",
                     temperature=0.25,
-                    max_tokens=80
+                    max_tokens=product_max_tokens
                 )
             if not reply.strip():
                 reply = "I couldn't find that product. Could you be more specific?"
 
         sessions.add_bot_msg(user_id, reply)
-        with timed("save", timings):
-            model_manager.save_context()
+        if not voice_mode:
+            with timed("save", timings):
+                await model_manager.save_context_async()
         timings["total"] = round(time.time() - start, 3)
         if DEBUG:
             print(f"[TIMING] {timings}")
@@ -218,8 +224,9 @@ async def answer_query_async(user_id: str, query: str) -> str:
         if re.search(r"\border(\b|\s)|track|order\s*status", ql):
             reply = "To check your order, please share your order ID (e.g., ORD1234). I'll track the status for you."
             sessions.add_bot_msg(user_id, reply)
-            with timed("save", timings):
-                model_manager.save_context()
+            if not voice_mode:
+                with timed("save", timings):
+                    await model_manager.save_context_async()
             timings["total"] = round(time.time() - start, 3)
             if DEBUG:
                 print(f"[ROUTE] ORDER STATUS → Template response")
@@ -227,7 +234,7 @@ async def answer_query_async(user_id: str, query: str) -> str:
             return reply
 
         with timed("retrieval", timings):
-            results = await retrieve(query, top_k=TOP_K)
+            results = await retrieve(query, top_k=retrieval_k)
 
         context = build_product_context(results, max_items=3)
         history = get_full_history(user_id)
@@ -239,14 +246,15 @@ async def answer_query_async(user_id: str, query: str) -> str:
                 context_text=context,
                 history_text=history,  # full history for personalization
                 temperature=0.4,
-                max_tokens=120
+                max_tokens=personalized_max_tokens
             )
         if not reply.strip():
             reply = "I'm here to help! Could you tell me more about what you need?"
 
         sessions.add_bot_msg(user_id, reply)
-        with timed("save", timings):
-            model_manager.save_context()
+        if not voice_mode:
+            with timed("save", timings):
+                await model_manager.save_context_async()
         timings["total"] = round(time.time() - start, 3)
         if DEBUG:
             print(f"[TIMING] {timings}")
@@ -257,7 +265,7 @@ async def answer_query_async(user_id: str, query: str) -> str:
         print(f"[ROUTE] GENERAL QUERY → Model answer + product suggestions")
 
     with timed("retrieval", timings):
-        results = await retrieve(query, top_k=TOP_K)
+        results = await retrieve(query, top_k=retrieval_k)
 
     # Build light product suggestions (strictly from DB — never invent)
     suggestions = []
@@ -274,7 +282,7 @@ async def answer_query_async(user_id: str, query: str) -> str:
         else ""
     )
 
-    history = get_recent_history(user_id, max_turns=2)
+    history = get_recent_history(user_id, max_turns=general_history_turns)
 
     with timed("llm_general", timings):
         reply = await model_manager.generate_reply(
@@ -283,14 +291,15 @@ async def answer_query_async(user_id: str, query: str) -> str:
             context_text=context,
             history_text=history,
             temperature=0.5,
-            max_tokens=120
+            max_tokens=general_max_tokens
         )
     if not reply.strip():
         reply = "That's an interesting question! I'm not sure, but feel free to ask about our products."
 
     sessions.add_bot_msg(user_id, reply)
-    with timed("save", timings):
-        model_manager.save_context()
+    if not voice_mode:
+        with timed("save", timings):
+            await model_manager.save_context_async()
     timings["total"] = round(time.time() - start, 3)
     if DEBUG:
         print(f"[TIMING] {timings}")

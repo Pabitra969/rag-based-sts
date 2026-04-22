@@ -18,6 +18,7 @@ class LLMProvider {
           {
             user_id: userId,
             query: message,
+            voice_mode: true,
           },
           { timeout: this.timeoutMs, signal }
         );
