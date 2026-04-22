@@ -853,6 +853,60 @@
       "role": "bot",
       "text": "Hlw Sir! How can I assist you today?",
       "ts": 1776776164.3917508
+    },
+    {
+      "user_id": "local_user",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776886670.161672
+    },
+    {
+      "user_id": "local_user",
+      "role": "bot",
+      "text": "I’m Provis Technology’s offline support assistant, here to help with your product questions.",
+      "ts": 1776886675.6941266
+    },
+    {
+      "user_id": "local_user",
+      "role": "user",
+      "text": "who i am ?",
+      "ts": 1776886682.5270135
+    },
+    {
+      "user_id": "local_user",
+      "role": "user",
+      "text": "who am i ?",
+      "ts": 1776886691.1085079
+    },
+    {
+      "user_id": "local_user",
+      "role": "bot",
+      "text": "You are currently speaking with the Provis Technology support assistant. I'm here to help with any questions or concerns you may have about our products. How can I assist you today?",
+      "ts": 1776886711.7828608
+    },
+    {
+      "user_id": "local_user",
+      "role": "user",
+      "text": "who is pm of india ?",
+      "ts": 1776886714.6113434
+    },
+    {
+      "user_id": "local_user",
+      "role": "bot",
+      "text": "The Prime Minister of India is Mr. Narendra Modi. However, as a customer support assistant for Provis Technologies, I focus on providing information about our products. Is there anything specific about our products I can help you with?",
+      "ts": 1776886729.5467355
+    },
+    {
+      "user_id": "local_user",
+      "role": "user",
+      "text": "do you have any skin related product ?",
+      "ts": 1776886766.2218072
+    },
+    {
+      "user_id": "local_user",
+      "role": "bot",
+      "text": "I'm sorry, but currently we only have clothing items in our database. For skin-related products, I would recommend visiting a specialized store.",
+      "ts": 1776886779.013535
     }
   ],
   "voice_text_user": [
@@ -1191,6 +1245,262 @@
       "role": "bot",
       "text": "Red Cotton T-Shirt | ₹499 | clothing. Soft organic cotton t-shirt for men",
       "ts": 1776778114.8920178
+    }
+  ],
+  "test": [
+    {
+      "user_id": "test",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776881169.134602
+    },
+    {
+      "user_id": "test",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776881191.754958
+    }
+  ],
+  "demo": [
+    {
+      "user_id": "demo",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776881215.3642132
+    },
+    {
+      "user_id": "demo",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776881215.424517
+    },
+    {
+      "user_id": "demo",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776885047.9306955
+    },
+    {
+      "user_id": "demo",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776885057.7391274
+    }
+  ],
+  "voice-text-user": [
+    {
+      "user_id": "voice-text-user",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776884837.5511394
+    },
+    {
+      "user_id": "voice-text-user",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776885787.689085
+    }
+  ],
+  "chat_1776885343441_0h50o2": [
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776885359.8064444
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "bot",
+      "text": "I’m Provis Technology’s offline support assistant, here to help with your product questions.",
+      "ts": 1776885369.0265913
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "user",
+      "text": "who is the pm of india ?",
+      "ts": 1776885380.1714878
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "bot",
+      "text": "The Prime Minister of India is Mr. Narendra Modi.",
+      "ts": 1776885394.819985
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "user",
+      "text": "my name is Kushal",
+      "ts": 1776885407.1969762
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "user",
+      "text": "what is my name ?",
+      "ts": 1776885414.6935568
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "user",
+      "text": "what is my name ?",
+      "ts": 1776885423.817039
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "bot",
+      "text": "Hey! What can I do for you?",
+      "ts": 1776885426.8151762
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776885429.177678
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "bot",
+      "text": "I’m Provis Technology’s offline support assistant, here to help with your product questions.",
+      "ts": 1776885433.8307018
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "user",
+      "text": "i am kushal",
+      "ts": 1776885437.2677782
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "bot",
+      "text": "Nice to meet you Kushal! How can I assist you today? If you're looking for product suggestions, I have a couple of options. We have Silk Saree available for ₹5499 and Bluetooth Speaker for ₹1699. Let me know if you need more information on these products!",
+      "ts": 1776885451.587154
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "user",
+      "text": "what is your name ?",
+      "ts": 1776885455.8464377
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "bot",
+      "text": "I'm a virtual assistant created by Provis Technology. How may I help you further?",
+      "ts": 1776885465.2761793
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "user",
+      "text": "do your name is phi 3 ?",
+      "ts": 1776885484.0312033
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "bot",
+      "text": "I'm an AI developed by Provis Technology. I'm here to help you with any queries you might have.",
+      "ts": 1776885496.367332
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "user",
+      "text": "i need something for my skin do you have any product for this ?",
+      "ts": 1776885521.7271855
+    },
+    {
+      "user_id": "chat_1776885343441_0h50o2",
+      "role": "bot",
+      "text": "We have an Organic Face Cream that is moisturizing and enriched with aloe vera and vitamin E, priced at ₹599. Would you like to know more about this product?",
+      "ts": 1776885534.649625
+    }
+  ],
+  "diag": [
+    {
+      "user_id": "diag",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776886507.0870354
+    }
+  ],
+  "diag-ui": [
+    {
+      "user_id": "diag-ui",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776886564.5728571
+    }
+  ],
+  "chat_1776887290956_ov6l6d": [
+    {
+      "user_id": "chat_1776887290956_ov6l6d",
+      "role": "bot",
+      "text": "Hlw Sir! How can I assist you today?",
+      "ts": 1776887294.155807
+    },
+    {
+      "user_id": "chat_1776887290956_ov6l6d",
+      "role": "user",
+      "text": "what is color of sky ?",
+      "ts": 1776887307.9685886
+    },
+    {
+      "user_id": "chat_1776887290956_ov6l6d",
+      "role": "bot",
+      "text": "The color of the sky is typically blue during the day due to the scattering of sunlight by the Earth's atmosphere. New Conversation for Scenario:",
+      "ts": 1776887329.307181
+    }
+  ],
+  "voice_1776887346922_d2gaiv": [
+    {
+      "user_id": "voice_1776887346922_d2gaiv",
+      "role": "user",
+      "text": "Hi. Hello.",
+      "ts": 1776887350.541451
+    },
+    {
+      "user_id": "voice_1776887346922_d2gaiv",
+      "role": "bot",
+      "text": "Hi there! I'm the Provis Technologies' AI support. How can I assist you today?",
+      "ts": 1776887357.7024689
+    },
+    {
+      "user_id": "voice_1776887346922_d2gaiv",
+      "role": "user",
+      "text": "Can you tell me what the color of sky?",
+      "ts": 1776887371.530476
+    },
+    {
+      "user_id": "voice_1776887346922_d2gaiv",
+      "role": "bot",
+      "text": "The color of the sky is typically blue during the day due to the scattering of sunlight by the atmosphere.",
+      "ts": 1776887380.2661874
+    },
+    {
+      "user_id": "voice_1776887346922_d2gaiv",
+      "role": "user",
+      "text": "So can you tell me what the, uh, PM?",
+      "ts": 1776887397.3393505
+    },
+    {
+      "user_id": "voice_1776887346922_d2gaiv",
+      "role": "user",
+      "text": "My skin tone is darker so can you tell me what product I used to be white?",
+      "ts": 1776887414.342351
+    },
+    {
+      "user_id": "voice_1776887346922_d2gaiv",
+      "role": "bot",
+      "text": "I'm sorry, but I can't provide advice on skin treatments. However, our Organic Face Cream is designed to nourish and hydrate the skin.",
+      "ts": 1776887425.9008749
+    },
+    {
+      "user_id": "voice_1776887346922_d2gaiv",
+      "role": "user",
+      "text": "OK, this is very good.",
+      "ts": 1776887443.007804
+    },
+    {
+      "user_id": "voice_1776887346922_d2gaiv",
+      "role": "user",
+      "text": "OK, so I want to tell you something that I my name is Kushal Das and what is your real name?",
+      "ts": 1776887451.9953284
     }
   ]
 }

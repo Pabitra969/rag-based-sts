@@ -6,6 +6,10 @@ from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
+# Ensure all relative paths resolve from this file's directory
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+os.chdir(BASE_DIR)
+
 # Import chatbot logic
 from chatbot import answer_query_async  # Make sure chatbot.py exposes this function
 
