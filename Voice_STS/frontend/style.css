@@ -470,6 +470,33 @@ h2 {
   color: rgba(255, 255, 255, 0.72);
 }
 
+.typing-indicator {
+  min-width: 96px;
+}
+
+.typing-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 20px;
+}
+
+.typing-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(23, 89, 74, 0.55);
+  animation: typingPulse 1s ease-in-out infinite;
+}
+
+.typing-dots span:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.typing-dots span:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
 .composer {
   flex-shrink: 0;
   padding: 18px 22px 22px;
@@ -689,5 +716,17 @@ textarea:disabled {
   50% {
     height: 26px;
     opacity: 0.9;
+  }
+}
+
+@keyframes typingPulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(-3px);
+    opacity: 1;
   }
 }

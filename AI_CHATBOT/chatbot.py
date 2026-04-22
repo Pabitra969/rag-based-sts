@@ -104,7 +104,7 @@ def _fast_general_reply(user_id: str, query: str, voice_mode: bool) -> str:
         return "Division by zero is not allowed."
 
     if re.search(r"\b(who are you|what('?s| is) your name)\b", q):
-        return "I'm your AI support assistant."
+        return "I'm Aria, your AI support assistant."
 
     if re.search(r"\bwhat('?s| is) my name\b", q):
         known_name = _extract_user_name_from_history(user_id)

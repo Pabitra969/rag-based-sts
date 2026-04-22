@@ -72,6 +72,7 @@ let lastVoiceFinalText = "";
 let lastVoiceBotText = "";
 let currentVoiceAssistantState = "idle";
 let renderedConversationId = null;
+let textTypingIndicatorEl = null;
 
 function createConversation(title = "New conversation") {
   return {
@@ -229,7 +230,7 @@ function renderMessages() {
   }
 
   activeConversation.messages.forEach((message) => {
-    chatBody.appendChild(createMessageBubble(message));
+    chatBody.appendChild(createMessageBubble(message).bubble);
   });
 
   scrollChatToBottom();
@@ -249,7 +250,62 @@ function createMessageBubble(message) {
 
   bubble.appendChild(text);
   bubble.appendChild(meta);
+  return { bubble, text, meta };
+}
+
+function animateTextContent(target, text, stepMs = 50) {
+  const words = String(text || "").split(/(\s+)/).filter(Boolean);
+  target.textContent = "";
+
+  if (!words.length) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    let index = 0;
+    const timer = window.setInterval(() => {
+      target.textContent += words[index];
+      index += 1;
+      scrollChatToBottom();
+
+      if (index >= words.length) {
+        window.clearInterval(timer);
+        resolve();
+      }
+    }, stepMs);
+  });
+}
+
+function createTypingIndicator() {
+  const bubble = document.createElement("div");
+  bubble.className = "message bot typing-indicator";
+
+  const dots = document.createElement("div");
+  dots.className = "typing-dots";
+  dots.innerHTML = "<span></span><span></span><span></span>";
+
+  bubble.appendChild(dots);
   return bubble;
+}
+
+function showTextTypingIndicator() {
+  if (textTypingIndicatorEl) {
+    return;
+  }
+
+  chatBody.querySelector(".empty-state")?.remove();
+  textTypingIndicatorEl = createTypingIndicator();
+  chatBody.appendChild(textTypingIndicatorEl);
+  scrollChatToBottom();
+}
+
+function removeTextTypingIndicator() {
+  if (!textTypingIndicatorEl) {
+    return;
+  }
+
+  textTypingIndicatorEl.remove();
+  textTypingIndicatorEl = null;
 }
 
 function scrollChatToBottom() {
@@ -306,7 +362,7 @@ function hasRecentDuplicate(conversation, sender, text) {
   );
 }
 
-function addMessageToConversation(sender, text, conversationId = activeConversationId) {
+function addMessageToConversation(sender, text, conversationId = activeConversationId, options = {}) {
   const messageText = String(text || "").trim();
   if (!messageText) {
     return;
@@ -332,10 +388,15 @@ function addMessageToConversation(sender, text, conversationId = activeConversat
     if (renderedConversationId === conversationId) {
       const message = conversation.messages[conversation.messages.length - 1];
       chatBody.querySelector(".empty-state")?.remove();
-      chatBody.appendChild(createMessageBubble(message));
+      const { bubble, text: textEl } = createMessageBubble(message);
+      chatBody.appendChild(bubble);
       scrollChatToBottom();
       renderConversationList();
       updateVoiceAssistant(currentVoiceAssistantState);
+      if (options.animate && sender === "bot") {
+        textEl.textContent = "";
+        void animateTextContent(textEl, message.text, options.stepMs || 20);
+      }
     } else {
       renderApp();
     }
@@ -391,6 +452,7 @@ async function sendTextMessage() {
   uiState = UI_STATE.IDLE;
   renderUI();
   autosizeInput();
+  showTextTypingIndicator();
 
   try {
     const response = await fetch(CHAT_API_URL, {
@@ -408,13 +470,19 @@ async function sendTextMessage() {
 
     const data = await response.json();
     const answer = (data.answer || data.text || "").toString().trim();
-    addMessageToConversation("bot", answer || "Sorry, no response received.", targetConversationId);
+    removeTextTypingIndicator();
+    addMessageToConversation("bot", answer || "Sorry, no response received.", targetConversationId, {
+      animate: true,
+      stepMs: 18,
+    });
   } catch (error) {
     console.error("Text chat failed:", error);
+    removeTextTypingIndicator();
     addMessageToConversation(
       "bot",
       "Could not reach chatbot backend. Make sure Voice_STS backend is running on 127.0.0.1:5005 and AI_CHATBOT is running on 127.0.0.1:5010.",
-      targetConversationId
+      targetConversationId,
+      { animate: true, stepMs: 14 }
     );
   }
 }
@@ -509,8 +577,12 @@ const voiceModeCallbacks = {
     }
 
     lastVoiceBotText = reply;
-    voiceAssistantTranscript.textContent = reply;
-    addMessageToConversation("bot", reply, voiceConversationId || activeConversationId);
+    voiceAssistantTranscript.textContent = "";
+    void animateTextContent(voiceAssistantTranscript, reply, 200);
+    addMessageToConversation("bot", reply, voiceConversationId || activeConversationId, {
+      animate: true,
+      stepMs: 200,
+    });
   },
 };
 
