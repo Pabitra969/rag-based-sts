@@ -176,6 +176,18 @@ h2 {
   background: rgba(255, 253, 250, 0.72);
 }
 
+.chat-workspace {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  transition: grid-template-columns 0.25s ease;
+}
+
+.chat-workspace.with-voice-panel {
+  grid-template-columns: minmax(0, 1fr) 360px;
+}
+
 .voice-chat-btn {
   display: inline-flex;
   align-items: center;
@@ -202,6 +214,201 @@ h2 {
   background:
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.85), transparent 38%),
     linear-gradient(180deg, rgba(255, 248, 242, 0.86), rgba(241, 246, 249, 0.86));
+}
+
+.voice-assistant-panel {
+  border-left: 1px solid var(--border);
+  background:
+    radial-gradient(circle at top, rgba(225, 244, 235, 0.9), transparent 40%),
+    linear-gradient(180deg, rgba(252, 249, 245, 0.98), rgba(241, 246, 249, 0.98));
+  padding: 22px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.voice-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.voice-panel-header h3 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.voice-panel-close {
+  padding: 10px 12px;
+}
+
+.voice-visualizer {
+  position: relative;
+  min-height: 240px;
+  border-radius: 30px;
+  border: 1px solid rgba(23, 89, 74, 0.12);
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.92), transparent 35%),
+    radial-gradient(circle at 70% 30%, rgba(211, 239, 229, 0.85), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(231, 241, 245, 0.88));
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.voice-orb {
+  position: relative;
+  width: 122px;
+  height: 122px;
+  display: grid;
+  place-items: center;
+}
+
+.voice-orb-core,
+.voice-orb-ring {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.voice-orb-core {
+  inset: 24px;
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #7ad0b5 42%, #186556 100%);
+  box-shadow: 0 0 45px rgba(23, 89, 74, 0.35);
+}
+
+.voice-orb-ring {
+  inset: 0;
+  border: 2px solid rgba(23, 89, 74, 0.15);
+  transform: scale(0.92);
+  opacity: 0.48;
+}
+
+.ring-two {
+  inset: -14px;
+}
+
+.ring-three {
+  inset: -28px;
+}
+
+.voice-bars {
+  position: absolute;
+  bottom: 26px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 54px;
+}
+
+.voice-bars span {
+  width: 7px;
+  height: 16px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #1c7763, #7fd6b9);
+  transform-origin: center bottom;
+}
+
+.voice-panel-copy,
+.voice-panel-transcript {
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(23, 89, 74, 0.08);
+}
+
+.voice-panel-copy {
+  padding: 18px;
+}
+
+.voice-state-label {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.voice-state-hint {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.voice-panel-transcript {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+}
+
+.voice-transcript-block {
+  padding: 14px 15px;
+  border-radius: 18px;
+  background: rgba(247, 250, 252, 0.92);
+  border: 1px solid rgba(23, 89, 74, 0.08);
+}
+
+.voice-transcript-label {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.voice-transcript-text {
+  margin: 0;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.voice-visualizer[data-state="listening"] .voice-orb-core {
+  animation: orbListening 1.8s ease-in-out infinite;
+}
+
+.voice-visualizer[data-state="thinking"] .voice-orb-core {
+  animation: orbThinking 2.4s linear infinite;
+}
+
+.voice-visualizer[data-state="speaking"] .voice-orb-core {
+  animation: orbSpeaking 1s ease-in-out infinite;
+}
+
+.voice-visualizer[data-state="listening"] .voice-orb-ring,
+.voice-visualizer[data-state="speaking"] .voice-orb-ring {
+  animation: ringPulse 1.8s ease-out infinite;
+}
+
+.voice-visualizer[data-state="speaking"] .voice-bars span,
+.voice-visualizer[data-state="listening"] .voice-bars span {
+  animation: barDance 1.2s ease-in-out infinite;
+}
+
+.voice-visualizer[data-state="thinking"] .voice-bars span {
+  animation: barThinking 1.8s ease-in-out infinite;
+}
+
+.voice-visualizer[data-state="error"] .voice-orb-core {
+  background: radial-gradient(circle at 30% 30%, #ffffff 0%, #f0a39d 45%, #a43f2d 100%);
+}
+
+.voice-bars span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.voice-bars span:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+.voice-bars span:nth-child(4) {
+  animation-delay: 0.36s;
+}
+
+.voice-bars span:nth-child(5) {
+  animation-delay: 0.48s;
 }
 
 .empty-state {
@@ -358,6 +565,15 @@ textarea:disabled {
     border-radius: 24px;
   }
 
+  .chat-workspace.with-voice-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .voice-assistant-panel {
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+
   .chat-header,
   .chat-body,
   .composer {
@@ -378,11 +594,93 @@ textarea:disabled {
     max-width: 100%;
   }
 
+  .voice-panel-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .composer-actions {
     justify-content: space-between;
   }
 
   .send-btn {
     flex: 1;
+  }
+}
+
+@keyframes orbListening {
+  0%,
+  100% {
+    transform: scale(0.94);
+    box-shadow: 0 0 30px rgba(23, 89, 74, 0.24);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 46px rgba(23, 89, 74, 0.34);
+  }
+}
+
+@keyframes orbThinking {
+  0% {
+    transform: rotate(0deg) scale(0.96);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.03);
+  }
+  100% {
+    transform: rotate(360deg) scale(0.96);
+  }
+}
+
+@keyframes orbSpeaking {
+  0%,
+  100% {
+    transform: scale(0.92);
+    box-shadow: 0 0 32px rgba(23, 89, 74, 0.28);
+  }
+  25% {
+    transform: scale(1.08);
+  }
+  50% {
+    transform: scale(0.98);
+    box-shadow: 0 0 50px rgba(23, 89, 74, 0.44);
+  }
+  75% {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes ringPulse {
+  0% {
+    transform: scale(0.82);
+    opacity: 0.54;
+  }
+  100% {
+    transform: scale(1.16);
+    opacity: 0;
+  }
+}
+
+@keyframes barDance {
+  0%,
+  100% {
+    height: 16px;
+    transform: scaleY(0.65);
+  }
+  50% {
+    height: 50px;
+    transform: scaleY(1.08);
+  }
+}
+
+@keyframes barThinking {
+  0%,
+  100% {
+    height: 14px;
+    opacity: 0.45;
+  }
+  50% {
+    height: 26px;
+    opacity: 0.9;
   }
 }
