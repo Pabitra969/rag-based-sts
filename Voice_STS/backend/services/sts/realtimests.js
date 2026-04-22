@@ -1,6 +1,7 @@
 const sdk = require("microsoft-cognitiveservices-speech-sdk");
 const AzureSTS = require("./azure.sts");
 const LLMProvider = require("./llm.provider");
+const LATEST_TURN_SETTLE_MS = 450;
 
 function safeSend(ws, payload, isBinary = false) {
   if (ws.readyState !== 1) {
@@ -30,6 +31,7 @@ module.exports = function handleVoiceSession(ws) {
   let queuedTurn = null;
   let nextTurnId = 0;
   let isClosed = false;
+  let queueTimer = null;
 
   function sendEvent(type, extra = {}) {
     safeSend(ws, JSON.stringify({ type, ...extra }));
@@ -37,6 +39,21 @@ module.exports = function handleVoiceSession(ws) {
 
   function sendStatus(state, extra = {}) {
     sendEvent("status", { state, ...extra });
+  }
+
+  function clearQueueTimer() {
+    if (queueTimer) {
+      clearTimeout(queueTimer);
+      queueTimer = null;
+    }
+  }
+
+  function scheduleQueueProcessing(delayMs = LATEST_TURN_SETTLE_MS) {
+    clearQueueTimer();
+    queueTimer = setTimeout(() => {
+      queueTimer = null;
+      queueMicrotask(processQueue);
+    }, delayMs);
   }
 
   function stopSpeaking() {
@@ -54,6 +71,14 @@ module.exports = function handleVoiceSession(ws) {
   async function interruptCurrentTurn(reason = "interrupt") {
     if (currentTurn?.abortController) {
       currentTurn.abortController.abort();
+    }
+
+    if (currentTurn?.historyInjected) {
+      const last = history[history.length - 1];
+      if (last?.role === "user" && last.content === currentTurn.text) {
+        history.pop();
+      }
+      currentTurn.historyInjected = false;
     }
 
     if (currentTurn?.stage === "speaking") {
@@ -98,6 +123,8 @@ module.exports = function handleVoiceSession(ws) {
     const abortController = new AbortController();
     turn.abortController = abortController;
     turn.stage = "thinking";
+    turn.historyInjected = true;
+    history.push({ role: "user", content: turn.text });
 
     let replyText = "";
 
@@ -114,20 +141,20 @@ module.exports = function handleVoiceSession(ws) {
         });
       }
       currentTurn = null;
-      queueMicrotask(processQueue);
+      scheduleQueueProcessing(0);
       return;
     }
 
     if (turn.cancelled || currentTurn?.id !== turn.id || isClosed) {
       currentTurn = null;
-      queueMicrotask(processQueue);
+      scheduleQueueProcessing(0);
       return;
     }
 
     const trimmedReply = String(replyText || "").trim();
     if (!trimmedReply) {
       currentTurn = null;
-      queueMicrotask(processQueue);
+      scheduleQueueProcessing(0);
       return;
     }
 
@@ -150,7 +177,7 @@ module.exports = function handleVoiceSession(ws) {
     }
 
     currentTurn = null;
-    queueMicrotask(processQueue);
+    scheduleQueueProcessing(0);
   }
 
   function enqueueTurn(text) {
@@ -165,19 +192,21 @@ module.exports = function handleVoiceSession(ws) {
       cancelled: false,
       stage: "queued",
       abortController: null,
+      historyInjected: false,
     };
 
-    history.push({ role: "user", content: trimmed });
     sendEvent("final", { text: trimmed, turnId: turn.id });
 
     if (currentTurn) {
       queuedTurn = turn;
       void interruptCurrentTurn("user-barge-in");
+      scheduleQueueProcessing();
       return;
     }
 
     queuedTurn = turn;
-    queueMicrotask(processQueue);
+    sendStatus("listening", { reason: "queued-latest", turnId: turn.id });
+    scheduleQueueProcessing();
   }
 
   recognizer.recognizing = (_, e) => {
@@ -232,6 +261,7 @@ module.exports = function handleVoiceSession(ws) {
 
   ws.on("close", async () => {
     isClosed = true;
+    clearQueueTimer();
     queuedTurn = null;
     await interruptCurrentTurn("socket-close");
     pushStream.close();

@@ -255,6 +255,7 @@ function createMessageBubble(message) {
 function scrollChatToBottom() {
   requestAnimationFrame(() => {
     chatBody.scrollTop = chatBody.scrollHeight;
+    chatBody.lastElementChild?.scrollIntoView({ block: "end" });
   });
 }
 

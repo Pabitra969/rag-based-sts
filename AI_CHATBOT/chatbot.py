@@ -10,6 +10,7 @@ import time
 import re
 from contextlib import contextmanager
 from typing import Tuple
+from datetime import datetime
 
 from model_session_manager import ModelSessionManager
 from fast_embedder import FastEmbedder
@@ -31,18 +32,18 @@ TOP_K = 3
 DEBUG = True
 
 # System preambles for different intents
-SYSTEM_PREAMBLE_PRODUCT = """You are Provis Technologies' customer support AI.
+SYSTEM_PREAMBLE_PRODUCT = """You are Aria, a customer support AI.
 You provide concise, factual, datasource-based answers about products.
 Use only the provided product context. Never invent products or prices.
 If the requested product is not available in the database, say so clearly and suggest related items from the database only.
 Keep answers short and professional."""
 
-SYSTEM_PREAMBLE_PERSONALIZED = """You are Provis Technologies' customer support AI.
+SYSTEM_PREAMBLE_PERSONALIZED = """You are Aria, a customer support AI.
 You help customers with personalized assistance based on their history and preferences.
 Be friendly, remember context from their previous interactions.
 Reference their past questions when relevant."""
 
-SYSTEM_PREAMBLE_GENERAL = """You are Provis Technologies' customer support AI.
+SYSTEM_PREAMBLE_GENERAL = """You are Aria, a customer support AI.
 Answer general questions normally.
 If you provide product suggestions, use ONLY the provided suggestions list. Never invent product names or prices.
 If no suggestions are provided, do not mention any products.
@@ -59,6 +60,75 @@ def clean_text(t: str):
     if not t:
         return ""
     return t.replace("Assistant:", "").replace("User:", "").strip()
+
+PRODUCT_HINT_RE = re.compile(
+    r"\b(jeans|t[- ]?shirts?|tshirts?|shirt|pants|shoes|electronics|phone|laptop|pc|computer|desktop|watch|bag|wallet|saree|dress|clothes|clothing|perfume|cream|skincare|skin|face|hair|beauty|cosmetics?|chair|table|furniture|mouse|speaker|backpack|product|item|catalog|inventory|price|cost)\b",
+    re.I,
+)
+
+def _quick_intent_reply(query: str, intent: str) -> str:
+    canned = quick.get_response(query)
+    if canned:
+        return canned
+    if intent == "thanks":
+        return "You're welcome."
+    if intent == "farewell":
+        return "Goodbye."
+    return "Hello! How can I help you?"
+
+def _extract_user_name_from_history(user_id: str) -> str:
+    conv = sessions.get_session(user_id) or []
+    for msg in reversed(conv):
+        if msg.get("role") != "user":
+            continue
+        match = re.search(r"\bmy name is\s+([A-Za-z][A-Za-z\s'-]{0,30})", msg.get("text", ""), re.I)
+        if match:
+            return match.group(1).strip()
+    return ""
+
+def _fast_general_reply(user_id: str, query: str, voice_mode: bool) -> str:
+    q = query.lower().strip()
+
+    if re.fullmatch(r"\s*(\d+)\s*([+\-*/])\s*(\d+)\s*", q):
+        a, op, b = re.fullmatch(r"\s*(\d+)\s*([+\-*/])\s*(\d+)\s*", q).groups()
+        a = int(a)
+        b = int(b)
+        if op == "+":
+            return f"{a} plus {b} equals {a + b}."
+        if op == "-":
+            return f"{a} minus {b} equals {a - b}."
+        if op == "*":
+            return f"{a} times {b} equals {a * b}."
+        if b != 0:
+            return f"{a} divided by {b} equals {round(a / b, 2)}."
+        return "Division by zero is not allowed."
+
+    if re.search(r"\b(who are you|what('?s| is) your name)\b", q):
+        return "I'm your AI support assistant."
+
+    if re.search(r"\bwhat('?s| is) my name\b", q):
+        known_name = _extract_user_name_from_history(user_id)
+        if known_name:
+            return f"Your name is {known_name}."
+        return "You haven't told me your name yet."
+
+    if re.search(r"\b(date|day|today|current date)\b", q):
+        return datetime.now().strftime("Today is %A, %d %B %Y.")
+
+    if voice_mode and re.search(r"\b(time|current time)\b", q):
+        return datetime.now().strftime("The time is %I:%M %p.")
+
+    if voice_mode and re.search(r"\b(how are you|are you there|can you hear me)\b", q):
+        return "I'm here and listening."
+
+    return ""
+
+def _should_skip_general_retrieval(intent: str, query: str, voice_mode: bool) -> bool:
+    if intent == "general_knowledge":
+        return True
+    if voice_mode and not PRODUCT_HINT_RE.search(query):
+        return True
+    return False
 
 # ============ MODULE LOADING ============
 print("🔧 Loading model manager and modules...")
@@ -149,10 +219,10 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
     """
     timings = {}
     start = time.time()
-    retrieval_k = 2 if voice_mode else TOP_K
-    product_max_tokens = 48 if voice_mode else 80
-    personalized_max_tokens = 72 if voice_mode else 120
-    general_max_tokens = 64 if voice_mode else 120
+    retrieval_k = 1 if voice_mode else TOP_K
+    product_max_tokens = 32 if voice_mode else 80
+    personalized_max_tokens = 48 if voice_mode else 120
+    general_max_tokens = 24 if voice_mode else 120
     general_history_turns = 1 if voice_mode else 2
 
     # ===== PATH 1: QUICK RESPONSES (GREETINGS) =====
@@ -166,6 +236,16 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
             print(f"[TIMING] {timings}")
         return q
 
+    fast_reply = _fast_general_reply(user_id, query, voice_mode)
+    if fast_reply:
+        sessions.add_user_msg(user_id, query)
+        sessions.add_bot_msg(user_id, fast_reply)
+        timings["total"] = round(time.time() - start, 3)
+        if DEBUG:
+            print(f"[ROUTE] FAST GENERAL -> Early rule-based reply")
+            print(f"[TIMING] {timings}")
+        return fast_reply
+
     sessions.add_user_msg(user_id, query)
 
     # ===== DETECT INTENT =====
@@ -174,6 +254,24 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
 
     if DEBUG:
         print(f"[INTENT] {intent} (confidence: {confidence:.2f})")
+
+    if intent in ["greeting", "thanks", "farewell"]:
+        reply = _quick_intent_reply(query, intent)
+        sessions.add_bot_msg(user_id, reply)
+        timings["total"] = round(time.time() - start, 3)
+        if DEBUG:
+            print(f"[ROUTE] QUICK INTENT → Direct reply")
+            print(f"[TIMING] {timings}")
+        return reply
+
+    fast_reply = _fast_general_reply(user_id, query, voice_mode)
+    if fast_reply:
+        sessions.add_bot_msg(user_id, fast_reply)
+        timings["total"] = round(time.time() - start, 3)
+        if DEBUG:
+            print(f"[ROUTE] FAST GENERAL → Rule-based reply")
+            print(f"[TIMING] {timings}")
+        return fast_reply
 
     # ===== PATH 2: PRODUCT/DATABASE QUERIES =====
     if intent in ["product_search", "price_filter", "meta_count"]:
@@ -264,8 +362,12 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
     if DEBUG:
         print(f"[ROUTE] GENERAL QUERY → Model answer + product suggestions")
 
-    with timed("retrieval", timings):
-        results = await retrieve(query, top_k=retrieval_k)
+    if _should_skip_general_retrieval(intent, query, voice_mode):
+        results = []
+        timings["retrieval"] = 0.0
+    else:
+        with timed("retrieval", timings):
+            results = await retrieve(query, top_k=retrieval_k)
 
     # Build light product suggestions (strictly from DB — never invent)
     suggestions = []
@@ -290,7 +392,7 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
             query,
             context_text=context,
             history_text=history,
-            temperature=0.5,
+            temperature=0.2 if voice_mode else 0.5,
             max_tokens=general_max_tokens
         )
     if not reply.strip():
