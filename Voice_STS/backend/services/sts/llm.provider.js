@@ -7,7 +7,9 @@ class LLMProvider {
     this.timeoutMs = Number(process.env.LLM_TIMEOUT_MS || 60000);
   }
 
-  async generateReply(message, history = [], userId = "voice-default") {
+  async generateReply(message, history = [], userId = "voice-default", options = {}) {
+    const { signal } = options;
+
     // Primary path: AI_CHATBOT FastAPI endpoint
     if (this.chatbotApiUrl) {
       try {
@@ -16,8 +18,9 @@ class LLMProvider {
           {
             user_id: userId,
             query: message,
+            voice_mode: true,
           },
-          { timeout: this.timeoutMs }
+          { timeout: this.timeoutMs, signal }
         );
 
         const chatbotText =
@@ -30,13 +33,16 @@ class LLMProvider {
           return String(chatbotText).trim();
         }
       } catch (err) {
+        if (axios.isCancel?.(err) || err?.code === "ERR_CANCELED") {
+          throw err;
+        }
         console.error("AI_CHATBOT call failed:", err.message);
       }
     }
 
     // Fallback path: generic local LLM endpoint
     if (!this.localUrl) {
-      return "Hey, I am customer Support AI chatbot, How can I help you !";
+      return "I couldn't reach the chatbot backend just now. Please check that AI_CHATBOT is running.";
     }
 
     try {
@@ -54,6 +60,7 @@ class LLMProvider {
 
       const res = await axios.post(this.localUrl, payload, {
         timeout: this.timeoutMs,
+        signal,
       });
 
       const replyText =
@@ -63,6 +70,9 @@ class LLMProvider {
 
       return String(replyText).trim();
     } catch (err) {
+      if (axios.isCancel?.(err) || err?.code === "ERR_CANCELED") {
+        throw err;
+      }
       console.error("LLMProvider local call failed:", err.message);
       return "Sorry, my brain is offline right now.";
     }
