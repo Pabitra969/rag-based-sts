@@ -18,6 +18,8 @@ let vadSilenceStart = null;
 let isVoiceModeActive = false;
 let isBotSpeaking = false;
 let currentAudioSource = null; // Track active audio source for cancellation
+let currentTurnState = "idle";
+let responseFallbackTimer = null;
 
 // --- UI Callbacks (to be set by main script) ---
 let onStateChange = () => { };
@@ -29,6 +31,11 @@ let onBotResponse = (_text) => { };
  * Stops the currently playing audio immediately.
  */
 function stopPlayback() {
+    if (responseFallbackTimer) {
+        clearTimeout(responseFallbackTimer);
+        responseFallbackTimer = null;
+    }
+
     if (currentAudioSource) {
         try {
             currentAudioSource.stop();
@@ -38,6 +45,11 @@ function stopPlayback() {
         }
         currentAudioSource = null;
     }
+}
+
+function setTurnState(nextState) {
+    currentTurnState = nextState;
+    onStateChange(nextState);
 }
 
 /**
@@ -66,6 +78,17 @@ function playPCM16(audioCtx, pcmBuffer) {
         if (currentAudioSource === src) {
             currentAudioSource = null;
         }
+
+        isBotSpeaking = false;
+
+        if (responseFallbackTimer) {
+            clearTimeout(responseFallbackTimer);
+            responseFallbackTimer = null;
+        }
+
+        if (isVoiceModeActive) {
+            setTurnState("listening");
+        }
     };
 
     src.start();
@@ -81,7 +104,7 @@ function setupWebSocket() {
 
     voiceSocket.onopen = () => {
         console.log("🔊 VoiceSocket connected.");
-        onStateChange("listening");
+        setTurnState("listening");
     };
 
     voiceSocket.onmessage = async (event) => {
@@ -89,25 +112,36 @@ function setupWebSocket() {
             const msg = JSON.parse(event.data);
             switch (msg.type) {
                 case "partial":
-                    onPartialTranscript(msg.text);
+                    if (currentTurnState === "listening") {
+                        onPartialTranscript(msg.text);
+                    }
                     break;
                 case "final":
+                    setTurnState("processing");
                     onFinalTranscript(msg.text);
                     break;
                 case "bot_response":
                     onBotResponse(msg.text);
+
+                    if (responseFallbackTimer) {
+                        clearTimeout(responseFallbackTimer);
+                    }
+
+                    // If TTS audio fails to arrive, return to listening after the text reply.
+                    responseFallbackTimer = setTimeout(() => {
+                        responseFallbackTimer = null;
+                        isBotSpeaking = false;
+
+                        if (isVoiceModeActive && currentTurnState === "processing") {
+                            setTurnState("listening");
+                        }
+                    }, 1500);
                     break;
             }
         } else if (event.data instanceof ArrayBuffer) {
             isBotSpeaking = true;
-            onStateChange("speaking");
+            setTurnState("speaking");
             playPCM16(audioContext, event.data);
-            // A simple way to guess when speaking is done.
-            // A more robust solution would involve getting duration from the buffer.
-            setTimeout(() => {
-                isBotSpeaking = false;
-                if (isVoiceModeActive) onStateChange("listening");
-            }, 2000); // Approximate duration
         }
     };
 
@@ -132,6 +166,7 @@ function setupWebSocket() {
  */
 function processAudio(event) {
     if (!voiceSocket || voiceSocket.readyState !== WebSocket.OPEN) return;
+    if (currentTurnState !== "listening") return;
 
     const inputData = event.inputBuffer.getChannelData(0);
 
@@ -139,13 +174,6 @@ function processAudio(event) {
     const energy = inputData.reduce((sum, val) => sum + val * val, 0) / inputData.length;
     if (energy > VAD_THRESHOLD) {
         vadSilenceStart = null; // Reset silence timer on activity
-        // If user starts speaking while bot is talking, request interrupt
-        if (isBotSpeaking) {
-            isBotSpeaking = false;
-            stopPlayback(); // <-- Kill local audio immediately
-            onStateChange("listening");
-            voiceSocket.send(JSON.stringify({ type: "interrupt" }));
-        }
     } else if (vadSilenceStart === null) {
         vadSilenceStart = Date.now(); // Start silence timer
     }
@@ -172,7 +200,7 @@ async function startVoiceMode() {
     if (isVoiceModeActive) return;
     console.log("🚀 Starting Voice Mode...");
     isVoiceModeActive = true;
-    onStateChange("connecting");
+    setTurnState("connecting");
 
     try {
         // 1. Get Audio Context and Stream
@@ -199,7 +227,7 @@ async function startVoiceMode() {
     } catch (err) {
         console.error("❌ Failed to start voice mode:", err);
         isVoiceModeActive = false;
-        onStateChange("error");
+        setTurnState("error");
         return;
     }
 }
@@ -212,7 +240,8 @@ function stopVoiceMode() {
     console.log("🛑 Stopping Voice Mode...");
 
     isVoiceModeActive = false;
-    onStateChange("idle");
+    setTurnState("idle");
+    stopPlayback();
 
     if (voiceSocket) {
         voiceSocket.close();
@@ -239,6 +268,10 @@ function stopVoiceMode() {
         audioContext.close();
         audioContext = null;
     }
+
+    currentTurnState = "idle";
+    isBotSpeaking = false;
+    vadSilenceStart = null;
 }
 
 

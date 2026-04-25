@@ -1141,6 +1141,48 @@
       "role": "bot",
       "text": "I can assist you with any questions you have about our products and services. If you're looking for recommendations, I can suggest items from our list. How may I assist you further?",
       "ts": 1776777728.035647
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776804605.924717
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "user",
+      "text": "who is pm of india",
+      "ts": 1776804625.42704
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "bot",
+      "text": "The current Prime Minister of India is Mr. Narendra Modi.",
+      "ts": 1776804632.28974
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "user",
+      "text": "who is cn of west bengal",
+      "ts": 1776804655.550291
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "bot",
+      "text": "The Chief Minister of West Bengal is Mr. Mamata Banerjee. Recent Conversation:",
+      "ts": 1776804661.898054
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "user",
+      "text": "what is 2+2 ?",
+      "ts": 1776804682.357078
+    },
+    {
+      "user_id": "chat_1776777239149_6x1v7x",
+      "role": "bot",
+      "text": "2+2 equals 4.",
+      "ts": 1776804687.686058
     }
   ],
   "chat_1776777915549_0zrdzu": [
@@ -1191,6 +1233,222 @@
       "role": "bot",
       "text": "Red Cotton T-Shirt | ₹499 | clothing. Soft organic cotton t-shirt for men",
       "ts": 1776778114.8920178
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "user",
+      "text": "OK, can you give me a pin?",
+      "ts": 1776778168.098002
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "bot",
+      "text": "I apologize, but currently we do not have pins in our product list. However, we do have accessories like our Bluetooth Speaker (₹1699) that might interest you.",
+      "ts": 1776778223.456059
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "user",
+      "text": "OK, then can you give me the details for Bluetooth speaker?",
+      "ts": 1776778243.971401
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776778271.630236
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "bot",
+      "text": "Certainly! The Bluetooth Speaker from Provis Technologies is priced at ₹1699. It features high-quality sound and seamless connectivity. It's perfect for listening to music wirelessly with friends and family.",
+      "ts": 1776778297.665611
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "user",
+      "text": "OK, uh.",
+      "ts": 1776778398.502759
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "user",
+      "text": "Now can you give me a joke?",
+      "ts": 1776778401.221998
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "user",
+      "text": "Hello, hello, hello.",
+      "ts": 1776778419.568844
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776778452.7859972
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776778457.51947
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "user",
+      "text": "While you were chilling.",
+      "ts": 1776778475.818955
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "bot",
+      "text": "I'm just here to help you! How can I assist you today?",
+      "ts": 1776778483.7657979
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "user",
+      "text": "What is the date today?",
+      "ts": 1776778491.4073799
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "bot",
+      "text": "The current date is [INSERT DATE HERE]. How can I assist you further?",
+      "ts": 1776778499.0893388
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "user",
+      "text": "OK, let's end the chat right now.",
+      "ts": 1776778586.407671
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "bot",
+      "text": "Alright! If you need any assistance in the future, feel free to reach out. Have a great day! Product suggestions: Just to let you know, we have these products available: 1. Noise Cancelling Headphones for a peaceful listening experience. 2. Red Cotton T-Shirt for a casual and comfortable style.",
+      "ts": 1776778666.813452
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "user",
+      "text": "Hey, please give me pant.",
+      "ts": 1776778668.2217689
+    },
+    {
+      "user_id": "voice_1776778035811_b8rolm",
+      "role": "bot",
+      "text": "I'm here to help! Based on the products available at Provis Technologies, you might be interested in our Blue Denim Jeans. They are priced at ₹1299 and offer a classic and versatile option for your wardrobe.",
+      "ts": 1776778729.9425669
+    }
+  ],
+  "voice_1776778750079_af0szm": [
+    {
+      "user_id": "voice_1776778750079_af0szm",
+      "role": "user",
+      "text": "OK, I hope you are doing well.",
+      "ts": 1776778778.2407382
+    },
+    {
+      "user_id": "voice_1776778750079_af0szm",
+      "role": "bot",
+      "text": "Thank you! I'm doing well. How can I assist you today?",
+      "ts": 1776778830.345758
+    },
+    {
+      "user_id": "voice_1776778750079_af0szm",
+      "role": "user",
+      "text": "Can you tell me a joke?",
+      "ts": 1776778852.3133981
+    },
+    {
+      "user_id": "voice_1776778750079_af0szm",
+      "role": "bot",
+      "text": "Sure! Why don't scientists trust atoms? Because they make up everything!",
+      "ts": 1776778864.8157592
+    },
+    {
+      "user_id": "voice_1776778750079_af0szm",
+      "role": "user",
+      "text": "Uh-huh.",
+      "ts": 1776778877.056611
+    },
+    {
+      "user_id": "voice_1776778750079_af0szm",
+      "role": "user",
+      "text": "Nice.",
+      "ts": 1776778879.9250948
+    }
+  ],
+  "voice_1776804090879_hvewt7": [
+    {
+      "user_id": "voice_1776804090879_hvewt7",
+      "role": "user",
+      "text": "Hello, where are you now?",
+      "ts": 1776804097.042159
+    }
+  ],
+  "voice_1776804282556_6hvgip": [
+    {
+      "user_id": "voice_1776804282556_6hvgip",
+      "role": "user",
+      "text": "Hello, hello, hello.",
+      "ts": 1776804286.9776928
+    },
+    {
+      "user_id": "voice_1776804282556_6hvgip",
+      "role": "bot",
+      "text": "Hello, how may I help you today?",
+      "ts": 1776804294.798783
+    }
+  ],
+  "voice_1776804492141_llrn7x": [
+    {
+      "user_id": "voice_1776804492141_llrn7x",
+      "role": "user",
+      "text": "Hi can you give me the answers?",
+      "ts": 1776804496.6484532
+    },
+    {
+      "user_id": "voice_1776804492141_llrn7x",
+      "role": "user",
+      "text": "Greeting.",
+      "ts": 1776804515.458888
+    }
+  ],
+  "voice_1776804699074_jab0qh": [
+    {
+      "user_id": "voice_1776804699074_jab0qh",
+      "role": "user",
+      "text": "Do you have any glue boil pen?",
+      "ts": 1776804704.1172962
+    },
+    {
+      "user_id": "voice_1776804699074_jab0qh",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1776804710.352803
+    },
+    {
+      "user_id": "voice_1776804699074_jab0qh",
+      "role": "user",
+      "text": "Aida problem.",
+      "ts": 1776804713.120654
+    }
+  ],
+  "voice_1776804960484_0htipv": [
+    {
+      "user_id": "voice_1776804960484_0htipv",
+      "role": "user",
+      "text": "Can you find me a pen?",
+      "ts": 1776805017.1851368
+    },
+    {
+      "user_id": "voice_1776804960484_0htipv",
+      "role": "user",
+      "text": "Hello, hello, hello.",
+      "ts": 1776805020.651329
     }
   ]
 }
