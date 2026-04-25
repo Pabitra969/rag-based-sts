@@ -7,9 +7,18 @@ const voiceChatBtn = document.getElementById("voiceChatBtn");
 const sendBtn = document.getElementById("sendBtn");
 const chatBody = document.getElementById("chatBody");
 const chatTitle = document.getElementById("chatTitle");
+const chatWorkspace = document.getElementById("chatWorkspace");
 const conversationList = document.getElementById("conversationList");
 const newChatBtn = document.getElementById("newChatBtn");
 const composerForm = document.getElementById("composerForm");
+const voiceAssistantPanel = document.getElementById("voiceAssistantPanel");
+const voicePanelCloseBtn = document.getElementById("voicePanelCloseBtn");
+const voicePanelTitle = document.getElementById("voicePanelTitle");
+const voiceVisualizer = document.getElementById("voiceVisualizer");
+const voiceStateLabel = document.getElementById("voiceStateLabel");
+const voiceStateHint = document.getElementById("voiceStateHint");
+const voiceUserTranscript = document.getElementById("voiceUserTranscript");
+const voiceAssistantTranscript = document.getElementById("voiceAssistantTranscript");
 
 const CHAT_API_URL = window.TEXT_CHAT_API_URL || "http://127.0.0.1:5005/api/chat";
 const STORAGE_KEY = "voice_sts_conversations_v1";
@@ -21,12 +30,49 @@ const UI_STATE = {
   VOICE_CHAT: "voice_chat",
 };
 
+const VOICE_COPY = {
+  idle: {
+    label: "Idle",
+    hint: "Open voice chat to start a live back-and-forth session.",
+  },
+  connecting: {
+    label: "Connecting.....",
+    hint: "Preparing microphone and live speech channel...",
+  },
+  listening: {
+    label: "Listening.....",
+    hint: "Speak naturally. You can interrupt the assistant any time.",
+  },
+  thinking: {
+    label: "Thinking.....",
+    hint: "Your last utterance is locked in. The assistant is preparing a reply.",
+  },
+  speaking: {
+    label: "Speaking.....",
+    hint: "Assistant audio is playing. Start talking to barge in and take the turn.",
+  },
+  interrupted: {
+    label: "Interrupted",
+    hint: "Assistant playback was stopped. Keep talking with your next request.",
+  },
+  error: {
+    label: "Voice error",
+    hint: "The live voice session hit a problem. Check the backend and microphone access.",
+  },
+};
+
 let uiState = UI_STATE.IDLE;
 let sttProvider = null;
 let voiceMode = null;
 let conversations = [];
 let activeConversationId = null;
 let voiceConversationId = null;
+let isVoicePanelOpen = false;
+let lastVoiceFinalText = "";
+let lastVoiceBotText = "";
+let currentVoiceAssistantState = "idle";
+let renderedConversationId = null;
+let textTypingIndicatorEl = null;
 
 function createConversation(title = "New conversation") {
   return {
@@ -112,6 +158,31 @@ function autosizeInput() {
   textInput.style.height = `${Math.min(textInput.scrollHeight, 168)}px`;
 }
 
+function openVoiceAssistantPanel() {
+  isVoicePanelOpen = true;
+  voiceAssistantPanel.classList.remove("hidden");
+  chatWorkspace.classList.add("with-voice-panel");
+}
+
+function closeVoiceAssistantPanel() {
+  isVoicePanelOpen = false;
+  voiceAssistantPanel.classList.add("hidden");
+  chatWorkspace.classList.remove("with-voice-panel");
+}
+
+function updateVoiceAssistant(state, payload = {}) {
+  const copy = VOICE_COPY[state] || VOICE_COPY.idle;
+  const voiceConversation = conversations.find((conversation) => conversation.id === voiceConversationId) || getActiveConversation();
+
+  currentVoiceAssistantState = state;
+  voiceVisualizer.dataset.state = state;
+  voiceStateLabel.textContent = copy.label;
+  voiceStateHint.textContent = payload.detail || payload.text || copy.hint;
+  voicePanelTitle.textContent = voiceConversationId
+    ? `Live with ${getConversationTitle(voiceConversation)}`
+    : "Assistant live";
+}
+
 function renderConversationList() {
   const sortedConversations = [...conversations].sort((a, b) => b.updatedAt - a.updatedAt);
 
@@ -145,6 +216,7 @@ function renderMessages() {
   const activeConversation = getActiveConversation();
   chatTitle.textContent = getConversationTitle(activeConversation);
   chatBody.innerHTML = "";
+  renderedConversationId = activeConversation.id;
 
   if (!activeConversation.messages.length) {
     const emptyState = document.createElement("div");
@@ -158,23 +230,89 @@ function renderMessages() {
   }
 
   activeConversation.messages.forEach((message) => {
-    const bubble = document.createElement("div");
-    bubble.className = `message ${message.sender}`;
-
-    const text = document.createElement("p");
-    text.className = "message-text";
-    text.textContent = message.text;
-
-    const meta = document.createElement("p");
-    meta.className = "message-meta";
-    meta.textContent = formatTimestamp(message.createdAt);
-
-    bubble.appendChild(text);
-    bubble.appendChild(meta);
-    chatBody.appendChild(bubble);
+    chatBody.appendChild(createMessageBubble(message).bubble);
   });
 
-  chatBody.scrollTop = chatBody.scrollHeight;
+  scrollChatToBottom();
+}
+
+function createMessageBubble(message) {
+  const bubble = document.createElement("div");
+  bubble.className = `message ${message.sender}`;
+
+  const text = document.createElement("p");
+  text.className = "message-text";
+  text.textContent = message.text;
+
+  const meta = document.createElement("p");
+  meta.className = "message-meta";
+  meta.textContent = formatTimestamp(message.createdAt);
+
+  bubble.appendChild(text);
+  bubble.appendChild(meta);
+  return { bubble, text, meta };
+}
+
+function animateTextContent(target, text, stepMs = 50) {
+  const words = String(text || "").split(/(\s+)/).filter(Boolean);
+  target.textContent = "";
+
+  if (!words.length) {
+    return Promise.resolve();
+  }
+
+  return new Promise((resolve) => {
+    let index = 0;
+    const timer = window.setInterval(() => {
+      target.textContent += words[index];
+      index += 1;
+      scrollChatToBottom();
+
+      if (index >= words.length) {
+        window.clearInterval(timer);
+        resolve();
+      }
+    }, stepMs);
+  });
+}
+
+function createTypingIndicator() {
+  const bubble = document.createElement("div");
+  bubble.className = "message bot typing-indicator";
+
+  const dots = document.createElement("div");
+  dots.className = "typing-dots";
+  dots.innerHTML = "<span></span><span></span><span></span>";
+
+  bubble.appendChild(dots);
+  return bubble;
+}
+
+function showTextTypingIndicator() {
+  if (textTypingIndicatorEl) {
+    return;
+  }
+
+  chatBody.querySelector(".empty-state")?.remove();
+  textTypingIndicatorEl = createTypingIndicator();
+  chatBody.appendChild(textTypingIndicatorEl);
+  scrollChatToBottom();
+}
+
+function removeTextTypingIndicator() {
+  if (!textTypingIndicatorEl) {
+    return;
+  }
+
+  textTypingIndicatorEl.remove();
+  textTypingIndicatorEl = null;
+}
+
+function scrollChatToBottom() {
+  requestAnimationFrame(() => {
+    chatBody.scrollTop = chatBody.scrollHeight;
+    chatBody.lastElementChild?.scrollIntoView({ block: "end" });
+  });
 }
 
 function renderUI() {
@@ -207,15 +345,33 @@ function renderApp() {
   renderConversationList();
   renderMessages();
   renderUI();
+  updateVoiceAssistant(currentVoiceAssistantState);
   autosizeInput();
 }
 
-function addMessageToConversation(sender, text, conversationId = activeConversationId) {
+function hasRecentDuplicate(conversation, sender, text) {
+  const lastMessage = conversation.messages[conversation.messages.length - 1];
+  if (!lastMessage) {
+    return false;
+  }
+
+  return (
+    lastMessage.sender === sender &&
+    lastMessage.text === text &&
+    Date.now() - lastMessage.createdAt < 1500
+  );
+}
+
+function addMessageToConversation(sender, text, conversationId = activeConversationId, options = {}) {
   const messageText = String(text || "").trim();
-  if (!messageText) return;
+  if (!messageText) {
+    return;
+  }
 
   const conversation = conversations.find((item) => item.id === conversationId);
-  if (!conversation) return;
+  if (!conversation || hasRecentDuplicate(conversation, sender, messageText)) {
+    return;
+  }
 
   conversation.messages.push({
     id: `msg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
@@ -229,7 +385,21 @@ function addMessageToConversation(sender, text, conversationId = activeConversat
   persistConversations();
 
   if (conversationId === activeConversationId) {
-    renderApp();
+    if (renderedConversationId === conversationId) {
+      const message = conversation.messages[conversation.messages.length - 1];
+      chatBody.querySelector(".empty-state")?.remove();
+      const { bubble, text: textEl } = createMessageBubble(message);
+      chatBody.appendChild(bubble);
+      scrollChatToBottom();
+      renderConversationList();
+      updateVoiceAssistant(currentVoiceAssistantState);
+      if (options.animate && sender === "bot") {
+        textEl.textContent = "";
+        void animateTextContent(textEl, message.text, options.stepMs || 20);
+      }
+    } else {
+      renderApp();
+    }
   } else {
     renderConversationList();
   }
@@ -251,7 +421,9 @@ function ensureActiveConversationHasRoom() {
 }
 
 function setInputStateFromText() {
-  if (uiState === UI_STATE.TRANSCRIBING || uiState === UI_STATE.VOICE_CHAT) return;
+  if (uiState === UI_STATE.TRANSCRIBING || uiState === UI_STATE.VOICE_CHAT) {
+    return;
+  }
 
   uiState = textInput.value.trim() ? UI_STATE.TYPING : UI_STATE.IDLE;
   renderUI();
@@ -268,7 +440,9 @@ function escapeHtml(value) {
 
 async function sendTextMessage() {
   const text = textInput.value.trim();
-  if (!text) return;
+  if (!text) {
+    return;
+  }
 
   const conversation = getActiveConversation();
   const targetConversationId = conversation.id;
@@ -278,6 +452,7 @@ async function sendTextMessage() {
   uiState = UI_STATE.IDLE;
   renderUI();
   autosizeInput();
+  showTextTypingIndicator();
 
   try {
     const response = await fetch(CHAT_API_URL, {
@@ -295,53 +470,119 @@ async function sendTextMessage() {
 
     const data = await response.json();
     const answer = (data.answer || data.text || "").toString().trim();
-    addMessageToConversation("bot", answer || "Sorry, no response received.", targetConversationId);
+    removeTextTypingIndicator();
+    addMessageToConversation("bot", answer || "Sorry, no response received.", targetConversationId, {
+      animate: true,
+      stepMs: 18,
+    });
   } catch (error) {
     console.error("Text chat failed:", error);
+    removeTextTypingIndicator();
     addMessageToConversation(
       "bot",
       "Could not reach chatbot backend. Make sure Voice_STS backend is running on 127.0.0.1:5005 and AI_CHATBOT is running on 127.0.0.1:5010.",
-      targetConversationId
+      targetConversationId,
+      { animate: true, stepMs: 14 }
     );
   }
 }
 
+function beginVoiceSession() {
+  openVoiceAssistantPanel();
+  voiceConversationId = activeConversationId;
+  lastVoiceFinalText = "";
+  lastVoiceBotText = "";
+  voiceUserTranscript.textContent = "Listening for your first utterance…";
+  voiceAssistantTranscript.textContent = "Assistant responses will appear here and in the main chat.";
+  updateVoiceAssistant("connecting");
+  voiceMode.start();
+}
+
+function endVoiceSession({ closePanel = false } = {}) {
+  voiceMode.stop();
+
+  if (closePanel) {
+    closeVoiceAssistantPanel();
+  }
+}
+
 const voiceModeCallbacks = {
-  onStateChange: (state) => {
-    if (state === "idle" || state === "error") {
+  onStateChange: (state, payload = {}) => {
+    if (state === "idle") {
       voiceConversationId = null;
       uiState = textInput.value.trim() ? UI_STATE.TYPING : UI_STATE.IDLE;
       textInput.disabled = false;
       micTranscribeBtn.disabled = false;
       sendBtn.disabled = false;
       voiceChatBtn.classList.remove("active");
+      voiceChatBtn.querySelector(".btn-label").textContent = "Voice chat";
       renderUI();
+      updateVoiceAssistant("idle", payload);
+      autosizeInput();
+      return;
+    }
+
+    if (state === "error") {
+      uiState = textInput.value.trim() ? UI_STATE.TYPING : UI_STATE.IDLE;
+      textInput.disabled = false;
+      micTranscribeBtn.disabled = false;
+      sendBtn.disabled = false;
+      voiceChatBtn.classList.remove("active");
+      voiceChatBtn.querySelector(".btn-label").textContent = "Voice chat";
+      renderUI();
+      updateVoiceAssistant("error", payload);
       autosizeInput();
       return;
     }
 
     uiState = UI_STATE.VOICE_CHAT;
-    voiceConversationId = activeConversationId;
+    voiceConversationId = voiceConversationId || activeConversationId;
     textInput.disabled = true;
     micTranscribeBtn.disabled = true;
     sendBtn.disabled = true;
     voiceChatBtn.classList.add("active");
+    voiceChatBtn.querySelector(".btn-label").textContent = "Stop voice";
     renderUI();
+    updateVoiceAssistant(state, payload);
   },
 
   onPartialTranscript: (text) => {
-    textInput.value = text;
+    const partial = String(text || "").trim();
+    if (!partial) {
+      return;
+    }
+
+    voiceUserTranscript.textContent = partial;
+    textInput.value = partial;
     autosizeInput();
   },
 
   onFinalTranscript: (text) => {
-    addMessageToConversation("user", text, voiceConversationId || activeConversationId);
+    const finalText = String(text || "").trim();
+    if (!finalText || finalText === lastVoiceFinalText) {
+      return;
+    }
+
+    lastVoiceFinalText = finalText;
+    voiceUserTranscript.textContent = finalText;
+    addMessageToConversation("user", finalText, voiceConversationId || activeConversationId);
     textInput.value = "";
     autosizeInput();
   },
 
   onBotResponse: (text) => {
-    addMessageToConversation("bot", text, voiceConversationId || activeConversationId);
+    const reply = String(text || "").trim();
+    if (!reply || reply === lastVoiceBotText) {
+      return;
+    }
+
+    lastVoiceBotText = reply;
+    voiceAssistantTranscript.textContent = "";
+    void animateTextContent(voiceAssistantTranscript, reply, 200);
+    addMessageToConversation("bot", reply, voiceConversationId || activeConversationId, {
+      animate: true,
+      stepMs: 200,
+    });
   },
 };
 
@@ -407,10 +648,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   voiceChatBtn.addEventListener("click", () => {
     if (voiceMode.isActive()) {
-      voiceMode.stop();
+      endVoiceSession({ closePanel: true });
       return;
     }
 
-    voiceMode.start();
+    beginVoiceSession();
+  });
+
+  voicePanelCloseBtn.addEventListener("click", () => {
+    if (voiceMode.isActive()) {
+      endVoiceSession({ closePanel: true });
+      return;
+    }
+
+    closeVoiceAssistantPanel();
   });
 });

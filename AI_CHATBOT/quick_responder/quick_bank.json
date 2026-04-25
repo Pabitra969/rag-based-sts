@@ -1,8 +1,8 @@
 {
-  "hi": "Hlw Sir! How can I assist you today?",
-  "hii": "Hlw Sir! How can I assist you today?",
-  "hiii": "Hlw Sir! How can I assist you today?",
-  "hhiii": "Hlw Sir! How can I assist you today?",
+  "hi": "Hello Sir! How can I assist you today?",
+  "hii": "Hello Sir! How can I assist you today?",
+  "hiii": "Hello Sir! How can I assist you today?",
+  "hhiii": "Hello Sir! How can I help you today?",
   "hlw": "Yes Sir, What can I do for you?",
   "hello": "Hello! How can I help you?",
   "hey": "Hey! What can I do for you?",
@@ -12,6 +12,17 @@
   "thank you": "You're Welcome. Glad I could help!",
   "bye": "Goodbye! Have a nice day!",
   "goodbye": "Take care! See you soon.",
-  "who are you": "I’m Provis Technology’s offline support assistant, here to help with your product questions.",
-  "who create you": "I was developed by Provis Technology Team. How can I help you Sir ?"
+  "who are you": "I’m Aria. A offline support assistant, here to help with your product questions.",
+  "who create you": "I was developed by Pabitra Team. How can I help you ?",
+  "who created you": "I was developed by Pabitra Team. How can I help you ?",
+  "who developed you": "I was developed by Pabitra Team. How can I help you ?",
+  "who made you": "I was developed by Pabitra Team. How can I help you ?",
+  "who is your creator": "I was developed by Pabitra Team. How can I help you ?",
+  "who develop you": "I was developed by Pabitra Team. How can I help you ?",
+  "who make you": "I was developed by Pabitra Team. How can I help you ?",
+  "what is your name": "My name is Aria. How can I help you today?",
+  "what can you do": "I can assist you with product information, troubleshooting, and general inquiries. Just ask me anything!",
+  "how are you": "I’m just a program, but I’m here to help you! How can I assist you today?",
+  "are you a human": "No, I’m an AI assistant designed to help you with your questions and concerns. How can I assist you today?",
+  "are you a robot": "I’m an AI assistant, not a physical robot. I’m here to help you with any questions or issues you may have."
 }

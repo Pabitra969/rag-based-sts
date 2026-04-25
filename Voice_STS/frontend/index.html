@@ -32,7 +32,53 @@
         </button>
       </header>
 
-      <section id="chatBody" class="chat-body"></section>
+      <div id="chatWorkspace" class="chat-workspace">
+        <section id="chatBody" class="chat-body"></section>
+
+        <aside id="voiceAssistantPanel" class="voice-assistant-panel hidden" aria-live="polite">
+          <div class="voice-panel-header">
+            <div>
+              <p class="eyebrow">Voice Session</p>
+              <h3 id="voicePanelTitle">Assistant live</h3>
+            </div>
+            <button id="voicePanelCloseBtn" class="ghost-btn voice-panel-close" type="button" title="Close voice panel">
+              Close
+            </button>
+          </div>
+
+          <div id="voiceVisualizer" class="voice-visualizer" data-state="idle">
+            <div class="voice-orb">
+              <span class="voice-orb-core"></span>
+              <span class="voice-orb-ring ring-one"></span>
+              <span class="voice-orb-ring ring-two"></span>
+              <span class="voice-orb-ring ring-three"></span>
+            </div>
+            <div class="voice-bars" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+
+          <div class="voice-panel-copy">
+            <p id="voiceStateLabel" class="voice-state-label">Idle</p>
+            <p id="voiceStateHint" class="voice-state-hint">Open voice chat to start a live back-and-forth session.</p>
+          </div>
+
+          <div class="voice-panel-transcript">
+            <div class="voice-transcript-block">
+              <span class="voice-transcript-label">You</span>
+              <p id="voiceUserTranscript" class="voice-transcript-text">Waiting for your voice…</p>
+            </div>
+            <div class="voice-transcript-block">
+              <span class="voice-transcript-label">Assistant</span>
+              <p id="voiceAssistantTranscript" class="voice-transcript-text">Responses will appear here and in the main chat.</p>
+            </div>
+          </div>
+        </aside>
+      </div>
 
       <form id="composerForm" class="composer" novalidate>
         <div class="composer-input-wrap">
