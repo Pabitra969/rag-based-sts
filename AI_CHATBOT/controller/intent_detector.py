@@ -145,8 +145,11 @@ def detect_intent(query: str) -> Tuple[str, float]:
         if re.search(r"\b\d+\s*[+\-*/]\s*\d+\b", q):
             return ("general_knowledge", 0.95)
 
-        # Date/time
-        if re.search(r"\b(what\s+date|today|current\s+date|time now|what time)\b", q):
+        # Live info and date/time
+        if re.search(r"\b(temperature|weather|forecast|rain|humidity|wind|news|headline|stock|traffic|score)\b", q):
+            return ("general_knowledge", 0.95)
+
+        if re.search(r"\b(what\s+date|current\s+date|today'?s\s+date|what\s+day\s+is\s+it|which\s+day\s+is\s+it|time now|what time|current\s+time)\b", q):
             return ("general_knowledge", 0.95)
 
         # WH questions ONLY if not product

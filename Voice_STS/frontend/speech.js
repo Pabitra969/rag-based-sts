@@ -75,6 +75,53 @@ let renderedConversationId = null;
 let textTypingIndicatorEl = null;
 let isTextReplyPending = false;
 
+function parseProductLine(line) {
+  const trimmed = String(line || "").trim().replace(/^-+\s*/, "");
+  const pipeMatch = trimmed.match(/^(.*?)\s*\|\s*(₹[\d,]+)\s*\|\s*([^.]+)\.\s*(.+)$/);
+  const dashMatch = trimmed.match(/^(.*?)\s*\|\s*(₹[\d,]+)\s*\|\s*([^.]+)\s*[-:]\s*(.+)$/);
+  const legacyMatch = trimmed.match(/^(.*?)\s*(₹[\d,]+)\s*\[([^\]]+)\]\.\s*(.+)$/);
+  const match = pipeMatch || dashMatch || legacyMatch;
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    title: match[1].trim(),
+    price: match[2].trim(),
+    category: match[3].trim(),
+    description: match[4].trim(),
+  };
+}
+
+function extractProductCards(text) {
+  const lines = String(text || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const cards = [];
+  const intro = [];
+
+  lines.forEach((line) => {
+    const card = parseProductLine(line);
+    if (card) {
+      cards.push(card);
+    } else {
+      intro.push(line);
+    }
+  });
+
+  if (!cards.length) {
+    return null;
+  }
+
+  return {
+    intro: intro.join("\n"),
+    cards,
+  };
+}
+
 function setTextGenerationLock(isLocked) {
   isTextReplyPending = isLocked;
 
@@ -254,16 +301,64 @@ function renderMessages() {
 function createMessageBubble(message) {
   const bubble = document.createElement("div");
   bubble.className = `message ${message.sender}`;
+  const productView = message.sender === "bot" ? extractProductCards(message.text) : null;
+  let text = null;
 
-  const text = document.createElement("p");
-  text.className = "message-text";
-  text.textContent = message.text;
+  if (productView) {
+    if (productView.intro) {
+      text = document.createElement("p");
+      text.className = "message-text";
+      text.textContent = productView.intro;
+      bubble.appendChild(text);
+    }
+
+    const productList = document.createElement("div");
+    productList.className = "product-list";
+
+    productView.cards.forEach((product) => {
+      const card = document.createElement("article");
+      card.className = "product-card";
+
+      const top = document.createElement("div");
+      top.className = "product-card-top";
+
+      const title = document.createElement("h3");
+      title.className = "product-title";
+      title.textContent = product.title;
+
+      const price = document.createElement("span");
+      price.className = "product-price";
+      price.textContent = product.price;
+
+      top.appendChild(title);
+      top.appendChild(price);
+
+      const category = document.createElement("div");
+      category.className = "product-category";
+      category.textContent = product.category;
+
+      const description = document.createElement("p");
+      description.className = "product-description";
+      description.textContent = product.description;
+
+      card.appendChild(top);
+      card.appendChild(category);
+      card.appendChild(description);
+      productList.appendChild(card);
+    });
+
+    bubble.appendChild(productList);
+  } else {
+    text = document.createElement("p");
+    text.className = "message-text";
+    text.textContent = message.text;
+    bubble.appendChild(text);
+  }
 
   const meta = document.createElement("p");
   meta.className = "message-meta";
   meta.textContent = formatTimestamp(message.createdAt);
 
-  bubble.appendChild(text);
   bubble.appendChild(meta);
   return { bubble, text, meta };
 }
@@ -301,6 +396,23 @@ function createTypingIndicator() {
 
   bubble.appendChild(dots);
   return bubble;
+}
+
+function createStreamingBubble() {
+  const bubble = document.createElement("div");
+  bubble.className = "message bot";
+
+  const text = document.createElement("p");
+  text.className = "message-text";
+  text.textContent = "";
+
+  const meta = document.createElement("p");
+  meta.className = "message-meta";
+  meta.textContent = formatTimestamp(Date.now());
+
+  bubble.appendChild(text);
+  bubble.appendChild(meta);
+  return { bubble, text };
 }
 
 function showTextTypingIndicator() {
@@ -409,7 +521,7 @@ function addMessageToConversation(sender, text, conversationId = activeConversat
       scrollChatToBottom();
       renderConversationList();
       updateVoiceAssistant(currentVoiceAssistantState);
-      if (options.animate && sender === "bot") {
+      if (options.animate && sender === "bot" && textEl) {
         textEl.textContent = "";
         void animateTextContent(textEl, message.text, options.stepMs || 20);
       }
@@ -503,11 +615,14 @@ async function sendTextMessage() {
   uiState = UI_STATE.IDLE;
   renderUI();
   autosizeInput();
-  showTextTypingIndicator();
   setTextGenerationLock(true);
+  chatBody.querySelector(".empty-state")?.remove();
+  const streamingBubble = createStreamingBubble();
+  chatBody.appendChild(streamingBubble.bubble);
+  scrollChatToBottom();
 
   try {
-    const response = await fetch(CHAT_API_URL, {
+    const response = await fetch(`${CHAT_API_URL}/stream`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -520,16 +635,53 @@ async function sendTextMessage() {
       throw new Error(`HTTP ${response.status}`);
     }
 
-    const data = await response.json();
-    const answer = (data.answer || data.text || "").toString().trim();
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error("Streaming is not supported by this browser.");
+    }
+
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let answer = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) {
+        break;
+      }
+
+      buffer += decoder.decode(value, { stream: true });
+      const events = buffer.split("\n\n");
+      buffer = events.pop() || "";
+
+      for (const event of events) {
+        const line = event
+          .split("\n")
+          .find((entry) => entry.startsWith("data: "));
+        if (!line) {
+          continue;
+        }
+
+        const payload = JSON.parse(line.slice(6));
+        if (payload.type === "delta") {
+          answer += payload.text || "";
+          streamingBubble.text.textContent = answer;
+          scrollChatToBottom();
+        } else if (payload.type === "error") {
+          throw new Error(payload.error || "stream failed");
+        }
+      }
+    }
+
+    streamingBubble.bubble.remove();
     removeTextTypingIndicator();
+    answer = answer.trim();
     addMessageToConversation("bot", answer || "Sorry, no response received.", targetConversationId, {
-      animate: true,
-      stepMs: 18,
+      animate: false,
     });
   } catch (error) {
     console.error("Text chat failed:", error);
-    removeTextTypingIndicator();
+    streamingBubble.bubble.remove();
     addMessageToConversation(
       "bot",
       "Could not reach chatbot backend. Make sure Voice_STS backend is running on 127.0.0.1:5005 and AI_CHATBOT is running on 127.0.0.1:5010.",
@@ -622,6 +774,15 @@ const voiceModeCallbacks = {
     addMessageToConversation("user", finalText, voiceConversationId || activeConversationId);
     textInput.value = "";
     autosizeInput();
+  },
+
+  onBotPartial: (text) => {
+    const partial = String(text || "").trim();
+    if (!partial) {
+      return;
+    }
+
+    voiceAssistantTranscript.textContent = partial;
   },
 
   onBotResponse: (text) => {

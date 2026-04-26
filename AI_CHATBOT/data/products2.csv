@@ -1,21 +1,201 @@
-id,title,description,price,category
-1,Red Cotton T-Shirt,Soft organic cotton t-shirt for men,499,clothing
-2,Blue Denim Jeans,Regular fit blue jeans with stretch,1299,clothing
-3,Wireless Mouse,Ergonomic wireless mouse,899,electronics
-4,Smart LED Bulb,WiFi-enabled multicolor LED bulb compatible with Alexa and Google Home,699,home_appliance
-5,Leather Wallet,Genuine leather bi-fold wallet with RFID protection,999,accessories
-6,Noise Cancelling Headphones,Over-ear Bluetooth headphones with active noise cancellation and 30hr battery,3499,electronics
-7,Silk Saree,Handwoven Banarasi silk saree with golden zari border,5499,clothing
-8,Espresso Coffee Maker,Automatic espresso and cappuccino maker with stainless steel body,7999,home_appliance
-9,Running Shoes,Breathable lightweight running shoes with memory foam sole,2599,clothing
-10,Smart Watch,Fitness tracking smartwatch with heart rate and SpO2 monitoring,4299,electronics
-11,Wooden Study Table,Compact foldable wooden study table with adjustable height,2599,furniture
-12,Organic Face Cream,Moisturizing face cream enriched with aloe vera and vitamin E,599,skincare
-13,Power Bank,20000mAh fast-charging power bank with dual USB output,1899,electronics
-14,Non-stick Frying Pan,Induction-compatible non-stick frying pan with heat-resistant handle,1299,kitchen
-15,Travel Backpack,Water-resistant travel backpack with USB charging port and 15-inch laptop sleeve,2199,accessories
-16,Air Purifier,HEPA filter air purifier suitable for rooms up to 400 sq. ft.,8999,home_appliance
-17,Electric Toothbrush,Rechargeable electric toothbrush with 3 brushing modes and 2-minute timer,2299,personal_care
-18,Bluetooth Speaker,Portable Bluetooth speaker with deep bass and splash resistance,1699,electronics
-19,Office Chair,Ergonomic mesh office chair with lumbar support and adjustable height,6999,furniture
-20,Perfume Set,Unisex long-lasting fragrance set with citrus and woody notes,1499,personal_care
+id,title,description,price,category,target_gender,material,country_of_origin,rating,review_count,color,size_options,returnable,discount_percent,stock_quantity,sku,brand,warranty_months,in_stock
+1,Red Cotton T-Shirt,Soft organic cotton t-shirt for men available in S/M/L/XL,499,clothing,Men,Cotton,India,4.2,180,Red,"S,M,L,XL",Yes,25,62,SKU-CLO-0001,Fabindia,0,Yes
+2,Blue Denim Jeans,Regular fit blue jeans with 2% elastane stretch for comfort,1299,clothing,Men,Denim,Bangladesh,4.4,320,Blue,"28,30,32,34,36",Yes,25,145,SKU-CLO-0002,Zara,0,Yes
+7,Silk Saree,Handwoven Banarasi silk saree with golden zari border and blouse piece,5499,clothing,Women,Silk,India,4.8,45,Golden,Free Size,No,5,76,SKU-CLO-0007,Manyavar,0,Yes
+9,Running Shoes,Breathable lightweight running shoes with memory foam sole and anti-slip grip,2599,clothing,Unisex,Mesh+Foam,Vietnam,4.3,210,White,"6,7,8,9,10,11",Yes,25,384,SKU-CLO-0009,Peter England,0,Yes
+21,Formal Shirt,Slim fit cotton formal shirt with wrinkle-resistant finish,1199,clothing,Men,Cotton,India,4.1,150,White,"S,M,L,XL,XXL",Yes,0,307,SKU-CLO-0021,Biba,0,Yes
+22,Kurti Set,Printed cotton kurti with palazzo pants,1499,clothing,Women,Cotton,India,4.5,95,Multicolor,"XS,S,M,L,XL",Yes,0,20,SKU-CLO-0022,Manyavar,0,Yes
+23,Woolen Sweater,Cable-knit woolen pullover sweater for winters,1899,clothing,Unisex,Wool,India,4.3,70,Grey,"S,M,L,XL",Yes,5,124,SKU-CLO-0023,Peter England,0,Yes
+24,Track Pants,Moisture-wicking polyester track pants with drawstring waist,799,clothing,Men,Polyester,China,4.0,200,Black,"S,M,L,XL,XXL",Yes,20,18,SKU-CLO-0024,Peter England,0,Yes
+25,Ethnic Kurta,Cotton men's ethnic kurta with embroidery for festive occasions,1299,clothing,Men,Cotton,India,4.6,85,Cream,"S,M,L,XL",Yes,5,371,SKU-CLO-0025,Peter England,0,Yes
+26,Sports Bra,High-impact sports bra with padded cups and wide straps,999,clothing,Women,Nylon+Spandex,India,4.4,130,Black,"XS,S,M,L,XL",Yes,15,117,SKU-CLO-0026,W,0,Yes
+27,Denim Jacket,Classic blue denim jacket with brass buttons,2299,clothing,Unisex,Denim,India,4.3,60,Blue,"S,M,L,XL",Yes,20,147,SKU-CLO-0027,Fabindia,0,Yes
+28,Leggings,High-waist compression leggings with phone pocket,699,clothing,Women,Polyester,India,4.5,250,Black,"XS,S,M,L,XL",Yes,30,417,SKU-CLO-0028,H&M,0,Yes
+29,Polo T-Shirt,Pique cotton polo shirt with ribbed collar,899,clothing,Men,Cotton,India,4.2,175,Navy Blue,"S,M,L,XL,XXL",Yes,25,221,SKU-CLO-0029,Nike,0,Yes
+30,Anarkali Suit,Embroidered anarkali suit with dupatta set for occasions,3499,clothing,Women,Georgette,India,4.7,30,Maroon,"S,M,L,XL",No,10,84,SKU-CLO-0030,Zara,0,Yes
+31,Cargo Shorts,6-pocket cargo shorts with adjustable waistband,999,clothing,Men,Cotton,India,4.1,120,Olive,"28,30,32,34",Yes,30,177,SKU-CLO-0031,Manyavar,0,Yes
+32,Printed Maxi Dress,Floral printed maxi dress with smocked bodice,1699,clothing,Women,Rayon,India,4.4,80,Floral,"S,M,L,XL",Yes,0,199,SKU-CLO-0032,Manyavar,0,Yes
+33,Thermal Inner Wear,Fleece-lined thermal top and bottom set,1199,clothing,Unisex,Fleece,India,4.3,90,Grey,"S,M,L,XL",Yes,10,438,SKU-CLO-0033,Nike,0,Yes
+34,Leather Belt,Genuine leather formal belt with metal buckle,699,clothing,Men,Leather,India,4.5,200,Brown,"28,30,32,34,36,38",Yes,20,140,SKU-CLO-0034,Fabindia,0,Yes
+35,Casual Sneakers,Canvas sneakers with rubber sole and lace-up closure,1299,clothing,Unisex,Canvas,India,4.2,160,White,"6,7,8,9,10",Yes,25,240,SKU-CLO-0035,Peter England,0,Yes
+36,Yoga Pants,4-way stretch yoga pants with hidden waistband pocket,1099,clothing,Women,Spandex,India,4.6,140,Grey,"XS,S,M,L",Yes,0,477,SKU-CLO-0036,Biba,0,Yes
+37,Hoodie Sweatshirt,Fleece hoodie with kangaroo pocket and drawstring,1599,clothing,Unisex,Fleece,Bangladesh,4.4,110,Black,"S,M,L,XL,XXL",Yes,0,287,SKU-CLO-0037,Puma,0,Yes
+38,Cotton Shorts,Breathable cotton lounge shorts with elastic waist,499,clothing,Men,Cotton,India,4.1,220,Blue,"S,M,L,XL",Yes,30,326,SKU-CLO-0038,Van Heusen,0,Yes
+39,Evening Gown,Satin evening gown with backless design for parties,4999,clothing,Women,Satin,India,4.7,20,Black,"XS,S,M,L",No,30,190,SKU-CLO-0039,Van Heusen,0,Yes
+40,School Uniform Set,Durable cotton school uniform shirt and trousers set,799,clothing,Kids,Cotton,India,4.0,100,White+Grey,"4Y,6Y,8Y,10Y,12Y",Yes,5,365,SKU-CLO-0040,Manyavar,0,Yes
+41,Formal Trouser,Slim fit formal trouser with pressed crease,1199,clothing,Men,Polyester,India,4.2,130,Black,"28,30,32,34,36",Yes,0,343,SKU-CLO-0041,Zara,0,Yes
+42,Printed Scarf,Lightweight printed silk-feel scarf,499,clothing,Women,Polyester,India,4.3,180,Multicolor,Free Size,Yes,30,153,SKU-CLO-0042,Manyavar,0,Yes
+43,Rain Coat,Waterproof hooded rain coat with sealed seams,1899,clothing,Unisex,PVC,China,4.1,70,Yellow,"S,M,L,XL",Yes,30,124,SKU-CLO-0043,Manyavar,0,Yes
+44,Baby Onesie,Soft organic cotton baby onesie with snap buttons,399,clothing,Kids,Cotton,India,4.8,150,White,"0-3M,3-6M,6-12M",Yes,15,147,SKU-CLO-0044,W,0,Yes
+45,Sleeveless Blouse,Cotton sleeveless blouse for sarees with hook closure,599,clothing,Women,Cotton,India,4.2,120,Red,"XS,S,M,L,XL",Yes,25,432,SKU-CLO-0045,Nike,0,Yes
+46,Winter Jacket,Water-resistant puffer jacket with detachable hood,3999,clothing,Unisex,Nylon+Down,China,4.5,55,Black,"S,M,L,XL,XXL",Yes,5,194,SKU-CLO-0046,Nike,0,Yes
+3,Wireless Mouse,Ergonomic 2.4GHz wireless mouse with USB nano receiver,899,electronics,Unisex,Plastic,China,4.3,350,Black,NA,Yes,5,348,SKU-ELE-0003,JBL,0,Yes
+6,Noise Cancelling Headphones,Over-ear Bluetooth 5.0 headphones with ANC and 30hr battery life,3499,electronics,Unisex,Plastic+Leather,China,4.6,120,Black,NA,Yes,20,330,SKU-ELE-0006,Samsung,24,Yes
+10,Smart Watch,"Fitness smartwatch with heart rate, SpO2, GPS and 7-day battery",4299,electronics,Unisex,Aluminium,China,4.4,200,Black,NA,Yes,25,130,SKU-ELE-0010,Samsung,12,Yes
+13,Power Bank,20000mAh PD fast-charging power bank with LED indicator,1899,electronics,Unisex,Aluminium,China,4.5,280,White,NA,Yes,15,143,SKU-ELE-0013,Noise,3,Yes
+18,Bluetooth Speaker,360° portable Bluetooth 5.0 speaker with deep bass and IPX5 splash resistance,1699,electronics,Unisex,Plastic,China,4.4,190,Blue,NA,Yes,25,171,SKU-ELE-0018,boAt,3,Yes
+47,USB-C Hub,"7-in-1 USB-C hub with HDMI 4K, 3 USB 3.0, SD card reader",2499,electronics,Unisex,Aluminium,China,4.5,160,Silver,NA,Yes,30,21,SKU-ELE-0047,Logitech,12,Yes
+48,Laptop Stand,Adjustable aluminium laptop stand with cable organizer,1299,electronics,Unisex,Aluminium,China,4.6,220,Silver,NA,Yes,10,38,SKU-ELE-0048,Sony,24,Yes
+49,Mechanical Keyboard,Tenkeyless mechanical keyboard with RGB backlight and blue switches,3999,electronics,Unisex,Plastic+Metal,China,4.5,85,Black,NA,Yes,25,166,SKU-ELE-0049,Sony,12,Yes
+50,Webcam HD,1080p HD webcam with built-in microphone and auto focus,2199,electronics,Unisex,Plastic,China,4.3,130,Black,NA,Yes,15,457,SKU-ELE-0050,Realme,3,Yes
+51,Gaming Headset,Stereo gaming headset with noise-cancelling mic and surround sound,1999,electronics,Unisex,Plastic,China,4.4,110,Black+Red,NA,Yes,10,76,SKU-ELE-0051,Sony,24,Yes
+52,Portable SSD,500GB USB 3.1 portable SSD with shock-resistant casing,3499,electronics,Unisex,Metal,South Korea,4.7,95,Silver,NA,Yes,20,139,SKU-ELE-0052,Anker,12,Yes
+53,Tablet 10 inch,"10-inch Android tablet with 4GB RAM, 64GB storage and 8MP camera",12999,electronics,Unisex,Aluminium+Glass,China,4.3,75,Space Grey,NA,Yes,20,209,SKU-ELE-0053,Logitech,3,Yes
+54,Smart TV 32 inch,32-inch Full HD Android smart TV with voice remote,17999,electronics,Unisex,Plastic,China,4.5,40,Black,NA,No,5,265,SKU-ELE-0054,Realme,0,Yes
+55,Wi-Fi Router,Dual-band AC1200 Wi-Fi router with 4 antennas and parental controls,2799,electronics,Unisex,Plastic,China,4.4,130,White,NA,Yes,30,29,SKU-ELE-0055,Xiaomi,3,Yes
+56,Action Camera,4K action camera with waterproof housing and image stabilization,6999,electronics,Unisex,Plastic,China,4.5,65,Black,NA,Yes,25,86,SKU-ELE-0056,HP,24,Yes
+57,Smart Doorbell,"Video doorbell with 1080p camera, motion detection and two-way audio",4499,electronics,Unisex,Plastic,China,4.3,55,Black,NA,Yes,0,202,SKU-ELE-0057,HP,24,Yes
+58,Wireless Charger,15W fast wireless charging pad compatible with Qi devices,999,electronics,Unisex,Plastic,China,4.4,300,Black,NA,Yes,15,275,SKU-ELE-0058,JBL,24,Yes
+59,Dash Cam,Front and rear dual-channel dash cam with night vision and loop recording,3299,electronics,Unisex,Plastic,China,4.3,80,Black,NA,Yes,30,487,SKU-ELE-0059,boAt,0,Yes
+60,Digital Alarm Clock,LED digital alarm clock with USB charging port and temperature display,699,electronics,Unisex,Plastic,China,4.2,210,Black,NA,Yes,25,458,SKU-ELE-0060,Noise,6,Yes
+61,Noise Isolating Earphones,In-ear wired earphones with 10mm driver and three-button remote,599,electronics,Unisex,Plastic,China,4.1,400,Black,NA,Yes,30,333,SKU-ELE-0061,Logitech,0,Yes
+62,Smart Plug,Wi-Fi smart plug with energy monitoring and voice control support,799,electronics,Unisex,Plastic,China,4.4,250,White,NA,Yes,10,227,SKU-ELE-0062,Samsung,12,Yes
+63,Pen Drive 64GB,USB 3.0 64GB pen drive with retractable design,599,electronics,Unisex,Metal,Japan,4.5,450,Silver,NA,Yes,0,493,SKU-ELE-0063,JBL,24,Yes
+64,DSLR Camera Bag,Waterproof DSLR camera bag with padded compartments,1799,electronics,Unisex,Nylon,China,4.4,100,Black,NA,Yes,30,96,SKU-ELE-0064,Noise,0,Yes
+65,Bluetooth Tracker,Bluetooth item tracker compatible with iOS and Android,999,electronics,Unisex,Plastic,China,4.3,170,White,NA,Yes,30,325,SKU-ELE-0065,JBL,24,Yes
+66,E-Reader,6-inch e-ink display e-reader with adjustable front light and 8GB storage,7999,electronics,Unisex,Plastic,USA,4.7,60,Black,NA,Yes,20,106,SKU-ELE-0066,Samsung,6,Yes
+67,Fitness Band,Slim fitness band with heart rate monitor and 10-day battery,1499,electronics,Unisex,Silicone,China,4.3,190,Black,NA,Yes,30,87,SKU-ELE-0067,Noise,24,Yes
+68,Smart Scale,"Bluetooth body composition scale tracking BMI, fat and muscle",1299,electronics,Unisex,Glass+Plastic,China,4.4,140,White,NA,Yes,0,311,SKU-ELE-0068,Logitech,12,Yes
+69,Projector Mini,Mini LED projector 1080p support with HDMI and USB input,8999,electronics,Unisex,Plastic,China,4.3,45,White,NA,Yes,0,62,SKU-ELE-0069,Logitech,6,Yes
+70,Earbuds TWS,"True wireless earbuds with ANC, 6hr playtime + 24hr case",2999,electronics,Unisex,Plastic,China,4.6,160,White,NA,Yes,5,34,SKU-ELE-0070,Sony,24,Yes
+71,Graphic Tablet,Drawing tablet with 8192 pressure sensitivity levels and 8 express keys,5499,electronics,Unisex,Plastic,China,4.5,55,Black,NA,Yes,0,48,SKU-ELE-0071,Realme,0,Yes
+4,Smart LED Bulb,WiFi-enabled 9W multicolor LED bulb compatible with Alexa and Google Home,699,home_appliance,Unisex,Plastic,China,4.5,500,White,NA,Yes,30,277,SKU-HOM-0004,Bajaj,3,Yes
+8,Espresso Coffee Maker,Automatic 15-bar espresso and cappuccino maker with stainless steel body,7999,home_appliance,Unisex,Steel,Italy,4.6,50,Silver,NA,No,25,248,SKU-HOM-0008,Whirlpool,3,Yes
+16,Air Purifier,HEPA H13 filter air purifier for rooms up to 400 sq ft with AQI display,8999,home_appliance,Unisex,Plastic,China,4.7,40,White,NA,No,10,275,SKU-HOM-0016,IFB,12,Yes
+72,Room Heater,1500W ceramic room heater with thermostat and overheat protection,2999,home_appliance,Unisex,Plastic,China,4.4,85,Grey,NA,No,5,480,SKU-HOM-0072,Whirlpool,3,Yes
+73,Ceiling Fan,3-blade BLDC ceiling fan with remote control and low power consumption,3499,home_appliance,Unisex,Aluminium,India,4.5,60,White,NA,No,25,164,SKU-HOM-0073,Usha,6,Yes
+74,Water Purifier RO,7-stage RO+UV+UF water purifier with 10L storage tank,8499,home_appliance,Unisex,Plastic,India,4.6,35,White,NA,No,15,465,SKU-HOM-0074,Whirlpool,12,Yes
+75,Washing Machine Mini,5kg semi-automatic twin-tub washing machine,9999,home_appliance,Unisex,Plastic,India,4.3,30,Grey,NA,No,0,131,SKU-HOM-0075,Crompton,0,Yes
+76,Exhaust Fan,9-inch 35W kitchen exhaust fan with rust-proof aluminium blades,699,home_appliance,Unisex,Aluminium,India,4.2,200,White,NA,No,10,15,SKU-HOM-0076,IFB,24,Yes
+77,Induction Cooktop,2000W induction cooktop with 7 preset modes and auto shut-off,2299,home_appliance,Unisex,Glass+Plastic,India,4.5,110,Black,NA,No,5,306,SKU-HOM-0077,Crompton,0,Yes
+78,Refrigerator 200L,200L single door refrigerator with 5-star rating and stabilizer free operation,16999,home_appliance,Unisex,Steel,India,4.5,20,Grey,NA,No,0,367,SKU-HOM-0078,Havells,3,Yes
+79,Microwave 20L,20L solo microwave oven with 5 power levels and auto defrost,6499,home_appliance,Unisex,Steel,India,4.4,45,Black,NA,No,0,468,SKU-HOM-0079,Havells,6,Yes
+80,Wet Grinder,2L table-top wet grinder with 200W motor and stone rollers,4299,home_appliance,Unisex,Plastic+Stone,India,4.6,30,White,NA,No,0,268,SKU-HOM-0080,Crompton,6,Yes
+81,Dish Washer Compact,6-place countertop dishwasher with 5 wash programs,18999,home_appliance,Unisex,Plastic,Germany,4.5,15,Silver,NA,No,25,253,SKU-HOM-0081,Crompton,24,Yes
+82,Air Cooler 20L,20L personal air cooler with ice chamber and 3-speed control,4999,home_appliance,Unisex,Plastic,India,4.3,55,White,NA,No,5,375,SKU-HOM-0082,IFB,24,Yes
+83,Geyser 15L,15L storage water heater with anti-corrosion tank and safety valve,5499,home_appliance,Unisex,Steel,India,4.5,40,White,NA,No,15,129,SKU-HOM-0083,Orient,12,Yes
+84,Dehumidifier,20 pint portable dehumidifier with continuous drain option,9499,home_appliance,Unisex,Plastic,China,4.4,25,White,NA,No,5,53,SKU-HOM-0084,Philips,12,Yes
+85,Stand Fan,400mm 5-blade pedestal fan with 3 speed settings and oscillation,2299,home_appliance,Unisex,Plastic,India,4.2,70,White,NA,No,10,221,SKU-HOM-0085,Usha,12,Yes
+86,Rice Cooker,1.8L electric rice cooker with steam basket and keep-warm function,1899,home_appliance,Unisex,Aluminium,China,4.4,120,White,NA,No,30,378,SKU-HOM-0086,Havells,0,Yes
+87,Vacuum Cleaner,1400W bagged vacuum cleaner with HEPA filter and 3m cable,3999,home_appliance,Unisex,Plastic,Germany,4.5,50,Blue,NA,No,0,211,SKU-HOM-0087,LG,0,Yes
+88,OTG Oven 30L,30L oven toaster griller with convection mode and rotisserie,4499,home_appliance,Unisex,Steel,India,4.5,55,Silver,NA,No,5,103,SKU-HOM-0088,Crompton,24,Yes
+5,Leather Wallet,Slim genuine leather bi-fold wallet with RFID blocking and 8 card slots,999,accessories,Men,Leather,India,4.5,320,Brown,NA,Yes,15,76,SKU-ACC-0005,Peter Jones,0,Yes
+15,Travel Backpack,35L water-resistant travel backpack with USB port and laptop sleeve,2199,accessories,Unisex,Nylon,China,4.6,150,Black,NA,Yes,5,147,SKU-ACC-0015,DailyObjects,0,Yes
+89,Sunglasses Polarised,UV400 polarised sunglasses with TR90 frame,1499,accessories,Unisex,TR90,China,4.4,200,Black,NA,Yes,5,452,SKU-ACC-0089,Hidesign,0,Yes
+90,Watch Strap Leather,20mm genuine leather watch strap with quick-release pin,699,accessories,Unisex,Leather,India,4.5,300,Brown,NA,Yes,15,418,SKU-ACC-0090,Wildcraft,0,Yes
+91,Laptop Sleeve 15 inch,Neoprene 15.6-inch laptop sleeve with accessory pocket,799,accessories,Unisex,Neoprene,China,4.4,220,Grey,NA,Yes,0,30,SKU-ACC-0091,Wildcraft,0,Yes
+92,Handbag Tote,Large vegan leather tote bag with inner zip pocket,2499,accessories,Women,Vegan Leather,India,4.5,80,Tan,NA,Yes,30,12,SKU-ACC-0092,Hidesign,0,Yes
+93,Hair Clip Set,Pack of 12 assorted hair clips in acetate and metal,399,accessories,Women,Acetate+Metal,China,4.3,400,Multicolor,NA,Yes,30,439,SKU-ACC-0093,Safari,0,Yes
+94,Coin Purse,Compact zip-around genuine leather coin purse,499,accessories,Unisex,Leather,India,4.4,250,Red,NA,Yes,5,213,SKU-ACC-0094,DailyObjects,0,Yes
+95,Gym Bag,40L duffel gym bag with wet compartment and shoe pocket,1599,accessories,Unisex,Polyester,China,4.5,130,Black,NA,Yes,15,114,SKU-ACC-0095,Peter Jones,0,Yes
+96,Umbrella Windproof,Double canopy windproof travel umbrella with auto open close,899,accessories,Unisex,Polyester,China,4.3,180,Black,NA,Yes,0,89,SKU-ACC-0096,Peter Jones,0,Yes
+97,Phone Wallet Case,Leather flip phone wallet case with card slots for iPhone 15,1299,accessories,Unisex,Leather,India,4.4,120,Brown,NA,Yes,0,204,SKU-ACC-0097,VIP,0,Yes
+98,Passport Holder,RFID-blocking leather passport holder with card slots,699,accessories,Unisex,Leather,India,4.6,200,Black,NA,Yes,30,406,SKU-ACC-0098,DailyObjects,0,Yes
+99,Sling Bag,Compact canvas sling crossbody bag with anti-theft zipper,1199,accessories,Unisex,Canvas,India,4.4,110,Khaki,NA,Yes,10,221,SKU-ACC-0099,Wildcraft,0,Yes
+100,Tie Silk,100% silk woven necktie with gift box,1499,accessories,Men,Silk,India,4.5,90,Navy Blue,NA,No,25,372,SKU-ACC-0100,DailyObjects,0,Yes
+101,Key Chain Set,Stainless steel premium keychain set of 3,399,accessories,Unisex,Steel,China,4.2,350,Silver,NA,Yes,5,102,SKU-ACC-0101,VIP,0,Yes
+11,Wooden Study Table,Compact foldable wooden study table with adjustable height and storage shelf,2599,furniture,Unisex,MDF+Steel,India,4.4,60,Walnut,NA,No,5,500,SKU-FUR-0011,Nilkamal,24,Yes
+19,Office Chair,"Ergonomic mesh office chair with lumbar support, adjustable armrests and height",6999,furniture,Unisex,Mesh+Metal,China,4.5,35,Black,NA,No,25,282,SKU-FUR-0019,Nilkamal,6,Yes
+102,3-Seater Sofa,Fabric upholstered 3-seater sofa with solid wood legs,18999,furniture,Unisex,Fabric+Wood,India,4.5,15,Grey,NA,No,0,30,SKU-FUR-0102,Stanley,12,Yes
+103,King Bed Frame,King size solid sheesham wood bed frame with headboard,24999,furniture,Unisex,Sheesham Wood,India,4.7,10,Natural,NA,No,20,475,SKU-FUR-0103,Evok,3,Yes
+104,Bookshelf 5-Tier,5-tier open bookshelf in engineered wood with metal frame,3499,furniture,Unisex,MDF+Metal,India,4.4,45,White,NA,No,0,496,SKU-FUR-0104,Evok,0,Yes
+105,TV Unit,Modern TV entertainment unit with 2 cabinets and open shelves,8999,furniture,Unisex,MDF,India,4.5,30,Wenge,NA,No,30,100,SKU-FUR-0105,Godrej Interio,24,Yes
+106,Dining Table 4-Seater,4-seater dining table with 4 chairs in solid wood,14999,furniture,Unisex,Sheesham Wood,India,4.6,20,Natural,NA,No,0,350,SKU-FUR-0106,Urban Ladder,12,Yes
+107,Bedside Table,2-drawer bedside nightstand in engineered wood,2499,furniture,Unisex,MDF,India,4.3,70,White,NA,No,0,487,SKU-FUR-0107,Stanley,3,Yes
+108,Wardrobe 3-Door,3-door sliding wardrobe with mirror and internal shelves,21999,furniture,Unisex,MDF+Glass,India,4.5,12,White,NA,No,20,309,SKU-FUR-0108,Nilkamal,24,Yes
+109,Coffee Table,Round glass-top coffee table with iron base,4999,furniture,Unisex,Glass+Iron,India,4.4,40,Black,NA,No,0,219,SKU-FUR-0109,Stanley,24,Yes
+110,Gaming Chair,"Ergonomic gaming chair with recline, footrest and lumbar pillow",8999,furniture,Unisex,PU Leather+Metal,China,4.5,30,Black+Red,NA,No,20,166,SKU-FUR-0110,Pepperfry,3,Yes
+111,Shoe Rack 5-Tier,5-tier steel shoe rack for up to 20 pairs,1499,furniture,Unisex,Steel,India,4.3,100,Black,NA,No,25,371,SKU-FUR-0111,Wakefit,3,Yes
+112,Bar Stool Set,Set of 2 counter height bar stools with footrest,4999,furniture,Unisex,Metal+PU,China,4.4,25,Black,NA,No,10,207,SKU-FUR-0112,Durian,6,Yes
+113,Kids Study Chair,Height-adjustable kids study chair with back support,2999,furniture,Kids,Plastic+Metal,China,4.5,50,Blue,NA,No,15,166,SKU-FUR-0113,Godrej Interio,0,Yes
+114,Recliner Chair,Single-seater fabric recliner with cup holder and push-back mechanism,12999,furniture,Unisex,Fabric+Steel,India,4.6,18,Grey,NA,No,15,323,SKU-FUR-0114,Stanley,0,Yes
+14,Non-stick Frying Pan,28cm induction-compatible non-stick pan with heat-resistant handle,1299,kitchen,Unisex,Aluminium,India,4.5,250,Black,NA,Yes,0,280,SKU-KIT-0014,Borosil,0,Yes
+115,Pressure Cooker 5L,5L hard-anodized aluminum pressure cooker with ISI certified,1799,kitchen,Unisex,Aluminium,India,4.6,200,Grey,NA,No,20,140,SKU-KIT-0115,Pigeon,0,Yes
+116,Knife Set,6-piece stainless steel kitchen knife set with wooden block,2499,kitchen,Unisex,Steel,Germany,4.7,80,Silver,NA,No,10,456,SKU-KIT-0116,Hawkins,0,Yes
+117,Mixing Bowl Set,Set of 3 stainless steel mixing bowls with non-slip base,999,kitchen,Unisex,Steel,India,4.5,160,Silver,NA,No,5,194,SKU-KIT-0117,Wonderchef,0,Yes
+118,Spice Rack,Rotating 24-jar spice rack with glass jars and labels,1499,kitchen,Unisex,Steel+Glass,India,4.4,100,Silver,NA,No,5,229,SKU-KIT-0118,Cello,0,Yes
+119,Chopping Board,Bamboo chopping board with juice groove and anti-slip feet,699,kitchen,Unisex,Bamboo,China,4.5,250,Natural,NA,Yes,25,159,SKU-KIT-0119,Meyer,0,Yes
+120,Tiffin Box 3-Tier,Stainless steel 3-tier tiffin carrier with locking clips,799,kitchen,Unisex,Steel,India,4.4,300,Silver,NA,No,30,339,SKU-KIT-0120,Cello,0,Yes
+121,Electric Kettle 1.5L,1.5L stainless steel electric kettle with boil-dry protection,1299,kitchen,Unisex,Steel,India,4.5,280,Silver,NA,Yes,0,346,SKU-KIT-0121,Cello,0,Yes
+122,Blender Mixer,600W hand blender with 2-speed control and chopper attachment,1499,kitchen,Unisex,Plastic+Steel,India,4.4,150,White,NA,No,10,482,SKU-KIT-0122,Hawkins,0,Yes
+123,Casserole 3L,3L insulated casserole for hot chapati and rice storage,899,kitchen,Unisex,Steel,India,4.3,220,Steel,NA,No,5,140,SKU-KIT-0123,Hawkins,0,Yes
+124,Idli Maker 4-Plate,4-plate 16-idli stainless steel idli maker with stand,1199,kitchen,Unisex,Steel,India,4.6,120,Steel,NA,No,0,385,SKU-KIT-0124,Cello,0,Yes
+125,Grater Set,4-sided stainless steel box grater with non-slip handle,499,kitchen,Unisex,Steel,India,4.4,350,Silver,NA,Yes,5,144,SKU-KIT-0125,Wonderchef,0,Yes
+126,Rolling Pin+Board,Marble rolling pin and board set for rotis and pastry,1299,kitchen,Unisex,Marble,India,4.6,90,White,NA,No,20,112,SKU-KIT-0126,Stahl,0,Yes
+127,Oil Dispenser Set,2-piece glass oil and vinegar dispenser with drip-free spout,799,kitchen,Unisex,Glass,India,4.4,200,Clear,NA,No,5,356,SKU-KIT-0127,Wonderchef,0,Yes
+128,Food Storage Container Set,Set of 10 airtight BPA-free plastic containers with labels,999,kitchen,Unisex,Plastic,India,4.5,280,Clear,NA,Yes,20,255,SKU-KIT-0128,Wonderchef,0,Yes
+129,Roti Maker Electric,900W automatic electric roti maker with non-stick plates,2299,kitchen,Unisex,Aluminium,India,4.3,100,Silver,NA,No,30,31,SKU-KIT-0129,Hawkins,0,Yes
+130,Curd Maker,Electric yogurt maker with 8 individual glass jars and timer,1699,kitchen,Unisex,Plastic+Glass,India,4.5,70,White,NA,No,25,221,SKU-KIT-0130,Wonderchef,0,Yes
+131,Kitchen Scale,5kg digital kitchen scale with tare function and LCD display,799,kitchen,Unisex,Plastic,China,4.4,220,Silver,NA,Yes,0,6,SKU-KIT-0131,Stahl,0,Yes
+132,Microwave Safe Cookware Set,3-piece borosilicate glass cookware set for microwave use,1899,kitchen,Unisex,Borosilicate Glass,India,4.5,80,Clear,NA,Yes,30,71,SKU-KIT-0132,Wonderchef,0,Yes
+133,Silicone Spatula Set,6-piece heat-resistant silicone kitchen tool set,699,kitchen,Unisex,Silicone+Wood,China,4.5,300,Multicolor,NA,Yes,5,384,SKU-KIT-0133,Milton,0,Yes
+12,Organic Face Cream,"Moisturizing face cream with aloe vera, vitamin E and hyaluronic acid",599,skincare,Women,NA,India,4.5,250,NA,NA,Yes,20,366,SKU-SKI-0012,WOW Skin Science,0,Yes
+134,Vitamin C Serum,10% vitamin C brightening serum with niacinamide and ferulic acid,899,skincare,Unisex,NA,India,4.6,180,NA,NA,Yes,20,9,SKU-SKI-0134,Dot & Key,0,Yes
+135,Sunscreen SPF50,Broad-spectrum SPF50 PA+++ sunscreen with no white cast,599,skincare,Unisex,NA,India,4.5,350,NA,NA,Yes,0,488,SKU-SKI-0135,Mamaearth,0,Yes
+136,Retinol Night Cream,0.1% retinol anti-aging night cream with peptides and ceramides,1299,skincare,Unisex,NA,India,4.5,120,NA,NA,Yes,20,23,SKU-SKI-0136,Himalaya,0,Yes
+137,Micellar Water,500ml gentle micellar cleansing water for all skin types,699,skincare,Unisex,NA,France,4.4,200,NA,NA,Yes,20,287,SKU-SKI-0137,Mamaearth,0,Yes
+138,Sheet Mask Pack,Pack of 10 Korean hydrating sheet masks with hyaluronic acid,799,skincare,Unisex,NA,South Korea,4.6,280,NA,NA,Yes,15,70,SKU-SKI-0138,Minimalist,0,Yes
+139,Clay Face Mask,Kaolin clay purifying face mask for oily and acne-prone skin,599,skincare,Unisex,NA,India,4.4,200,NA,NA,Yes,10,191,SKU-SKI-0139,Minimalist,0,Yes
+140,Under Eye Cream,Caffeine-infused under eye cream for dark circles and puffiness,799,skincare,Unisex,NA,India,4.4,150,NA,NA,Yes,10,112,SKU-SKI-0140,Plum,0,Yes
+141,Lip Balm SPF,SPF 30 tinted lip balm with vitamin E and shea butter pack of 3,399,skincare,Unisex,NA,India,4.5,400,NA,NA,Yes,25,57,SKU-SKI-0141,Himalaya,0,Yes
+142,Face Wash Gel,Salicylic acid face wash gel for acne-prone skin 150ml,499,skincare,Unisex,NA,India,4.4,320,NA,NA,Yes,30,291,SKU-SKI-0142,WOW Skin Science,0,Yes
+143,Body Lotion,Shea butter and glycerin body lotion for dry skin 400ml,699,skincare,Unisex,NA,India,4.3,250,NA,NA,Yes,20,388,SKU-SKI-0143,Mamaearth,0,Yes
+144,Toner Rose Water,Pure rose water face toner with no alcohol 200ml,349,skincare,Unisex,NA,India,4.5,450,NA,NA,Yes,5,447,SKU-SKI-0144,Mamaearth,0,Yes
+145,Beard Oil,Argan oil and vitamin E beard oil for softening and growth 50ml,699,skincare,Men,NA,India,4.4,200,NA,NA,Yes,30,420,SKU-SKI-0145,Mamaearth,0,Yes
+146,Scrub Coffee Body,Coffee and coconut oil body scrub for exfoliation 200g,799,skincare,Unisex,NA,India,4.5,150,NA,NA,Yes,15,17,SKU-SKI-0146,Mamaearth,0,Yes
+147,Foot Cream,Urea 25% cracked heel foot cream with shea butter,499,skincare,Unisex,NA,India,4.4,180,NA,NA,Yes,25,478,SKU-SKI-0147,Himalaya,0,Yes
+17,Electric Toothbrush,"Rechargeable sonic toothbrush with 3 modes, 2-min timer and travel case",2299,personal_care,Unisex,Plastic,China,4.6,150,White,NA,Yes,30,481,SKU-PER-0017,Dove,0,Yes
+20,Perfume Set,Unisex long-lasting fragrance gift set with citrus and woody notes,1499,personal_care,Unisex,NA,France,4.5,100,NA,NA,Yes,30,347,SKU-PER-0020,Syska,0,Yes
+148,Hair Dryer,2200W hair dryer with ionic technology and 3 heat settings,2499,personal_care,Women,Plastic,China,4.5,120,Pink,NA,Yes,10,86,SKU-PER-0148,Braun,0,Yes
+149,Trimmer Cordless,Cordless beard trimmer with 40 length settings and 120min runtime,1799,personal_care,Men,Plastic+Steel,India,4.6,200,Black,NA,Yes,15,451,SKU-PER-0149,Philips,0,Yes
+150,Epilator,Wet and dry epilator with massage cap and 24 tweezers,2999,personal_care,Women,Plastic,Germany,4.4,80,White,NA,Yes,30,245,SKU-PER-0150,Syska,0,Yes
+151,Hair Straightener,Ceramic plates hair straightener with 230°C max heat,1599,personal_care,Women,Ceramic+Plastic,China,4.4,110,Rose Gold,NA,Yes,5,423,SKU-PER-0151,Gillette,0,Yes
+152,Shaving Kit,5-blade shaving razor with precision trimmer and 8 cartridges,1299,personal_care,Men,Plastic+Steel,India,4.5,150,Blue,NA,Yes,10,161,SKU-PER-0152,Syska,0,Yes
+153,Face Massager,T-shaped electric face massager with vibration mode,1199,personal_care,Unisex,Stainless Steel,China,4.4,130,Silver,NA,Yes,5,17,SKU-PER-0153,Syska,0,Yes
+154,Nail Care Kit,Manicure and pedicure kit with 12 stainless steel tools in leather case,899,personal_care,Unisex,Steel,China,4.5,200,Silver,NA,Yes,15,173,SKU-PER-0154,VEGA,0,Yes
+155,Weighing Scale Body,Digital body weighing scale with tempered glass platform,1299,personal_care,Unisex,Glass+Plastic,India,4.4,160,White,NA,Yes,30,40,SKU-PER-0155,VEGA,0,Yes
+156,Nose Hair Trimmer,Painless dual-edge nose and ear hair trimmer,599,personal_care,Men,Stainless Steel,China,4.3,300,Silver,NA,Yes,10,333,SKU-PER-0156,Park Avenue,0,Yes
+157,Hair Curler,28mm auto-rotating curling iron with ceramic coating,2199,personal_care,Women,Ceramic,China,4.4,90,Pink,NA,Yes,15,352,SKU-PER-0157,Park Avenue,0,Yes
+158,Diffuser Aroma,100ml ultrasonic aroma diffuser with LED lights and auto shut-off,1499,personal_care,Unisex,Plastic,China,4.5,150,White,NA,Yes,10,485,SKU-PER-0158,Philips,0,Yes
+159,Sanitizer Hand,500ml antibacterial gel hand sanitizer with aloe vera pack of 2,399,personal_care,Unisex,NA,India,4.3,500,Clear,NA,Yes,0,454,SKU-PER-0159,VEGA,0,Yes
+160,Mouthwash Fresh,500ml fluoride mouthwash with anti-bacterial formula,399,personal_care,Unisex,NA,India,4.2,350,Blue,NA,Yes,5,302,SKU-PER-0160,VEGA,0,Yes
+161,Shampoo Anti-Dandruff,Zinc pyrithione anti-dandruff shampoo with ketoconazole 200ml,499,personal_care,Unisex,NA,India,4.4,280,White,NA,Yes,0,60,SKU-PER-0161,Parachute,0,Yes
+162,Conditioner Hair,Argan oil deep conditioning hair mask 200ml,599,personal_care,Unisex,NA,India,4.3,230,White,NA,Yes,15,181,SKU-PER-0162,Himalaya,0,Yes
+163,Body Wash,Activated charcoal detox body wash with peppermint 300ml,599,personal_care,Unisex,NA,India,4.4,300,Black,NA,Yes,15,315,SKU-PER-0163,Park Avenue,0,Yes
+164,Deodorant Roll-On,48hr protection roll-on deodorant with no aluminum chloride,299,personal_care,Unisex,NA,India,4.2,450,White,NA,Yes,0,202,SKU-PER-0164,Parachute,0,Yes
+165,Cotton Swabs,Pack of 200 medical-grade cotton swabs in resealable pack,199,personal_care,Unisex,Cotton,India,4.3,600,White,NA,Yes,5,135,SKU-PER-0165,Philips,0,Yes
+166,Yoga Mat,6mm thick TPE non-slip yoga mat with carrying strap,999,accessories,Unisex,TPE,India,4.5,200,Blue,NA,Yes,25,228,SKU-ACC-0166,Fossil,0,Yes
+167,Resistance Bands Set,Set of 5 latex resistance bands with carry bag,799,accessories,Unisex,Latex,China,4.4,250,Multicolor,NA,Yes,20,478,SKU-ACC-0167,Wildcraft,0,Yes
+168,Jump Rope,PVC skipping rope with ball-bearing handle and adjustable length,399,accessories,Unisex,PVC+Steel,China,4.3,400,Black,NA,Yes,25,373,SKU-ACC-0168,Safari,0,Yes
+169,Water Bottle Insulated,750ml double-wall stainless steel insulated bottle 24hr cold,1299,accessories,Unisex,Steel,India,4.6,350,Silver,NA,Yes,10,225,SKU-ACC-0169,Hidesign,0,Yes
+170,Lunch Box Insulated,1200ml thermal lunch box with 3 compartments,999,accessories,Unisex,Steel,India,4.5,280,Grey,NA,Yes,25,476,SKU-ACC-0170,Skybags,0,Yes
+171,Desk Organizer,Bamboo 6-slot desk organizer with phone stand,699,furniture,Unisex,Bamboo,China,4.4,300,Natural,NA,Yes,20,165,SKU-FUR-0171,Godrej Interio,6,Yes
+172,Monitor Riser,Solid wood monitor stand riser with 2 USB ports,1499,furniture,Unisex,Wood+USB,China,4.5,150,Walnut,NA,Yes,20,163,SKU-FUR-0172,HomeTown,6,Yes
+173,Cable Management Box,Large cable management box with 6-outlet surge protector,1299,electronics,Unisex,Plastic,China,4.3,200,White,NA,Yes,15,361,SKU-ELE-0173,JBL,24,Yes
+174,Surge Protector,6-outlet surge protector strip with 3 USB ports and 2m cord,999,electronics,Unisex,Plastic,India,4.5,350,White,NA,No,5,103,SKU-ELE-0174,HP,12,Yes
+175,LED Desk Lamp,USB-powered LED desk lamp with 5 brightness levels and timer,999,home_appliance,Unisex,Aluminium,China,4.5,250,White,NA,Yes,25,388,SKU-HOM-0175,Bajaj,24,Yes
+176,Candle Set Scented,Set of 4 soy wax scented candles with wooden wicks,1199,personal_care,Unisex,Soy Wax,India,4.6,150,Cream,NA,Yes,20,159,SKU-PER-0176,Dove,0,Yes
+177,Incense Stick Set,Pack of 120 natural agarbatti with stand holder,299,personal_care,Unisex,Natural,India,4.4,500,NA,NA,Yes,20,431,SKU-PER-0177,Philips,0,Yes
+178,Plant Pot Set,Set of 3 ceramic plant pots with drainage holes and saucers,999,home_appliance,Unisex,Ceramic,India,4.5,150,White,NA,Yes,10,151,SKU-HOM-0178,Crompton,12,Yes
+179,Wall Clock Wooden,12-inch silent sweep wooden wall clock,1299,home_appliance,Unisex,Wood,India,4.4,120,Natural,NA,No,30,301,SKU-HOM-0179,IFB,6,Yes
+180,Photo Frame Set,Set of 6 wall collage photo frames in black,899,home_appliance,Unisex,MDF,India,4.3,180,Black,NA,Yes,15,231,SKU-HOM-0180,Orient,3,Yes
+181,Door Mat,Anti-skid microfiber bathroom and door mat 60x40cm,499,home_appliance,Unisex,Microfiber,India,4.4,350,Grey,NA,Yes,20,247,SKU-HOM-0181,Bajaj,0,Yes
+182,Storage Basket Set,Set of 3 foldable fabric storage baskets with handles,1199,home_appliance,Unisex,Fabric,India,4.5,200,Beige,NA,Yes,10,268,SKU-HOM-0182,IFB,6,Yes
+183,Towel Set 4-piece,100% cotton bath towel set of 4 with 600 GSM,1999,personal_care,Unisex,Cotton,India,4.6,120,White,NA,Yes,0,424,SKU-PER-0183,Syska,0,Yes
+184,Bed Sheet King,King size 100% cotton bedsheet with 2 pillow covers,1799,home_appliance,Unisex,Cotton,India,4.5,150,White,NA,Yes,25,163,SKU-HOM-0184,Crompton,3,Yes
+185,Cushion Cover Set,Set of 5 printed cushion covers 16x16 inch,699,home_appliance,Unisex,Polyester,India,4.3,300,Multicolor,NA,Yes,5,17,SKU-HOM-0185,Havells,3,Yes
+186,Playing Cards,2-pack waterproof plastic playing cards with jumbo index,499,accessories,Unisex,Plastic,China,4.4,400,Red+Blue,NA,Yes,15,317,SKU-ACC-0186,Hidesign,0,Yes
+187,Chess Set Wooden,Handcrafted wooden chess set with storage drawer,2499,accessories,Unisex,Wood,India,4.7,70,Natural,NA,No,15,217,SKU-ACC-0187,Fastrack,0,Yes
+188,Sudoku Puzzle Book,500 sudoku puzzles in 5 difficulty levels,299,accessories,Unisex,Paper,India,4.2,200,NA,NA,Yes,5,372,SKU-ACC-0188,Peter Jones,0,Yes
+189,Sticky Notes Set,Pack of 8 multi-color sticky note pads 76x76mm,399,accessories,Unisex,Paper,India,4.3,500,Multicolor,NA,Yes,15,209,SKU-ACC-0189,Safari,0,Yes
+190,Pen Set Gel,12-piece gel pen set with 0.5mm tip in assorted colors,349,accessories,Unisex,Plastic,Japan,4.5,600,Multicolor,NA,Yes,5,340,SKU-ACC-0190,Fossil,0,Yes
+191,Notebook Hardcover,A5 dot grid hardcover notebook 240 pages,599,accessories,Unisex,Paper,India,4.6,350,Black,NA,Yes,30,445,SKU-ACC-0191,Hidesign,0,Yes
+192,Label Maker,Handheld QWERTY label maker with 3 tape cartridges,2499,electronics,Unisex,Plastic,China,4.4,80,White,NA,Yes,30,222,SKU-ELE-0192,Sony,3,Yes
+193,Stapler Heavy Duty,Heavy-duty stapler for up to 60 sheets with 2000 staples,799,accessories,Unisex,Metal,India,4.5,200,Black,NA,Yes,30,495,SKU-ACC-0193,Wildcraft,0,Yes
+194,File Organizer,A4 3-tier metal mesh file organizer for desktop,999,accessories,Unisex,Metal,China,4.4,180,Black,NA,Yes,15,30,SKU-ACC-0194,Wildcraft,0,Yes
+195,Whiteboard Magnetic,60x45cm magnetic dry-erase whiteboard with marker and eraser,1999,accessories,Unisex,MDF+Steel,India,4.5,100,White,NA,No,5,474,SKU-ACC-0195,Hidesign,0,Yes
+196,Calculator Scientific,240 function scientific calculator for students,799,electronics,Unisex,Plastic,Japan,4.7,300,Black,NA,Yes,15,73,SKU-ELE-0196,Realme,24,Yes
+197,Drawing Kit,48-piece drawing and sketching kit with pencils and charcoal,1499,accessories,Unisex,Mixed,India,4.6,150,NA,NA,Yes,20,309,SKU-ACC-0197,Skybags,0,Yes
+198,Acrylic Paint Set,24 color acrylic paint set with 3 brushes,999,accessories,Unisex,Acrylic,India,4.5,200,Multicolor,NA,Yes,30,461,SKU-ACC-0198,DailyObjects,0,Yes
+199,Jigsaw Puzzle 1000pc,1000-piece nature landscape jigsaw puzzle,999,accessories,Unisex,Cardboard,India,4.6,120,Multicolor,NA,Yes,20,422,SKU-ACC-0199,Wildcraft,0,Yes
+200,Board Game Family,Family board game with 4 player modes and dice,1299,accessories,Unisex,Cardboard+Plastic,India,4.5,100,Multicolor,NA,Yes,15,430,SKU-ACC-0200,Wildcraft,0,Yes

@@ -93,6 +93,29 @@ function audioBufferFromJson(data) {
   return Buffer.from(cleanBase64, "base64");
 }
 
+function splitReadySegments(buffer, isFinal = false) {
+  const parts = [];
+  let remaining = buffer;
+  const sentenceRegex = /(.+?[.!?])(\s+|$)/;
+
+  while (true) {
+    const match = remaining.match(sentenceRegex);
+    if (!match) {
+      break;
+    }
+
+    parts.push(match[1].trim());
+    remaining = remaining.slice(match.index + match[0].length);
+  }
+
+  if (isFinal && remaining.trim()) {
+    parts.push(remaining.trim());
+    remaining = "";
+  }
+
+  return { parts, remaining };
+}
+
 async function transcribeLocal(pcmBuffer, signal) {
   const localSttUrl = getEnvUrl("LOCAL_STT_URL");
   if (!localSttUrl) {
@@ -243,11 +266,43 @@ module.exports = function handleVoiceSession(ws) {
     history.push({ role: "user", content: turn.text });
 
     let replyText = "";
+    let streamedText = "";
+    let speechBuffer = "";
+    let startedSpeaking = false;
 
     try {
-      replyText = await llm.generateReply(turn.text, history, sessionUserId, {
+      for await (const chunk of llm.streamReply(turn.text, history, sessionUserId, {
         signal: abortController.signal,
-      });
+      })) {
+        if (turn.cancelled || currentTurn?.id !== turn.id || isClosed) {
+          currentTurn = null;
+          scheduleQueueProcessing(0);
+          return;
+        }
+
+        replyText += chunk;
+        streamedText += chunk;
+        speechBuffer += chunk;
+        sendEvent("bot_partial", { text: replyText, turnId: turn.id });
+
+        const { parts, remaining } = splitReadySegments(speechBuffer, false);
+        speechBuffer = remaining;
+
+        for (const part of parts) {
+          if (!part) {
+            continue;
+          }
+          if (!startedSpeaking) {
+            turn.stage = "speaking";
+            sendStatus("speaking", { turnId: turn.id, text: part });
+            startedSpeaking = true;
+          }
+          const audioBuffer = await synthesizeLocal(part, abortController.signal);
+          if (!turn.cancelled && currentTurn?.id === turn.id && !isClosed) {
+            safeSend(ws, audioBuffer, true);
+          }
+        }
+      }
     } catch (err) {
       if (err?.code !== "ERR_CANCELED") {
         console.error("LLM error:", err.message);
@@ -267,6 +322,7 @@ module.exports = function handleVoiceSession(ws) {
       return;
     }
 
+    const finalSegments = splitReadySegments(speechBuffer, true);
     const trimmedReply = String(replyText || "").trim();
     if (!trimmedReply) {
       currentTurn = null;
@@ -277,13 +333,20 @@ module.exports = function handleVoiceSession(ws) {
     history.push({ role: "assistant", content: trimmedReply });
     sendEvent("bot_response", { text: trimmedReply, turnId: turn.id });
 
-    turn.stage = "speaking";
-    sendStatus("speaking", { turnId: turn.id, text: trimmedReply });
-
     try {
-      const audioBuffer = await synthesizeLocal(trimmedReply, abortController.signal);
-      if (!turn.cancelled && currentTurn?.id === turn.id && !isClosed) {
-        safeSend(ws, audioBuffer, true);
+      for (const part of finalSegments.parts) {
+        if (!part) {
+          continue;
+        }
+        if (!startedSpeaking) {
+          turn.stage = "speaking";
+          sendStatus("speaking", { turnId: turn.id, text: part });
+          startedSpeaking = true;
+        }
+        const audioBuffer = await synthesizeLocal(part, abortController.signal);
+        if (!turn.cancelled && currentTurn?.id === turn.id && !isClosed) {
+          safeSend(ws, audioBuffer, true);
+        }
       }
     } catch (err) {
       if (!turn.cancelled) {

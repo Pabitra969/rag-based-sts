@@ -2,6 +2,7 @@
 const express = require("express");
 const cors = require("cors");
 const http = require("http");
+const axios = require("axios");
 require("dotenv").config();
 
 const speechTokenRouter = require("./routes/speechToken.route");
@@ -31,6 +32,60 @@ app.post("/api/chat", async (req, res) => {
   } catch (err) {
     console.error("/api/chat error:", err.message);
     return res.status(500).json({ error: "failed to generate reply" });
+  }
+});
+
+app.post("/api/chat/stream", async (req, res) => {
+  const query = String(req.body?.query || "").trim();
+  const userId = String(req.body?.user_id || "voice-text-user");
+
+  if (!query) {
+    return res.status(400).json({ error: "query is required" });
+  }
+
+  const chatbotApiUrl =
+    process.env.AI_CHATBOT_API_URL || "http://127.0.0.1:5010/api/chat";
+  const chatbotStreamUrl = chatbotApiUrl.replace(/\/api\/chat$/, "/api/chat/stream");
+
+  try {
+    const upstream = await axios.post(
+      chatbotStreamUrl,
+      {
+        user_id: userId,
+        query,
+        voice_mode: false,
+      },
+      {
+        responseType: "stream",
+        headers: {
+          Accept: "text/event-stream",
+        },
+      }
+    );
+
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
+    upstream.data.on("data", (chunk) => {
+      res.write(chunk);
+    });
+
+    upstream.data.on("end", () => {
+      res.end();
+    });
+
+    upstream.data.on("error", (err) => {
+      console.error("/api/chat/stream upstream error:", err.message);
+      res.end();
+    });
+
+    req.on("close", () => {
+      upstream.data.destroy();
+    });
+  } catch (err) {
+    console.error("/api/chat/stream error:", err.message);
+    return res.status(500).json({ error: "failed to stream reply" });
   }
 });
 

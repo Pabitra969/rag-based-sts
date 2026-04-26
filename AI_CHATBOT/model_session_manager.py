@@ -2,7 +2,7 @@
 
 
 
-import os, shutil, asyncio, re
+import os, shutil, asyncio, re, threading
 from llama_cpp import Llama
 
 class ModelSessionManager:
@@ -77,6 +77,48 @@ class ModelSessionManager:
     def get_model(self):
         return self.llm
 
+    def _build_prompt(self, system_preamble: str, user_query: str,
+                      context_text: str = "", history_text: str = "") -> str:
+        prompt_parts = []
+
+        if system_preamble.strip():
+            prompt_parts.append(f"System: {system_preamble.strip()}")
+
+        if context_text.strip():
+            prompt_parts.append(f"\nProduct Information:\n{context_text.strip()}")
+
+        if history_text.strip():
+            prompt_parts.append(f"\nRecent Conversation:\n{history_text.strip()}")
+
+        prompt_parts.append(f"\nCustomer: {user_query.strip()}")
+        prompt_parts.append("\nSupport Agent:")
+        return "".join(prompt_parts)
+
+    async def _generate(self, prompt: str, temperature: float, max_tokens: int,
+                        top_p: float, stop_tokens):
+        loop = asyncio.get_running_loop()
+
+        def _infer():
+            return self.llm.create_completion(
+                prompt=prompt,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                top_p=top_p,
+                stop=stop_tokens,
+            )
+
+        try:
+            async with self._lock:
+                out = await loop.run_in_executor(None, _infer)
+            text = out.get("choices", [{}])[0].get("text", "") or ""
+            cleaned = text.strip()
+            cleaned = re.sub(r"^(Support Agent:|Agent:|Assistant:|support agent:)", "", cleaned, flags=re.I).strip()
+            cleaned = re.sub(r"\n+", " ", cleaned)
+            return cleaned
+        except Exception as e:
+            print(f"[LLM ERROR] {e}")
+            return ""
+
     # ---------- LLM wrapper ----------
     async def generate_reply(self, system_preamble: str, user_query: str,
                              context_text: str = "", history_text: str = "",
@@ -85,55 +127,94 @@ class ModelSessionManager:
         Unified async inference wrapper with context + history injection.
         Formats prompt cleanly to prevent model confusion and hallucination.
         """
-        # Build structured prompt with clear section breaks
-        prompt_parts = []
-        
-        # System instruction
-        if system_preamble.strip():
-            prompt_parts.append(f"System: {system_preamble.strip()}")
-        
-        # Context (only if provided)
-        if context_text.strip():
-            prompt_parts.append(f"\nProduct Information:\n{context_text.strip()}")
-        
-        # History (only if provided)
-        if history_text.strip():
-            prompt_parts.append(f"\nRecent Conversation:\n{history_text.strip()}")
-        
-        # Current question
-        prompt_parts.append(f"\nCustomer: {user_query.strip()}")
-        prompt_parts.append("\nSupport Agent:")
-        
-        prompt = "".join(prompt_parts)
+        prompt = self._build_prompt(
+            system_preamble,
+            user_query,
+            context_text=context_text,
+            history_text=history_text,
+        )
+        return await self._generate(
+            prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=0.9,
+            stop_tokens=[
+                "\nCustomer:", "Customer:",
+                "\nSystem:", "System:",
+                "\nRecent:",
+                "\nProduct:",
+                "\nUser:", "User:",
+                "\nAssistant:", "Assistant:",
+                "\nSupport Agent:", "Support Agent:"
+            ],
+        )
+
+    async def generate_fast_reply(self, system_preamble: str, user_query: str,
+                                  temperature: float = 0.25, max_tokens: int = 64):
+        prompt = self._build_prompt(system_preamble, user_query)
+        return await self._generate(
+            prompt,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            top_p=0.9,
+            stop_tokens=[
+                "\nCustomer:",
+                "\nSystem:",
+                "\nSupport Agent:",
+            ],
+        )
+
+    async def stream_reply(self, system_preamble: str, user_query: str,
+                           context_text: str = "", history_text: str = "",
+                           temperature: float = 0.35, max_tokens: int = 100,
+                           top_p: float = 0.9, stop_tokens=None):
+        prompt = self._build_prompt(
+            system_preamble,
+            user_query,
+            context_text=context_text,
+            history_text=history_text,
+        )
+        stop_tokens = stop_tokens or [
+            "\nCustomer:", "Customer:",
+            "\nSystem:", "System:",
+            "\nRecent:",
+            "\nProduct:",
+            "\nUser:", "User:",
+            "\nAssistant:", "Assistant:",
+            "\nSupport Agent:", "Support Agent:"
+        ]
 
         loop = asyncio.get_running_loop()
-        def _infer():
-            return self.llm.create_completion(
-                prompt=prompt,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                top_p=0.9,
-                # Stricter stop tokens to prevent model from continuing
-                stop=[
-                    "\nCustomer:", "Customer:",
-                    "\nSystem:", "System:",
-                    "\nRecent:",
-                    "\nProduct:",
-                    "\nUser:", "User:",
-                    "\nAssistant:", "Assistant:",
-                    "\nSupport Agent:", "Support Agent:"
-                ]
-            )
+        queue = asyncio.Queue()
+        sentinel = object()
 
-        try:
-            async with self._lock:
-                out = await loop.run_in_executor(None, _infer)
-            text = out.get("choices", [{}])[0].get("text", "") or ""
-            # Clean output: remove role prefixes and extra whitespace
-            cleaned = text.strip()
-            cleaned = re.sub(r"^(Support Agent:|Agent:|Assistant:|support agent:)", "", cleaned, flags=re.I).strip()
-            cleaned = re.sub(r"\n+", " ", cleaned)  # Replace multiple newlines with space
-            return cleaned
-        except Exception as e:
-            print(f"[LLM ERROR] {e}")
-            return ""
+        def _stream_worker():
+            try:
+                for chunk in self.llm.create_completion(
+                    prompt=prompt,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                    stop=stop_tokens,
+                    stream=True,
+                ):
+                    text = chunk.get("choices", [{}])[0].get("text", "") or ""
+                    if text:
+                        loop.call_soon_threadsafe(queue.put_nowait, text)
+            except Exception as exc:
+                loop.call_soon_threadsafe(queue.put_nowait, exc)
+            finally:
+                loop.call_soon_threadsafe(queue.put_nowait, sentinel)
+
+        async with self._lock:
+            worker = threading.Thread(target=_stream_worker, daemon=True)
+            worker.start()
+
+            while True:
+                item = await queue.get()
+                if item is sentinel:
+                    break
+                if isinstance(item, Exception):
+                    print(f"[LLM ERROR] {item}")
+                    break
+                yield item

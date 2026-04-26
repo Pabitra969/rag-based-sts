@@ -152,7 +152,67 @@ class LLMProvider {
       return "Sorry, my brain is offline right now.";
     }
   }
+
+  async *streamReply(message, history = [], userId = "voice-default", options = {}) {
+    const { signal } = options;
+
+    if (this.chatbotApiUrl) {
+      const chatbotStreamUrl = this.chatbotApiUrl.replace(/\/api\/chat$/, "/api/chat/stream");
+
+      try {
+        const chatbotRes = await axios.post(
+          chatbotStreamUrl,
+          {
+            user_id: userId,
+            query: message,
+            voice_mode: true,
+          },
+          {
+            timeout: this.timeoutMs,
+            signal,
+            responseType: "stream",
+            headers: {
+              Accept: "text/event-stream",
+            },
+          }
+        );
+
+        let buffer = "";
+        for await (const chunk of chatbotRes.data) {
+          buffer += chunk.toString("utf8");
+          const events = buffer.split("\n\n");
+          buffer = events.pop() || "";
+
+          for (const event of events) {
+            const line = event
+              .split("\n")
+              .find((entry) => entry.startsWith("data: "));
+            if (!line) {
+              continue;
+            }
+
+            const payload = JSON.parse(line.slice(6));
+            if (payload.type === "delta" && payload.text) {
+              yield String(payload.text);
+            } else if (payload.type === "error") {
+              throw new Error(payload.error || "stream failed");
+            }
+          }
+        }
+        return;
+      } catch (err) {
+        if (axios.isCancel?.(err) || err?.code === "ERR_CANCELED") {
+          throw err;
+        }
+        console.error("AI_CHATBOT stream failed:", err.message);
+      }
+    }
+
+    const reply = await this.generateReply(message, history, userId, options);
+    if (String(reply).trim()) {
+      yield String(reply).trim();
+    }
+  }
 }
 
 module.exports = LLMProvider;
-

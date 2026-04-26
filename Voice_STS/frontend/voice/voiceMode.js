@@ -12,10 +12,13 @@ let isVoiceModeActive = false;
 let currentAudioSource = null;
 let playbackStateTimer = null;
 let currentVoiceState = "idle";
+let audioQueue = [];
+let isPlayingQueue = false;
 
 let onStateChange = () => {};
 let onPartialTranscript = (_text) => {};
 let onFinalTranscript = (_text) => {};
+let onBotPartial = (_text) => {};
 let onBotResponse = (_text) => {};
 
 function setVoiceState(state, payload = {}) {
@@ -32,6 +35,8 @@ function clearPlaybackTimer() {
 
 function stopPlayback() {
   clearPlaybackTimer();
+  audioQueue = [];
+  isPlayingQueue = false;
 
   if (currentAudioSource) {
     try {
@@ -44,7 +49,7 @@ function stopPlayback() {
   }
 }
 
-function playPCM16(audioCtx, pcmBuffer) {
+function playPCM16(audioCtx, pcmBuffer, onEnded) {
   const int16 = new Int16Array(pcmBuffer);
   const float32 = new Float32Array(int16.length);
 
@@ -63,13 +68,29 @@ function playPCM16(audioCtx, pcmBuffer) {
   src.onended = () => {
     if (currentAudioSource === src) {
       currentAudioSource = null;
-      if (isVoiceModeActive && currentVoiceState === "speaking") {
-        setVoiceState("listening");
-      }
+      onEnded?.();
     }
   };
 
   src.start();
+}
+
+function playNextAudioChunk() {
+  if (!audioContext || currentAudioSource || !audioQueue.length) {
+    if (!currentAudioSource && !audioQueue.length) {
+      isPlayingQueue = false;
+      if (isVoiceModeActive && currentVoiceState === "speaking") {
+        setVoiceState("listening");
+      }
+    }
+    return;
+  }
+
+  isPlayingQueue = true;
+  const chunk = audioQueue.shift();
+  playPCM16(audioContext, chunk, () => {
+    playNextAudioChunk();
+  });
 }
 
 function sendInterruptSignal() {
@@ -97,6 +118,10 @@ function handleSocketMessage(event) {
         onBotResponse(msg.text || "");
         break;
 
+      case "bot_partial":
+        onBotPartial(msg.text || "");
+        break;
+
       case "status":
         if (msg.state === "interrupted") {
           stopPlayback();
@@ -117,11 +142,12 @@ function handleSocketMessage(event) {
 
   clearPlaybackTimer();
   setVoiceState("speaking");
-  playPCM16(audioContext, event.data);
+  audioQueue.push(event.data);
+  playNextAudioChunk();
 
   const approxDurationMs = Math.max(400, Math.round((event.data.byteLength / 2 / AUDIO_SAMPLE_RATE) * 1000));
   playbackStateTimer = window.setTimeout(() => {
-    if (isVoiceModeActive && currentVoiceState === "speaking" && !currentAudioSource) {
+    if (isVoiceModeActive && currentVoiceState === "speaking" && !currentAudioSource && !audioQueue.length) {
       setVoiceState("listening");
     }
   }, approxDurationMs + 120);
@@ -239,6 +265,7 @@ export function initVoiceMode(callbacks) {
   onStateChange = callbacks.onStateChange;
   onPartialTranscript = callbacks.onPartialTranscript;
   onFinalTranscript = callbacks.onFinalTranscript;
+  onBotPartial = callbacks.onBotPartial || (() => {});
   onBotResponse = callbacks.onBotResponse;
 
   return {

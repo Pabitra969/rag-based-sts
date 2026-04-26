@@ -2,16 +2,17 @@
 import os
 import asyncio
 from fastapi import FastAPI, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
+import json
 
 # Ensure all relative paths resolve from this file's directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(BASE_DIR)
 
 # Import chatbot logic
-from chatbot import answer_query_async  # Make sure chatbot.py exposes this function
+from chatbot import answer_query_async, answer_query_stream_async  # Make sure chatbot.py exposes this function
 
 app = FastAPI(title="Offline AI Chatbot", description="Local AI customer support chatbot")
 
@@ -39,6 +40,34 @@ async def chat_endpoint(request: Request):
         return JSONResponse({"answer": answer})
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+@app.post("/api/chat/stream")
+async def chat_stream_endpoint(request: Request):
+    data = await request.json()
+    user_id = data.get("user_id", "default")
+    query = data.get("query", "").strip()
+    voice_mode = bool(data.get("voice_mode"))
+    if not query:
+        return JSONResponse({"error": "Empty query"}, status_code=400)
+
+    async def event_stream():
+        try:
+            async for chunk in answer_query_stream_async(user_id, query, voice_mode=voice_mode):
+                if chunk:
+                    payload = json.dumps({"type": "delta", "text": chunk})
+                    yield f"data: {payload}\n\n"
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        except Exception as exc:
+            yield f"data: {json.dumps({'type': 'error', 'error': str(exc)})}\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+        },
+    )
 
 if __name__ == "__main__":
     # Host on all interfaces for Android WebView access, or localhost for laptop testing

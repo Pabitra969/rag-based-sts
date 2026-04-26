@@ -3,11 +3,12 @@
 # - Greeting → QuickResponder
 # - Product/DB Query → Direct DB fetch + light LLM humanize (constrained)
 # - Personalized Query → Full history + DB context + personalized response
-# - General Knowledge → Model answer + DB product suggestions
+# - General Knowledge → Fast LLM answer without retrieval
 
 import asyncio
 import time
 import re
+import json
 from contextlib import contextmanager
 from typing import Tuple
 from datetime import datetime
@@ -43,11 +44,13 @@ You help customers with personalized assistance based on their history and prefe
 Be friendly, remember context from their previous interactions.
 Reference their past questions when relevant."""
 
-SYSTEM_PREAMBLE_GENERAL = """You are Aria, a customer support AI.
-Answer general questions normally.
-If you provide product suggestions, use ONLY the provided suggestions list. Never invent product names or prices.
-If no suggestions are provided, do not mention any products.
-Be helpful and concise."""
+SYSTEM_PREAMBLE_GENERAL_FAST = """You are Aria, a customer support AI.
+Answer the question clearly in 2 to 4 short sentences.
+Give enough detail to be useful, but stay concise.
+Do not mention products unless the user explicitly asks about products.
+Do not pretend to know live facts like weather, news, stock prices, or traffic.
+If a question needs real-time data that you do not have, say that clearly and offer the closest helpful alternative.
+Be direct, helpful, and concise."""
 
 # ============ TIMING ============
 @contextmanager
@@ -63,6 +66,33 @@ def clean_text(t: str):
 
 PRODUCT_HINT_RE = re.compile(
     r"\b(jeans|t[- ]?shirts?|tshirts?|shirt|pants|shoes|electronics|phone|laptop|pc|computer|desktop|watch|bag|wallet|saree|dress|clothes|clothing|perfume|cream|skincare|skin|face|hair|beauty|cosmetics?|chair|table|furniture|mouse|speaker|backpack|product|item|catalog|inventory|price|cost)\b",
+    re.I,
+)
+
+HELP_HINT_RE = re.compile(r"\b(help|what can you do|how can you help)\b", re.I)
+LIVE_INFO_HINT_RE = re.compile(
+    r"\b("
+    r"temperature|weather|forecast|rain|humidity|wind|climate|"
+    r"news|headline|stock|share price|traffic|score|match score"
+    r")\b",
+    re.I,
+)
+DATE_QUERY_RE = re.compile(
+    r"\b("
+    r"what('?s| is)\s+(the\s+)?date|"
+    r"what\s+day\s+is\s+it|"
+    r"which\s+day\s+is\s+it|"
+    r"today('?s| is)\s+date|"
+    r"current\s+date"
+    r")\b",
+    re.I,
+)
+TIME_QUERY_RE = re.compile(
+    r"\b("
+    r"what('?s| is)\s+(the\s+)?time|"
+    r"current\s+time|"
+    r"time\s+now"
+    r")\b",
     re.I,
 )
 
@@ -88,9 +118,10 @@ def _extract_user_name_from_history(user_id: str) -> str:
 
 def _fast_general_reply(user_id: str, query: str, voice_mode: bool) -> str:
     q = query.lower().strip()
+    math_match = re.fullmatch(r"\s*(\d+)\s*([+\-*/])\s*(\d+)\s*", q)
 
-    if re.fullmatch(r"\s*(\d+)\s*([+\-*/])\s*(\d+)\s*", q):
-        a, op, b = re.fullmatch(r"\s*(\d+)\s*([+\-*/])\s*(\d+)\s*", q).groups()
+    if math_match:
+        a, op, b = math_match.groups()
         a = int(a)
         b = int(b)
         if op == "+":
@@ -112,23 +143,35 @@ def _fast_general_reply(user_id: str, query: str, voice_mode: bool) -> str:
             return f"Your name is {known_name}."
         return "You haven't told me your name yet."
 
-    if re.search(r"\b(date|day|today|current date)\b", q):
+    if re.search(r"\b(my name is)\b", q):
+        match = re.search(r"\bmy name is\s+([A-Za-z][A-Za-z\s'-]{0,30})", query, re.I)
+        if match:
+            return f"Nice to meet you, {match.group(1).strip()}."
+
+    if LIVE_INFO_HINT_RE.search(q):
+        return "I can't check live weather or other real-time updates in this offline setup yet."
+
+    if DATE_QUERY_RE.search(q):
         return datetime.now().strftime("Today is %A, %d %B %Y.")
 
-    if voice_mode and re.search(r"\b(time|current time)\b", q):
+    if TIME_QUERY_RE.search(q):
         return datetime.now().strftime("The time is %I:%M %p.")
 
-    if voice_mode and re.search(r"\b(how are you|are you there|can you hear me)\b", q):
+    if re.search(r"\b(how are you|are you there|can you hear me)\b", q):
         return "I'm here and listening."
+
+    if HELP_HINT_RE.search(q):
+        return "I can answer general questions quickly and help with product details from our catalog."
+
+    if re.search(r"\b(who made you|who created you)\b", q):
+        return "I'm Aria, a local AI support assistant built for this project."
 
     return ""
 
-def _should_skip_general_retrieval(intent: str, query: str, voice_mode: bool) -> bool:
-    if intent == "general_knowledge":
-        return True
-    if voice_mode and not PRODUCT_HINT_RE.search(query):
-        return True
-    return False
+async def _persist_conversation_state(user_id: str, save_model_context: bool = False):
+    await asyncio.to_thread(sessions.flush_pending, user_id)
+    if save_model_context:
+        await model_manager.save_context_async()
 
 # ============ MODULE LOADING ============
 print("🔧 Loading model manager and modules...")
@@ -166,7 +209,7 @@ def get_recent_history(user_id: str, max_turns: int = 3) -> str:
 
 def get_full_history(user_id: str) -> str:
     """Return entire conversation history."""
-    conv = sessions.get_recent_short(user_id) or []
+    conv = sessions.get_session(user_id) or []
     lines = []
     for msg in conv:
         role = "User" if msg["role"] == "user" else "Assistant"
@@ -215,15 +258,14 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
     1. Greeting → QuickResponder (fast)
     2. Product/DB → Direct retrieval + constrained LLM humanize
     3. Personalized → Full history + retrieval + personalized response
-    4. General → LLM answer + product suggestions
+    4. General → Fast LLM answer
     """
     timings = {}
     start = time.time()
     retrieval_k = 1 if voice_mode else TOP_K
-    product_max_tokens = 32 if voice_mode else 80
-    personalized_max_tokens = 48 if voice_mode else 120
-    general_max_tokens = 24 if voice_mode else 120
-    general_history_turns = 1 if voice_mode else 2
+    product_max_tokens = 56 if voice_mode else 180
+    personalized_max_tokens = 72 if voice_mode else 220
+    general_max_tokens = 72 if voice_mode else 140
 
     # ===== PATH 1: QUICK RESPONSES (GREETINGS) =====
     with timed("quick", timings):
@@ -238,15 +280,13 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
 
     fast_reply = _fast_general_reply(user_id, query, voice_mode)
     if fast_reply:
-        sessions.add_user_msg(user_id, query)
-        sessions.add_bot_msg(user_id, fast_reply)
+        sessions.add_user_msg(user_id, query, persist_long=False)
+        sessions.add_bot_msg(user_id, fast_reply, persist_long=False)
         timings["total"] = round(time.time() - start, 3)
         if DEBUG:
-            print(f"[ROUTE] FAST GENERAL -> Early rule-based reply")
+            print(f"[ROUTE] FAST GENERAL → Early rule-based reply")
             print(f"[TIMING] {timings}")
         return fast_reply
-
-    sessions.add_user_msg(user_id, query)
 
     # ===== DETECT INTENT =====
     with timed("intent_detect", timings):
@@ -264,19 +304,12 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
             print(f"[TIMING] {timings}")
         return reply
 
-    fast_reply = _fast_general_reply(user_id, query, voice_mode)
-    if fast_reply:
-        sessions.add_bot_msg(user_id, fast_reply)
-        timings["total"] = round(time.time() - start, 3)
-        if DEBUG:
-            print(f"[ROUTE] FAST GENERAL → Rule-based reply")
-            print(f"[TIMING] {timings}")
-        return fast_reply
-
     # ===== PATH 2: PRODUCT/DATABASE QUERIES =====
     if intent in ["product_search", "price_filter", "meta_count"]:
         if DEBUG:
             print(f"[ROUTE] PRODUCT QUERY → Direct DB retrieval + Light LLM humanize")
+
+        sessions.add_user_msg(user_id, query, persist_long=True)
 
         with timed("retrieval", timings):
             results = await retrieve(query, top_k=retrieval_k)
@@ -303,10 +336,13 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
             if not reply.strip():
                 reply = "I couldn't find that product. Could you be more specific?"
 
-        sessions.add_bot_msg(user_id, reply)
+        sessions.add_bot_msg(user_id, reply, persist_long=True)
         if not voice_mode:
-            with timed("save", timings):
-                await model_manager.save_context_async()
+            with timed("persist", timings):
+                await _persist_conversation_state(user_id, save_model_context=True)
+        else:
+            with timed("persist", timings):
+                await _persist_conversation_state(user_id, save_model_context=False)
         timings["total"] = round(time.time() - start, 3)
         if DEBUG:
             print(f"[TIMING] {timings}")
@@ -317,14 +353,19 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
         if DEBUG:
             print(f"[ROUTE] PERSONALIZED QUERY → Full history + DB context + personalized response")
 
+        sessions.add_user_msg(user_id, query, persist_long=True)
+
         # Early handling for order-related queries (avoid hallucination)
         ql = query.lower()
         if re.search(r"\border(\b|\s)|track|order\s*status", ql):
             reply = "To check your order, please share your order ID (e.g., ORD1234). I'll track the status for you."
-            sessions.add_bot_msg(user_id, reply)
+            sessions.add_bot_msg(user_id, reply, persist_long=True)
             if not voice_mode:
-                with timed("save", timings):
-                    await model_manager.save_context_async()
+                with timed("persist", timings):
+                    await _persist_conversation_state(user_id, save_model_context=True)
+            else:
+                with timed("persist", timings):
+                    await _persist_conversation_state(user_id, save_model_context=False)
             timings["total"] = round(time.time() - start, 3)
             if DEBUG:
                 print(f"[ROUTE] ORDER STATUS → Template response")
@@ -349,10 +390,13 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
         if not reply.strip():
             reply = "I'm here to help! Could you tell me more about what you need?"
 
-        sessions.add_bot_msg(user_id, reply)
+        sessions.add_bot_msg(user_id, reply, persist_long=True)
         if not voice_mode:
-            with timed("save", timings):
-                await model_manager.save_context_async()
+            with timed("persist", timings):
+                await _persist_conversation_state(user_id, save_model_context=True)
+        else:
+            with timed("persist", timings):
+                await _persist_conversation_state(user_id, save_model_context=False)
         timings["total"] = round(time.time() - start, 3)
         if DEBUG:
             print(f"[TIMING] {timings}")
@@ -360,52 +404,208 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
 
     # ===== PATH 4: GENERAL KNOWLEDGE QUERIES =====
     if DEBUG:
-        print(f"[ROUTE] GENERAL QUERY → Model answer + product suggestions")
+        print(f"[ROUTE] GENERAL QUERY → Fast LLM path")
 
-    if _should_skip_general_retrieval(intent, query, voice_mode):
-        results = []
-        timings["retrieval"] = 0.0
-    else:
-        with timed("retrieval", timings):
-            results = await retrieve(query, top_k=retrieval_k)
+    sessions.add_user_msg(user_id, query, persist_long=False)
+    timings["retrieval"] = 0.0
 
-    # Build light product suggestions (strictly from DB — never invent)
-    suggestions = []
-    for r in (results or [])[:2]:
-        m = r.get('metadata', {}) or {}
-        t = m.get('title') or 'Product'
-        p = m.get('price')
-        suggestions.append(f"- {t} (₹{p})")
-    product_suggestions = "\n".join(suggestions) if suggestions else ""
-
-    context = (
-        f"Only suggest from this list:\n{product_suggestions}"
-        if product_suggestions
-        else ""
-    )
-
-    history = get_recent_history(user_id, max_turns=general_history_turns)
-
-    with timed("llm_general", timings):
-        reply = await model_manager.generate_reply(
-            SYSTEM_PREAMBLE_GENERAL,
+    with timed("llm_general_fast", timings):
+        reply = await model_manager.generate_fast_reply(
+            SYSTEM_PREAMBLE_GENERAL_FAST,
             query,
-            context_text=context,
-            history_text=history,
-            temperature=0.2 if voice_mode else 0.5,
+            temperature=0.15 if voice_mode else 0.25,
             max_tokens=general_max_tokens
         )
     if not reply.strip():
-        reply = "That's an interesting question! I'm not sure, but feel free to ask about our products."
+        reply = "I'm not fully sure, but here's the short answer as I understand it."
 
-    sessions.add_bot_msg(user_id, reply)
-    if not voice_mode:
-        with timed("save", timings):
-            await model_manager.save_context_async()
+    sessions.add_bot_msg(user_id, reply, persist_long=False)
+    timings["persist"] = 0.0
     timings["total"] = round(time.time() - start, 3)
     if DEBUG:
         print(f"[TIMING] {timings}")
     return reply
+
+async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool = False):
+    timings = {}
+    start = time.time()
+    retrieval_k = 1 if voice_mode else TOP_K
+    product_max_tokens = 56 if voice_mode else 180
+    personalized_max_tokens = 72 if voice_mode else 220
+    general_max_tokens = 72 if voice_mode else 140
+
+    with timed("quick", timings):
+        quick_reply = quick.get_response(query)
+    if quick_reply:
+        sessions.add_bot_msg(user_id, quick_reply)
+        timings["total"] = round(time.time() - start, 3)
+        if DEBUG:
+            print(f"[ROUTE] GREETING → Quick Responder")
+            print(f"[TIMING] {timings}")
+        yield quick_reply
+        return
+
+    fast_reply = _fast_general_reply(user_id, query, voice_mode)
+    if fast_reply:
+        sessions.add_user_msg(user_id, query, persist_long=False)
+        sessions.add_bot_msg(user_id, fast_reply, persist_long=False)
+        timings["total"] = round(time.time() - start, 3)
+        if DEBUG:
+            print(f"[ROUTE] FAST GENERAL → Early rule-based reply")
+            print(f"[TIMING] {timings}")
+        yield fast_reply
+        return
+
+    with timed("intent_detect", timings):
+        intent, confidence = detect_intent(query)
+
+    if DEBUG:
+        print(f"[INTENT] {intent} (confidence: {confidence:.2f})")
+
+    if intent in ["greeting", "thanks", "farewell"]:
+        reply = _quick_intent_reply(query, intent)
+        sessions.add_bot_msg(user_id, reply)
+        timings["total"] = round(time.time() - start, 3)
+        if DEBUG:
+            print(f"[ROUTE] QUICK INTENT → Direct reply")
+            print(f"[TIMING] {timings}")
+        yield reply
+        return
+
+    if intent in ["product_search", "price_filter", "meta_count"]:
+        if DEBUG:
+            print(f"[ROUTE] PRODUCT QUERY → Direct DB retrieval + Light LLM humanize")
+
+        sessions.add_user_msg(user_id, query, persist_long=True)
+
+        with timed("retrieval", timings):
+            results = await retrieve(query, top_k=retrieval_k)
+
+        with timed("extract", timings):
+            fact = extract_fact(query, results)
+
+        if fact:
+            reply = fact
+            sessions.add_bot_msg(user_id, reply, persist_long=True)
+            if not voice_mode:
+                with timed("persist", timings):
+                    await _persist_conversation_state(user_id, save_model_context=True)
+            else:
+                with timed("persist", timings):
+                    await _persist_conversation_state(user_id, save_model_context=False)
+            timings["total"] = round(time.time() - start, 3)
+            if DEBUG:
+                print(f"[TIMING] {timings}")
+            yield reply
+            return
+
+        context = build_product_context(results)
+        collected = []
+        with timed("llm_product", timings):
+            async for chunk in model_manager.stream_reply(
+                SYSTEM_PREAMBLE_PRODUCT,
+                query,
+                context_text=context,
+                history_text="",
+                temperature=0.25,
+                max_tokens=product_max_tokens,
+            ):
+                collected.append(chunk)
+                yield chunk
+
+        reply = clean_text("".join(collected)) or "I couldn't find that product. Could you be more specific?"
+        sessions.add_bot_msg(user_id, reply, persist_long=True)
+        if not voice_mode:
+            with timed("persist", timings):
+                await _persist_conversation_state(user_id, save_model_context=True)
+        else:
+            with timed("persist", timings):
+                await _persist_conversation_state(user_id, save_model_context=False)
+        timings["total"] = round(time.time() - start, 3)
+        if DEBUG:
+            print(f"[TIMING] {timings}")
+        return
+
+    if intent in ["personal_query"]:
+        if DEBUG:
+            print(f"[ROUTE] PERSONALIZED QUERY → Full history + DB context + personalized response")
+
+        sessions.add_user_msg(user_id, query, persist_long=True)
+        ql = query.lower()
+        if re.search(r"\border(\b|\s)|track|order\s*status", ql):
+            reply = "To check your order, please share your order ID (e.g., ORD1234). I'll track the status for you."
+            sessions.add_bot_msg(user_id, reply, persist_long=True)
+            if not voice_mode:
+                with timed("persist", timings):
+                    await _persist_conversation_state(user_id, save_model_context=True)
+            else:
+                with timed("persist", timings):
+                    await _persist_conversation_state(user_id, save_model_context=False)
+            timings["total"] = round(time.time() - start, 3)
+            if DEBUG:
+                print(f"[ROUTE] ORDER STATUS → Template response")
+                print(f"[TIMING] {timings}")
+            yield reply
+            return
+
+        with timed("retrieval", timings):
+            results = await retrieve(query, top_k=retrieval_k)
+        context = build_product_context(results, max_items=3)
+        history = get_full_history(user_id)
+        collected = []
+        with timed("llm_personalized", timings):
+            async for chunk in model_manager.stream_reply(
+                SYSTEM_PREAMBLE_PERSONALIZED,
+                query,
+                context_text=context,
+                history_text=history,
+                temperature=0.4,
+                max_tokens=personalized_max_tokens,
+            ):
+                collected.append(chunk)
+                yield chunk
+
+        reply = clean_text("".join(collected)) or "I'm here to help! Could you tell me more about what you need?"
+        sessions.add_bot_msg(user_id, reply, persist_long=True)
+        if not voice_mode:
+            with timed("persist", timings):
+                await _persist_conversation_state(user_id, save_model_context=True)
+        else:
+            with timed("persist", timings):
+                await _persist_conversation_state(user_id, save_model_context=False)
+        timings["total"] = round(time.time() - start, 3)
+        if DEBUG:
+            print(f"[TIMING] {timings}")
+        return
+
+    if DEBUG:
+        print(f"[ROUTE] GENERAL QUERY → Fast LLM path")
+
+    sessions.add_user_msg(user_id, query, persist_long=False)
+    timings["retrieval"] = 0.0
+    collected = []
+    with timed("llm_general_fast", timings):
+        async for chunk in model_manager.stream_reply(
+            SYSTEM_PREAMBLE_GENERAL_FAST,
+            query,
+            temperature=0.15 if voice_mode else 0.25,
+            max_tokens=general_max_tokens,
+            top_p=0.9,
+            stop_tokens=[
+                "\nCustomer:",
+                "\nSystem:",
+                "\nSupport Agent:",
+            ],
+        ):
+            collected.append(chunk)
+            yield chunk
+
+    reply = clean_text("".join(collected)) or "I'm not fully sure, but here's the short answer as I understand it."
+    sessions.add_bot_msg(user_id, reply, persist_long=False)
+    timings["persist"] = 0.0
+    timings["total"] = round(time.time() - start, 3)
+    if DEBUG:
+        print(f"[TIMING] {timings}")
 
 # ============ CLI ============
 async def main():
