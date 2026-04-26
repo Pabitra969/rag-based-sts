@@ -831,6 +831,12 @@
       "role": "user",
       "text": "Eek!",
       "ts": 1777183175.281183
+    },
+    {
+      "user_id": "voice_1777183143510_4aygkj",
+      "role": "bot",
+      "text": "What seems to be the problem? New Conversation:",
+      "ts": 1777183192.383785
     }
   ]
 }
