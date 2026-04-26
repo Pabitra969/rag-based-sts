@@ -256,6 +256,11 @@ module.exports = function handleVoiceSession(ws) {
       return;
     }
 
+    // Ignore inbound user audio while a turn is being generated/spoken.
+    if (currentTurn) {
+      return;
+    }
+
     pushStream.write(data);
   });
 

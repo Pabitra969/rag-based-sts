@@ -41,15 +41,15 @@ const VOICE_COPY = {
   },
   listening: {
     label: "Listening.....",
-    hint: "Speak naturally. You can interrupt the assistant any time.",
+    hint: "Speak naturally. Your voice is accepted only while listening is active.",
   },
   thinking: {
     label: "Thinking.....",
-    hint: "Your last utterance is locked in. The assistant is preparing a reply.",
+    hint: "Your last utterance is locked in. New voice/chat input is paused until reply is ready.",
   },
   speaking: {
     label: "Speaking.....",
-    hint: "Assistant audio is playing. Start talking to barge in and take the turn.",
+    hint: "Assistant audio is playing. New voice/chat input is paused until playback completes.",
   },
   interrupted: {
     label: "Interrupted",
@@ -73,6 +73,21 @@ let lastVoiceBotText = "";
 let currentVoiceAssistantState = "idle";
 let renderedConversationId = null;
 let textTypingIndicatorEl = null;
+let isTextReplyPending = false;
+
+function setTextGenerationLock(isLocked) {
+  isTextReplyPending = isLocked;
+
+  // Voice mode controls its own lock state; avoid overriding that mode.
+  if (uiState === UI_STATE.VOICE_CHAT) {
+    return;
+  }
+
+  textInput.disabled = isLocked;
+  micTranscribeBtn.disabled = isLocked;
+  sendBtn.disabled = isLocked;
+  voiceChatBtn.disabled = isLocked;
+}
 
 function createConversation(title = "New conversation") {
   return {
@@ -439,6 +454,10 @@ function escapeHtml(value) {
 }
 
 async function sendTextMessage() {
+  if (isTextReplyPending || uiState === UI_STATE.VOICE_CHAT) {
+    return;
+  }
+
   const text = textInput.value.trim();
   if (!text) {
     return;
@@ -453,6 +472,7 @@ async function sendTextMessage() {
   renderUI();
   autosizeInput();
   showTextTypingIndicator();
+  setTextGenerationLock(true);
 
   try {
     const response = await fetch(CHAT_API_URL, {
@@ -484,6 +504,8 @@ async function sendTextMessage() {
       targetConversationId,
       { animate: true, stepMs: 14 }
     );
+  } finally {
+    setTextGenerationLock(false);
   }
 }
 
@@ -614,6 +636,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   micTranscribeBtn.addEventListener("click", () => {
+    if (isTextReplyPending) {
+      return;
+    }
+
     if (uiState === UI_STATE.TRANSCRIBING) {
       sttProvider?.stop();
       return;
@@ -647,6 +673,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   voiceChatBtn.addEventListener("click", () => {
+    if (isTextReplyPending) {
+      return;
+    }
+
     if (voiceMode.isActive()) {
       endVoiceSession({ closePanel: true });
       return;

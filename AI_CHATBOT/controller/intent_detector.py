@@ -9,6 +9,14 @@ INTENT_BANK = {
     "greeting": ["hi", "hello", "hey", "good morning", "good evening"],
     "thanks": ["thanks", "thank you", "appreciate", "grateful"],
     "farewell": ["bye", "goodbye", "see you", "take care"],
+    "general_knowledge": [
+        "what is black hole",
+        "who invented telephone",
+        "explain photosynthesis",
+        "why is sky blue",
+        "capital of india",
+        "difference between ai and ml",
+    ],
     "price_filter": ["under price", "below price", "cheap products", "affordable items", "budget friendly"],
     "product_search": ["find product", "show items", "search clothing", "display products", "recommend items", "need jeans", "want shirt"],
     "personal_query": ["my order", "order id", "track my order", "my profile", "my account", "order status"],
@@ -26,12 +34,21 @@ def detect_intent(query: str) -> Tuple[str, float]:
     q = query.lower().strip()
 
     # === RULE-BASED PRE-FILTERS (High Priority) ===
+    product_keywords = r"\b(jeans|t[- ]?shirts?|tshirts?|shirt|pants|shoes|electronics|phone|laptop|pc|computer|desktop|watch|bag|wallet|saree|dress|clothes|clothing|perfume|cream|skincare|skin|face|hair|beauty|cosmetics?|chair|table|furniture|mouse|speaker|backpack|product|item|catalog|inventory|price|cost)\b"
+    gift_keywords = r"\b(gift|present|girlfriend|girlfrind|boyfriend|wife|husband|mom|mother|dad|father)\b"
     
     # Quick greetings
     if re.match(r"^(hi|hello|hey|hlw)\b", q):
         return ("greeting", 0.95)
-    if re.match(r"^(thanks|thank you|bye|goodbye)\b", q):
+    if re.match(r"^(thanks|thank you)\b", q):
         return ("thanks", 0.95)
+    if re.match(r"^(bye|goodbye|see you|take care)\b", q):
+        return ("farewell", 0.95)
+
+    # Incomplete generic help prompts should not be treated as farewell.
+    if re.search(r"\b(help me|can you help|assist me|guide me)\b", q):
+        if not re.search(product_keywords, q) and not re.search(r"\b(order|account|track|purchase)\b", q):
+            return ("general_knowledge", 0.84)
     
     # Math/calculation queries (definitely general knowledge)
     if re.search(r"\b\d+\s*[+\-*/]\s*\d+\b", q) or re.search(r"\bwhat\s+is\s+\d+", q):
@@ -44,11 +61,14 @@ def detect_intent(query: str) -> Tuple[str, float]:
     # Famous people/factual queries ("who is", "what is")
     if re.search(r"\bwho\s+is\s+\w+\b", q) and not re.search(r"\b(product|item|seller|owner)\b", q):
         return ("general_knowledge", 0.85)
+
+    # Broad WH-style and explanatory questions are usually general unless they mention product context.
+    if re.search(r"\b(what|why|how|when|where|which|explain|define|meaning of)\b", q):
+        if not re.search(product_keywords, q) and not re.search(r"\b(order|account|track|purchase)\b", q):
+            return ("general_knowledge", 0.82)
     
     # Clear product keywords (boost product detection)
-    product_keywords = r"\b(jeans|t[- ]?shirts?|tshirts?|shirt|pants|shoes|electronics|phone|laptop|pc|computer|desktop|watch|bag|wallet|saree|dress|clothes|clothing|perfume|cream|skincare|skin|face|hair|beauty|cosmetics?|chair|table|furniture|mouse|speaker|backpack)\b"
     # Gift-style queries should also be treated as product intent
-    gift_keywords = r"\b(gift|present|girlfriend|girlfrind|boyfriend|wife|husband|mom|mother|dad|father)\b"
     if re.search(product_keywords, q) or re.search(gift_keywords, q):
         if re.search(r"\b(need|want|looking for|show|find|buy|suggest|recommend|have)\b", q) or re.search(gift_keywords, q):
             return ("product_search", 0.90)
@@ -80,6 +100,11 @@ def detect_intent(query: str) -> Tuple[str, float]:
     if best_intent in ["product_search", "price_filter", "meta_count"]:
         if not re.search(product_keywords, q) and not re.search(r"\b(item|product|buy|sell|purchase|store|gift|present)\b", q):
             return ("general_knowledge", best_score * 0.5)  # Downgrade confidence
+
+    # Avoid accidental short-text exits from embedding similarity.
+    if best_intent in ["farewell", "thanks"]:
+        if not re.search(r"\b(bye|goodbye|see you|take care|thanks|thank you)\b", q):
+            return ("general_knowledge", best_score * 0.6)
     
     return (best_intent, best_score)
 

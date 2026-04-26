@@ -154,14 +154,12 @@ function processAudio(event) {
     return;
   }
 
-  const inputData = event.inputBuffer.getChannelData(0);
-  const energy = inputData.reduce((sum, value) => sum + value * value, 0) / inputData.length;
-
-  if (energy > VAD_THRESHOLD && currentVoiceState === "speaking") {
-    stopPlayback();
-    sendInterruptSignal();
-    setVoiceState("listening", { reason: "barge-in" });
+  // Only accept user microphone audio while backend marks the session as listening.
+  if (currentVoiceState !== "listening") {
+    return;
   }
+
+  const inputData = event.inputBuffer.getChannelData(0);
 
   const pcmData = new Int16Array(inputData.length);
   for (let i = 0; i < inputData.length; i++) {
