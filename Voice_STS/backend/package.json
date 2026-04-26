@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "node server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "speech": "python3 ../local_speech_server.py"
   },
   "dependencies": {
     "axios": "^1.13.2",

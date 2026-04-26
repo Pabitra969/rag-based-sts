@@ -1,6 +1,7 @@
 // stt/index.js
 import * as webspeech from "./webspeech.stt.js";
 import * as azure from "./azure.stt.js";
+import * as local from "./local.stt.js";
 
 /**
  * Detects if the browser is Chromium-based (Chrome, Edge, Chromium, Opera, etc.)
@@ -29,11 +30,26 @@ function isChromium() {
  * - For non-Chromium browsers: Uses Azure Speech SDK (requires backend token)
  */
 export function getSTTProvider() {
-  if (isChromium() && webspeech.isSupported()) {
-    console.log("✅ Chromium browser detected - Using WebSpeech API STT");
-    return webspeech;
-  }
+  return {
+    async start(callbacks = {}) {
+      if (await local.isAvailable()) {
+        console.log("✅ Local STT available - Using local STT");
+        return local.start(callbacks);
+      }
 
-  console.log("⚠️ Non-Chromium browser or WebSpeech not supported - Using Azure Speech STT");
-  return azure;
+      if (isChromium() && webspeech.isSupported()) {
+        console.log("✅ Local STT unavailable - Using WebSpeech API STT");
+        return webspeech.start(callbacks);
+      }
+
+      console.log("⚠️ Local/WebSpeech unavailable - Using Azure Speech STT backup");
+      return azure.start(callbacks);
+    },
+
+    stop() {
+      local.stop?.();
+      webspeech.stop?.();
+      azure.stop?.();
+    }
+  };
 }

@@ -2,13 +2,27 @@
 let mediaRecorder = null;
 let audioChunks = [];
 let stream = null;
+const LOCAL_STT_BASE_URL = "http://localhost:5005/api/stt/local";
 
-export async function start({ onPartial, onStatus }) {
+export async function isAvailable() {
   try {
-    // 1️⃣ Ask mic permission
+    const res = await fetch(`${LOCAL_STT_BASE_URL}/health`, {
+      cache: "no-store",
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function start({ onPartial, onFinal, onStatus }) {
+  if (!(await isAvailable())) {
+    throw new Error("Local STT is not available");
+  }
+
+  try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-    // 2️⃣ Create MediaRecorder
     mediaRecorder = new MediaRecorder(stream, {
       mimeType: "audio/webm"
     });
@@ -26,15 +40,25 @@ export async function start({ onPartial, onStatus }) {
     };
 
     mediaRecorder.onstop = async () => {
-      const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-      await sendAudioToBackend(audioBlob, onPartial);
+      try {
+        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+        const text = await sendAudioToBackend(audioBlob);
+        if (text) {
+          onPartial?.(text);
+          onFinal?.(text);
+        }
+      } catch (err) {
+        console.error("Local STT transcription failed:", err);
+        onStatus?.("error");
+      }
     };
 
     mediaRecorder.start();
 
   } catch (err) {
     console.error("Mic permission denied or error", err);
-    alert("Microphone access is required.");
+    onStatus?.("error");
+    throw err;
   }
 }
 
@@ -49,26 +73,19 @@ export function stop() {
   }
 }
 
-// 🔁 send audio to backend
-async function sendAudioToBackend(blob, onPartial) {
-  try {
-    const formData = new FormData();
-    formData.append("audio", blob, "speech.webm");
+async function sendAudioToBackend(blob) {
+  const res = await fetch(LOCAL_STT_BASE_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": blob.type || "audio/webm",
+    },
+    body: blob
+  });
 
-    const res = await fetch("http://localhost:5005/api/stt/local", {
-      method: "POST",
-      body: formData
-    });
-
-    const data = await res.json();
-
-    // Expected backend response:
-    // { text: "recognized speech" }
-    if (data?.text) {
-      onPartial?.(data.text);
-    }
-
-  } catch (err) {
-    console.error("Failed to send audio", err);
+  if (!res.ok) {
+    throw new Error(`Local STT failed with HTTP ${res.status}`);
   }
+
+  const data = await res.json();
+  return String(data?.text || "").trim();
 }

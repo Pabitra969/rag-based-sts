@@ -579,6 +579,12 @@
       "role": "bot",
       "text": "Hello! How can I help you?",
       "ts": 1777176708.8185759
+    },
+    {
+      "user_id": "chat_1777175011849_w3j2jf",
+      "role": "bot",
+      "text": "Hello Sir! How can I assist you today?",
+      "ts": 1777183133.804049
     }
   ],
   "voice_1777175021879_6wc9tq": [
@@ -637,6 +643,194 @@
       "role": "bot",
       "text": "Hello! How can I help you?",
       "ts": 1777175601.833601
+    }
+  ],
+  "voice_1777178504804_sno6n9": [
+    {
+      "user_id": "voice_1777178504804_sno6n9",
+      "role": "user",
+      "text": "All right.",
+      "ts": 1777178508.341165
+    },
+    {
+      "user_id": "voice_1777178504804_sno6n9",
+      "role": "bot",
+      "text": "You're welcome.",
+      "ts": 1777178508.414398
+    },
+    {
+      "user_id": "voice_1777178504804_sno6n9",
+      "role": "user",
+      "text": "Hello, hello",
+      "ts": 1777178520.0345669
+    },
+    {
+      "user_id": "voice_1777178504804_sno6n9",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1777178520.0383549
+    },
+    {
+      "user_id": "voice_1777178504804_sno6n9",
+      "role": "user",
+      "text": "Can you find me a product?",
+      "ts": 1777178529.5810251
+    },
+    {
+      "user_id": "voice_1777178504804_sno6n9",
+      "role": "bot",
+      "text": "Certainly! Could you please specify the product you're looking for?",
+      "ts": 1777178580.118369
+    }
+  ],
+  "voice_1777178560213_a695bb": [
+    {
+      "user_id": "voice_1777178560213_a695bb",
+      "role": "user",
+      "text": "Thank you, thank you, thank you.",
+      "ts": 1777178564.702938
+    },
+    {
+      "user_id": "voice_1777178560213_a695bb",
+      "role": "bot",
+      "text": "You're welcome.",
+      "ts": 1777178564.711504
+    },
+    {
+      "user_id": "voice_1777178560213_a695bb",
+      "role": "bot",
+      "text": "You're Welcome. Glad I could help!",
+      "ts": 1777178581.106252
+    },
+    {
+      "user_id": "voice_1777178560213_a695bb",
+      "role": "user",
+      "text": "you",
+      "ts": 1777178586.742642
+    },
+    {
+      "user_id": "voice_1777178560213_a695bb",
+      "role": "bot",
+      "text": "Goodbye.",
+      "ts": 1777178587.553739
+    }
+  ],
+  "voice_1777178595923_7m2tki": [
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1777178599.216937
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "user",
+      "text": "Can you find me good or?",
+      "ts": 1777178607.6466932
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "bot",
+      "text": "Certainly! Are you looking for a portable Bluetooth speaker with deep bass and splash resistance? We have the Bluetooth Speaker available for",
+      "ts": 1777178639.414336
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "user",
+      "text": "Can you find me a blue den in jeans?",
+      "ts": 1777178663.23966
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "bot",
+      "text": "Blue Denim Jeans | ₹1299 | clothing. Regular fit blue jeans with stretch",
+      "ts": 1777178663.9012249
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "user",
+      "text": "Let me get it.",
+      "ts": 1777178677.574763
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "bot",
+      "text": "Goodbye.",
+      "ts": 1777178678.2164412
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "user",
+      "text": "Hello everyone!",
+      "ts": 1777178684.353455
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1777178684.355766
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "user",
+      "text": "That's it. Can you find me? I should.",
+      "ts": 1777178693.242976
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "bot",
+      "text": "Certainly! The Bluetooth Speaker priced at ₹1699 is available in our electronics category. It's a portable",
+      "ts": 1777178711.241735
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "user",
+      "text": "I'm going to do it. I'm going to do it. I'm going to do it. I need to worry.",
+      "ts": 1777178733.814223
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "bot",
+      "text": "I understand that you may have concerns, but rest assured that our products are of high quality. Is there anything specific you",
+      "ts": 1777178785.70639
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "user",
+      "text": "that's very bad you are not understanding my queries.",
+      "ts": 1777178816.29894
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "bot",
+      "text": "I apologize for any misunderstanding. I'm here to help you. Could you please let me know your specific",
+      "ts": 1777178899.8651352
+    },
+    {
+      "user_id": "voice_1777178595923_7m2tki",
+      "role": "bot",
+      "text": "You're Welcome. Glad I could help!",
+      "ts": 1777178973.531033
+    }
+  ],
+  "voice_1777183143510_4aygkj": [
+    {
+      "user_id": "voice_1777183143510_4aygkj",
+      "role": "bot",
+      "text": "Hello Sir! How can I assist you today?",
+      "ts": 1777183148.4594162
+    },
+    {
+      "user_id": "voice_1777183143510_4aygkj",
+      "role": "bot",
+      "text": "You're Welcome. Glad I could help!",
+      "ts": 1777183159.415324
+    },
+    {
+      "user_id": "voice_1777183143510_4aygkj",
+      "role": "user",
+      "text": "Eek!",
+      "ts": 1777183175.281183
     }
   ]
 }

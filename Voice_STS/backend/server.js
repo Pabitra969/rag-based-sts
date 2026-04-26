@@ -5,6 +5,7 @@ const http = require("http");
 require("dotenv").config();
 
 const speechTokenRouter = require("./routes/speechToken.route");
+const localSttRouter = require("./routes/localStt.route");
 const initVoiceSocket = require("./routes/voice.socket");
 const LLMProvider = require("./services/sts/llm.provider");
 
@@ -13,6 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/speech-token", speechTokenRouter);
+app.use("/api/stt/local", localSttRouter);
 
 app.post("/api/chat", async (req, res) => {
   const query = String(req.body?.query || "").trim();

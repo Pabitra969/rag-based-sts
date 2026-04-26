@@ -1,16 +1,48 @@
 // stt/azure.stt.js
 let recognizer = null;
 let finalText = "";
+let sdkLoadPromise = null;
+
+function loadAzureSpeechSdk() {
+  if (window.SpeechSDK) {
+    return Promise.resolve(window.SpeechSDK);
+  }
+
+  if (sdkLoadPromise) {
+    return sdkLoadPromise;
+  }
+
+  sdkLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://aka.ms/csspeech/jsbrowserpackageraw";
+    script.async = true;
+    script.onload = () => {
+      if (window.SpeechSDK) {
+        resolve(window.SpeechSDK);
+      } else {
+        reject(new Error("Azure Speech SDK did not initialize"));
+      }
+    };
+    script.onerror = () => reject(new Error("Failed to load Azure Speech SDK"));
+    document.head.appendChild(script);
+  });
+
+  return sdkLoadPromise;
+}
 
 async function getToken() {
   const res = await fetch("http://localhost:5005/api/speech-token");
+  if (!res.ok) {
+    throw new Error(`Azure speech token failed with HTTP ${res.status}`);
+  }
   return res.json();
 }
 
 export async function start({ onPartial, onFinal, onStatus }) {
   // Reset finalText for new session
   finalText = "";
-  
+
+  const SpeechSDK = await loadAzureSpeechSdk();
   const { token, region } = await getToken();
 
   const speechConfig =

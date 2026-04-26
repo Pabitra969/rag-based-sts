@@ -1,7 +1,14 @@
-const sdk = require("microsoft-cognitiveservices-speech-sdk");
-const AzureSTS = require("./azure.sts");
+const axios = require("axios");
 const LLMProvider = require("./llm.provider");
+
+const AUDIO_SAMPLE_RATE = 16000;
+const AUDIO_CHANNELS = 1;
+const AUDIO_BITS_PER_SAMPLE = 16;
 const LATEST_TURN_SETTLE_MS = 450;
+const DEFAULT_VAD_RMS = 650;
+const DEFAULT_SILENCE_CHUNKS = 4;
+const DEFAULT_MIN_SPEECH_CHUNKS = 2;
+const DEFAULT_MAX_SPEECH_CHUNKS = 48;
 
 function safeSend(ws, payload, isBinary = false) {
   if (ws.readyState !== 1) {
@@ -15,23 +22,157 @@ function safeSend(ws, payload, isBinary = false) {
   }
 }
 
+function getEnvUrl(name) {
+  return String(process.env[name] || "").trim();
+}
+
+function pcmRms(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 2) {
+    return 0;
+  }
+
+  let sum = 0;
+  const sampleCount = Math.floor(buffer.length / 2);
+
+  for (let i = 0; i < sampleCount; i += 1) {
+    const sample = buffer.readInt16LE(i * 2);
+    sum += sample * sample;
+  }
+
+  return Math.sqrt(sum / sampleCount);
+}
+
+function buildWavFromPcm(pcmBuffer) {
+  const byteRate = AUDIO_SAMPLE_RATE * AUDIO_CHANNELS * AUDIO_BITS_PER_SAMPLE / 8;
+  const blockAlign = AUDIO_CHANNELS * AUDIO_BITS_PER_SAMPLE / 8;
+  const header = Buffer.alloc(44);
+
+  header.write("RIFF", 0);
+  header.writeUInt32LE(36 + pcmBuffer.length, 4);
+  header.write("WAVE", 8);
+  header.write("fmt ", 12);
+  header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20);
+  header.writeUInt16LE(AUDIO_CHANNELS, 22);
+  header.writeUInt32LE(AUDIO_SAMPLE_RATE, 24);
+  header.writeUInt32LE(byteRate, 28);
+  header.writeUInt16LE(blockAlign, 32);
+  header.writeUInt16LE(AUDIO_BITS_PER_SAMPLE, 34);
+  header.write("data", 36);
+  header.writeUInt32LE(pcmBuffer.length, 40);
+
+  return Buffer.concat([header, pcmBuffer]);
+}
+
+function stripWavHeaderIfPresent(audioBuffer) {
+  if (
+    audioBuffer.length > 44 &&
+    audioBuffer.toString("ascii", 0, 4) === "RIFF" &&
+    audioBuffer.toString("ascii", 8, 12) === "WAVE"
+  ) {
+    const dataIndex = audioBuffer.indexOf(Buffer.from("data"));
+    if (dataIndex >= 0 && dataIndex + 8 < audioBuffer.length) {
+      const dataSize = audioBuffer.readUInt32LE(dataIndex + 4);
+      const dataStart = dataIndex + 8;
+      return audioBuffer.subarray(dataStart, dataStart + dataSize);
+    }
+  }
+
+  return audioBuffer;
+}
+
+function audioBufferFromJson(data) {
+  const base64Audio = data?.audio_base64 || data?.audioBase64 || data?.audio || "";
+  if (!base64Audio || typeof base64Audio !== "string") {
+    return null;
+  }
+
+  const cleanBase64 = base64Audio.includes(",")
+    ? base64Audio.split(",").pop()
+    : base64Audio;
+  return Buffer.from(cleanBase64, "base64");
+}
+
+async function transcribeLocal(pcmBuffer, signal) {
+  const localSttUrl = getEnvUrl("LOCAL_STT_URL");
+  if (!localSttUrl) {
+    throw new Error("LOCAL_STT_URL is not configured");
+  }
+
+  const wavBuffer = buildWavFromPcm(pcmBuffer);
+  const res = await axios.post(localSttUrl, wavBuffer, {
+    headers: {
+      "Content-Type": "audio/wav",
+    },
+    timeout: Number(process.env.LOCAL_STT_TIMEOUT_MS || 30000),
+    signal,
+  });
+
+  const text =
+    res.data?.text ||
+    res.data?.transcript ||
+    res.data?.result ||
+    "";
+
+  return String(text).trim();
+}
+
+async function synthesizeLocal(text, signal) {
+  const localTtsUrl = getEnvUrl("LOCAL_TTS_URL");
+  if (!localTtsUrl) {
+    throw new Error("LOCAL_TTS_URL is not configured");
+  }
+
+  const res = await axios.post(
+    localTtsUrl,
+    {
+      text,
+      sample_rate: AUDIO_SAMPLE_RATE,
+      format: "pcm_s16le",
+    },
+    {
+      responseType: "arraybuffer",
+      timeout: Number(process.env.LOCAL_TTS_TIMEOUT_MS || 30000),
+      signal,
+      validateStatus: (status) => status >= 200 && status < 300,
+    }
+  );
+
+  const contentType = String(res.headers?.["content-type"] || "");
+  let audioBuffer;
+
+  if (contentType.includes("application/json")) {
+    const jsonText = Buffer.from(res.data).toString("utf8");
+    audioBuffer = audioBufferFromJson(JSON.parse(jsonText));
+  } else {
+    audioBuffer = Buffer.from(res.data);
+  }
+
+  if (!audioBuffer || audioBuffer.length === 0) {
+    throw new Error("Local TTS returned no audio");
+  }
+
+  return stripWavHeaderIfPresent(audioBuffer);
+}
+
 module.exports = function handleVoiceSession(ws) {
-  const azure = new AzureSTS();
   const llm = new LLMProvider();
   const sessionUserId = `voice_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-
-  const format = sdk.AudioStreamFormat.getWaveFormatPCM(16000, 16, 1);
-  const pushStream = sdk.AudioInputStream.createPushStream(format);
-  const recognizer = azure.createRecognizer(pushStream);
-  const synthesizer = azure.createSynthesizer();
-
   const history = [];
+
+  const vadRms = Number(process.env.LOCAL_STS_VAD_RMS || DEFAULT_VAD_RMS);
+  const silenceChunksNeeded = Number(process.env.LOCAL_STS_SILENCE_CHUNKS || DEFAULT_SILENCE_CHUNKS);
+  const minSpeechChunks = Number(process.env.LOCAL_STS_MIN_SPEECH_CHUNKS || DEFAULT_MIN_SPEECH_CHUNKS);
+  const maxSpeechChunks = Number(process.env.LOCAL_STS_MAX_SPEECH_CHUNKS || DEFAULT_MAX_SPEECH_CHUNKS);
 
   let currentTurn = null;
   let queuedTurn = null;
   let nextTurnId = 0;
   let isClosed = false;
   let queueTimer = null;
+  let speechChunks = [];
+  let silenceChunks = 0;
+  let isCapturingSpeech = false;
 
   function sendEvent(type, extra = {}) {
     safeSend(ws, JSON.stringify({ type, ...extra }));
@@ -48,24 +189,18 @@ module.exports = function handleVoiceSession(ws) {
     }
   }
 
+  function resetSpeechBuffer() {
+    speechChunks = [];
+    silenceChunks = 0;
+    isCapturingSpeech = false;
+  }
+
   function scheduleQueueProcessing(delayMs = LATEST_TURN_SETTLE_MS) {
     clearQueueTimer();
     queueTimer = setTimeout(() => {
       queueTimer = null;
       queueMicrotask(processQueue);
     }, delayMs);
-  }
-
-  function stopSpeaking() {
-    return new Promise((resolve) => {
-      synthesizer.stopSpeakingAsync(
-        () => resolve(),
-        (err) => {
-          console.error("stopSpeakingAsync error:", err);
-          resolve();
-        }
-      );
-    });
   }
 
   async function interruptCurrentTurn(reason = "interrupt") {
@@ -82,31 +217,12 @@ module.exports = function handleVoiceSession(ws) {
     }
 
     if (currentTurn?.stage === "speaking") {
-      await stopSpeaking();
       sendStatus("interrupted", { reason, turnId: currentTurn.id });
     }
 
     if (currentTurn) {
       currentTurn.cancelled = true;
     }
-  }
-
-  function synthesizeReply(turn, replyText) {
-    return new Promise((resolve, reject) => {
-      synthesizer.speakTextAsync(
-        replyText,
-        (result) => {
-          if (turn.cancelled || currentTurn?.id !== turn.id || isClosed) {
-            resolve(false);
-            return;
-          }
-
-          safeSend(ws, result.audioData, true);
-          resolve(true);
-        },
-        (err) => reject(err)
-      );
-    });
   }
 
   async function processQueue() {
@@ -134,7 +250,7 @@ module.exports = function handleVoiceSession(ws) {
       });
     } catch (err) {
       if (err?.code !== "ERR_CANCELED") {
-        console.error("LLM/TTS error:", err);
+        console.error("LLM error:", err.message);
         sendEvent("bot_response", {
           text: "Sorry, I ran into a problem thinking about that.",
           turnId: turn.id,
@@ -165,10 +281,17 @@ module.exports = function handleVoiceSession(ws) {
     sendStatus("speaking", { turnId: turn.id, text: trimmedReply });
 
     try {
-      await synthesizeReply(turn, trimmedReply);
+      const audioBuffer = await synthesizeLocal(trimmedReply, abortController.signal);
+      if (!turn.cancelled && currentTurn?.id === turn.id && !isClosed) {
+        safeSend(ws, audioBuffer, true);
+      }
     } catch (err) {
       if (!turn.cancelled) {
-        console.error("Error synthesizing speech:", err);
+        console.error("Local TTS failed:", err.message);
+        sendStatus("tts_error", {
+          detail: "Local TTS failed. Text response was still delivered.",
+          turnId: turn.id,
+        });
       }
     }
 
@@ -209,36 +332,70 @@ module.exports = function handleVoiceSession(ws) {
     scheduleQueueProcessing();
   }
 
-  recognizer.recognizing = (_, e) => {
-    if (!e.result.text) {
+  async function finalizeSpeechBuffer() {
+    if (speechChunks.length < minSpeechChunks) {
+      resetSpeechBuffer();
       return;
     }
 
-    sendEvent("partial", {
-      text: e.result.text,
-      turnId: currentTurn?.id || queuedTurn?.id || nextTurnId + 1,
-    });
-  };
+    const pcmBuffer = Buffer.concat(speechChunks);
+    resetSpeechBuffer();
+    sendStatus("transcribing");
 
-  recognizer.recognized = (_, e) => {
-    if (!e.result.text) {
+    try {
+      const transcript = await transcribeLocal(pcmBuffer);
+      if (!transcript || isClosed) {
+        sendStatus("listening");
+        return;
+      }
+
+      sendEvent("partial", {
+        text: transcript,
+        turnId: currentTurn?.id || queuedTurn?.id || nextTurnId + 1,
+      });
+      enqueueTurn(transcript);
+    } catch (err) {
+      console.error("Local STT failed:", err.message);
+      sendStatus("error", {
+        detail: "Local STT failed. Check LOCAL_STT_URL and your local speech server.",
+      });
+    }
+  }
+
+  function handleAudioChunk(data) {
+    if (currentTurn || queuedTurn || isClosed) {
       return;
     }
 
-    enqueueTurn(e.result.text);
-  };
+    const chunk = Buffer.from(data);
+    const rms = pcmRms(chunk);
+    const hasSpeech = rms >= vadRms;
 
-  recognizer.sessionStarted = () => {
-    console.log("STT session started");
-    sendStatus("listening");
-  };
+    if (hasSpeech) {
+      isCapturingSpeech = true;
+      silenceChunks = 0;
+      speechChunks.push(chunk);
+      sendStatus("listening", { level: Math.round(rms) });
 
-  recognizer.canceled = (_, e) => {
-    console.error("STT canceled:", e.errorDetails);
-    sendStatus("error", { detail: e.errorDetails || "Speech recognition stopped." });
-  };
+      if (speechChunks.length >= maxSpeechChunks) {
+        void finalizeSpeechBuffer();
+      }
+      return;
+    }
 
-  recognizer.startContinuousRecognitionAsync();
+    if (!isCapturingSpeech) {
+      return;
+    }
+
+    speechChunks.push(chunk);
+    silenceChunks += 1;
+
+    if (silenceChunks >= silenceChunksNeeded) {
+      void finalizeSpeechBuffer();
+    }
+  }
+
+  sendStatus("listening");
 
   ws.on("message", async (data, isBinary) => {
     if (!isBinary) {
@@ -247,6 +404,7 @@ module.exports = function handleVoiceSession(ws) {
         const msg = JSON.parse(raw);
 
         if (msg.type === "interrupt") {
+          resetSpeechBuffer();
           await interruptCurrentTurn("frontend-interrupt");
           sendStatus("listening", { reason: "interrupt" });
         }
@@ -256,21 +414,14 @@ module.exports = function handleVoiceSession(ws) {
       return;
     }
 
-    // Ignore inbound user audio while a turn is being generated/spoken.
-    if (currentTurn) {
-      return;
-    }
-
-    pushStream.write(data);
+    handleAudioChunk(data);
   });
 
   ws.on("close", async () => {
     isClosed = true;
     clearQueueTimer();
     queuedTurn = null;
+    resetSpeechBuffer();
     await interruptCurrentTurn("socket-close");
-    pushStream.close();
-    recognizer.stopContinuousRecognitionAsync();
-    synthesizer.close();
   });
 };
