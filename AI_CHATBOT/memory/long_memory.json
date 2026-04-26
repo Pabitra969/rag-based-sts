@@ -515,6 +515,128 @@
       "role": "bot",
       "text": "That's an interesting question! I'm not sure, but feel free to ask about our products.",
       "ts": 1777172353.1448221
+    },
+    {
+      "user_id": "chat_1777170949424_63jisq",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1777172576.476834
+    }
+  ],
+  "voice_1777172594180_got083": [
+    {
+      "user_id": "voice_1777172594180_got083",
+      "role": "user",
+      "text": "Hello, hello, hello.",
+      "ts": 1777172600.499306
+    },
+    {
+      "user_id": "voice_1777172594180_got083",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1777172600.5051038
+    },
+    {
+      "user_id": "voice_1777172594180_got083",
+      "role": "user",
+      "text": "What is the temperature now?",
+      "ts": 1777172608.233237
+    },
+    {
+      "user_id": "voice_1777172594180_got083",
+      "role": "bot",
+      "text": "I'm sorry, but I don't have access to real-time data. However, you can check the",
+      "ts": 1777172644.711251
+    },
+    {
+      "user_id": "voice_1777172594180_got083",
+      "role": "user",
+      "text": "Aadhaar junior push.",
+      "ts": 1777172663.924018
+    },
+    {
+      "user_id": "voice_1777172594180_got083",
+      "role": "bot",
+      "text": "It sounds like you're referring to an Aadhaar update. Unfortunately, I can't provide real-",
+      "ts": 1777175007.955177
+    }
+  ],
+  "chat_1777175011849_w3j2jf": [
+    {
+      "user_id": "chat_1777175011849_w3j2jf",
+      "role": "bot",
+      "text": "Hello Sir! How can I assist you today?",
+      "ts": 1777175017.284221
+    },
+    {
+      "user_id": "chat_1777175011849_w3j2jf",
+      "role": "user",
+      "text": "hello hello",
+      "ts": 1777176708.8155332
+    },
+    {
+      "user_id": "chat_1777175011849_w3j2jf",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1777176708.8185759
+    }
+  ],
+  "voice_1777175021879_6wc9tq": [
+    {
+      "user_id": "voice_1777175021879_6wc9tq",
+      "role": "user",
+      "text": "Hello, how are you?",
+      "ts": 1777175026.370755
+    },
+    {
+      "user_id": "voice_1777175021879_6wc9tq",
+      "role": "bot",
+      "text": "I'm here and listening.",
+      "ts": 1777175026.375262
+    },
+    {
+      "user_id": "voice_1777175021879_6wc9tq",
+      "role": "user",
+      "text": "Can you find me a denim jeans?",
+      "ts": 1777175043.3446012
+    },
+    {
+      "user_id": "voice_1777175021879_6wc9tq",
+      "role": "bot",
+      "text": "Blue Denim Jeans | ₹1299 | clothing. Regular fit blue jeans with stretch",
+      "ts": 1777175043.874241
+    },
+    {
+      "user_id": "voice_1777175021879_6wc9tq",
+      "role": "user",
+      "text": "Can you give me more details about this product?",
+      "ts": 1777175059.063
+    },
+    {
+      "user_id": "voice_1777175021879_6wc9tq",
+      "role": "bot",
+      "text": "Certainly! The Blue Denim Jeans are made from high-quality denim fabric, featuring a comfortable regular",
+      "ts": 1777175097.4552178
+    }
+  ],
+  "voice_1777175582488_y002p8": [
+    {
+      "user_id": "voice_1777175582488_y002p8",
+      "role": "bot",
+      "text": "Good morning! Hope your day’s off to a great start.",
+      "ts": 1777175585.160864
+    },
+    {
+      "user_id": "voice_1777175582488_y002p8",
+      "role": "user",
+      "text": "OK.",
+      "ts": 1777175601.112077
+    },
+    {
+      "user_id": "voice_1777175582488_y002p8",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1777175601.833601
     }
   ]
 }

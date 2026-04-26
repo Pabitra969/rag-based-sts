@@ -346,6 +346,7 @@ function renderUI() {
       break;
 
     case UI_STATE.TRANSCRIBING:
+      sendBtn.classList.remove("hidden");
       micTranscribeBtn.classList.remove("hidden");
       micTranscribeBtn.textContent = "⏹";
       micTranscribeBtn.classList.add("active");
@@ -444,6 +445,33 @@ function setInputStateFromText() {
   renderUI();
 }
 
+function stopTranscriptionSession({ updateUi = true } = {}) {
+  if (!sttProvider) {
+    if (updateUi) {
+      uiState = textInput.value.trim() ? UI_STATE.TYPING : UI_STATE.IDLE;
+      renderUI();
+    }
+    return;
+  }
+
+  try {
+    sttProvider.stop?.();
+  } catch (error) {
+    console.warn("Failed to stop transcription provider:", error);
+  }
+
+  sttProvider = null;
+
+  if (updateUi) {
+    uiState = textInput.value.trim() ? UI_STATE.TYPING : UI_STATE.IDLE;
+    renderUI();
+    autosizeInput();
+    if (textInput.value.trim()) {
+      textInput.focus();
+    }
+  }
+}
+
 function escapeHtml(value) {
   return value
     .replaceAll("&", "&amp;")
@@ -456,6 +484,10 @@ function escapeHtml(value) {
 async function sendTextMessage() {
   if (isTextReplyPending || uiState === UI_STATE.VOICE_CHAT) {
     return;
+  }
+
+  if (uiState === UI_STATE.TRANSCRIBING) {
+    stopTranscriptionSession({ updateUi: true });
   }
 
   const text = textInput.value.trim();
@@ -641,7 +673,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (uiState === UI_STATE.TRANSCRIBING) {
-      sttProvider?.stop();
+      stopTranscriptionSession({ updateUi: true });
       return;
     }
 
@@ -649,7 +681,7 @@ document.addEventListener("DOMContentLoaded", () => {
     renderUI();
 
     sttProvider = getSTTProvider();
-    sttProvider.start({
+    Promise.resolve(sttProvider.start({
       onPartial: (text) => {
         textInput.value = text;
         autosizeInput();
@@ -660,15 +692,12 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       onStatus: (status) => {
         if (status === "ended" || status === "error") {
-          sttProvider = null;
-          setInputStateFromText();
-          autosizeInput();
-
-          if (textInput.value.trim()) {
-            textInput.focus();
-          }
+          stopTranscriptionSession({ updateUi: true });
         }
       },
+    })).catch((error) => {
+      console.error("Failed to start transcription:", error);
+      stopTranscriptionSession({ updateUi: true });
     });
   });
 
