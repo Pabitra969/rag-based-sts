@@ -122,7 +122,7 @@ class ModelSessionManager:
     # ---------- LLM wrapper ----------
     async def generate_reply(self, system_preamble: str, user_query: str,
                              context_text: str = "", history_text: str = "",
-                             temperature: float = 0.35, max_tokens: int = 100):
+                             temperature: float = 0.25, max_tokens: int = 100):
         """
         Unified async inference wrapper with context + history injection.
         Formats prompt cleanly to prevent model confusion and hallucination.
@@ -137,7 +137,7 @@ class ModelSessionManager:
             prompt,
             temperature=temperature,
             max_tokens=max_tokens,
-            top_p=0.9,
+            top_p=0.85,
             stop_tokens=[
                 "\nCustomer:", "Customer:",
                 "\nSystem:", "System:",
@@ -150,13 +150,13 @@ class ModelSessionManager:
         )
 
     async def generate_fast_reply(self, system_preamble: str, user_query: str,
-                                  temperature: float = 0.25, max_tokens: int = 64):
+                                  temperature: float = 0.15, max_tokens: int = 64):
         prompt = self._build_prompt(system_preamble, user_query)
         return await self._generate(
             prompt,
             temperature=temperature,
             max_tokens=max_tokens,
-            top_p=0.9,
+            top_p=0.8,
             stop_tokens=[
                 "\nCustomer:",
                 "\nSystem:",

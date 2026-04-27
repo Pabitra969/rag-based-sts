@@ -23,7 +23,7 @@ from controller.intent_detector import detect_intent
 from nlp_core import extract_fact
 
 # ============ CONFIG ============
-MODEL_PATH = "models/Phi-3-mini-4k-instruct-q4.gguf"
+MODEL_PATH = "models/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf"
 FAISS_INDEX_PATH = "./faiss_index.index"
 FAISS_META_PATH = "./faiss_meta.json"
 DATA_CSV = "./data/products2.csv"
@@ -34,23 +34,27 @@ DEBUG = True
 
 # System preambles for different intents
 SYSTEM_PREAMBLE_PRODUCT = """You are Aria, a customer support AI.
-You provide concise, factual, datasource-based answers about products.
-Use only the provided product context. Never invent products or prices.
-If the requested product is not available in the database, say so clearly and suggest related items from the database only.
-Keep answers short and professional."""
+Answer using only the provided product context.
+Never invent product names, prices, categories, stock, features, or discounts.
+If the exact answer is not in the context, say that clearly instead of guessing.
+If helpful, recommend 1 to 3 related items from the provided context only.
+Keep the answer factual, clear, and professional."""
 
 SYSTEM_PREAMBLE_PERSONALIZED = """You are Aria, a customer support AI.
-You help customers with personalized assistance based on their history and preferences.
-Be friendly, remember context from their previous interactions.
-Reference their past questions when relevant."""
+Help the customer using their recent conversation and the provided product context.
+Be warm and practical, but stay factual.
+Do not invent account details, orders, preferences, or product facts.
+If something is missing from the conversation or context, say so clearly.
+Give a direct answer first, then a short helpful follow-up if needed."""
 
 SYSTEM_PREAMBLE_GENERAL_FAST = """You are Aria, a customer support AI.
-Answer the question clearly in 2 to 4 short sentences.
-Give enough detail to be useful, but stay concise.
+Answer the question directly in 2 to 4 short sentences.
+Be clear, accurate, and concise.
+If you are not sure, say that briefly instead of guessing.
 Do not mention products unless the user explicitly asks about products.
 Do not pretend to know live facts like weather, news, stock prices, or traffic.
 If a question needs real-time data that you do not have, say that clearly and offer the closest helpful alternative.
-Be direct, helpful, and concise."""
+Avoid filler, hype, and made-up specifics."""
 
 # ============ TIMING ============
 @contextmanager
@@ -330,7 +334,7 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
                     query,
                     context_text=context,
                     history_text="",
-                    temperature=0.25,
+                    temperature=0.15,
                     max_tokens=product_max_tokens
                 )
             if not reply.strip():
@@ -384,7 +388,7 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
                 query,
                 context_text=context,
                 history_text=history,  # full history for personalization
-                temperature=0.4,
+                temperature=0.25,
                 max_tokens=personalized_max_tokens
             )
         if not reply.strip():
@@ -413,7 +417,7 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
         reply = await model_manager.generate_fast_reply(
             SYSTEM_PREAMBLE_GENERAL_FAST,
             query,
-            temperature=0.15 if voice_mode else 0.25,
+            temperature=0.10 if voice_mode else 0.15,
             max_tokens=general_max_tokens
         )
     if not reply.strip():
@@ -507,7 +511,7 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
                 query,
                 context_text=context,
                 history_text="",
-                temperature=0.25,
+                temperature=0.15,
                 max_tokens=product_max_tokens,
             ):
                 collected.append(chunk)
@@ -559,7 +563,7 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
                 query,
                 context_text=context,
                 history_text=history,
-                temperature=0.4,
+                temperature=0.25,
                 max_tokens=personalized_max_tokens,
             ):
                 collected.append(chunk)
@@ -588,7 +592,7 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
         async for chunk in model_manager.stream_reply(
             SYSTEM_PREAMBLE_GENERAL_FAST,
             query,
-            temperature=0.15 if voice_mode else 0.25,
+            temperature=0.10 if voice_mode else 0.15,
             max_tokens=general_max_tokens,
             top_p=0.9,
             stop_tokens=[
