@@ -14,8 +14,7 @@
         "echo": true,
         "reveal": "always",
         "focus": false,
-        "panel": "dedicated",
-        "group": "services",
+        "panel": "new",
         "clear": false
       }
     },
@@ -32,8 +31,7 @@
         "echo": true,
         "reveal": "always",
         "focus": false,
-        "panel": "dedicated",
-        "group": "services",
+        "panel": "new",
         "clear": false
       }
     },
@@ -50,8 +48,7 @@
         "echo": true,
         "reveal": "always",
         "focus": false,
-        "panel": "dedicated",
-        "group": "services",
+        "panel": "new",
         "clear": false
       }
     },
@@ -68,8 +65,7 @@
         "echo": true,
         "reveal": "always",
         "focus": false,
-        "panel": "dedicated",
-        "group": "services",
+        "panel": "new",
         "clear": false
       }
     },
@@ -81,10 +77,12 @@
         "VOICE_FRONTEND",
         "LOCAL_STS"
       ],
-      "dependsOrder": "sequence",
-      "runOptions": {
-        "runOn": "default"
-      }
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
     }
   ]
 }

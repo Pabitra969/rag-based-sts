@@ -13,6 +13,12 @@ if [[ ! -d "$AI_DIR" || ! -d "$VOICE_DIR" ]]; then
   exit 1
 fi
 
+if [[ "${TERM_PROGRAM:-}" == "vscode" ]]; then
+  echo "You are in VS Code integrated terminal."
+  echo "Use Cmd+Shift+B to run the default task: Start All Services."
+  exit 0
+fi
+
 AI_PY_CMD="python3 app_server.py"
 
 # Opens a new Terminal tab and runs one command.
