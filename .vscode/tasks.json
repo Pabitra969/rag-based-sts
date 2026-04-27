@@ -1,0 +1,90 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "AI_CHATBOT",
+      "type": "shell",
+      "command": "python3 app_server.py",
+      "options": {
+        "cwd": "${workspaceFolder}/AI_CHATBOT"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "group": "services",
+        "clear": false
+      }
+    },
+    {
+      "label": "VOICE_BACKEND",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/Voice_STS/backend"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "group": "services",
+        "clear": false
+      }
+    },
+    {
+      "label": "VOICE_FRONTEND",
+      "type": "shell",
+      "command": "python3 -m http.server 8080",
+      "options": {
+        "cwd": "${workspaceFolder}/Voice_STS/frontend"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "group": "services",
+        "clear": false
+      }
+    },
+    {
+      "label": "LOCAL_STS",
+      "type": "shell",
+      "command": "python3 local_speech_server.py",
+      "options": {
+        "cwd": "${workspaceFolder}/Voice_STS"
+      },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "group": "services",
+        "clear": false
+      }
+    },
+    {
+      "label": "Start All Services",
+      "dependsOn": [
+        "AI_CHATBOT",
+        "VOICE_BACKEND",
+        "VOICE_FRONTEND",
+        "LOCAL_STS"
+      ],
+      "dependsOrder": "sequence",
+      "runOptions": {
+        "runOn": "default"
+      }
+    }
+  ]
+}
