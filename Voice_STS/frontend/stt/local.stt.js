@@ -21,7 +21,14 @@ export async function start({ onPartial, onFinal, onStatus }) {
   }
 
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        channelCount: 1,
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    });
 
     mediaRecorder = new MediaRecorder(stream, {
       mimeType: "audio/webm"

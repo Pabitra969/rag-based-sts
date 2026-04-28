@@ -99,10 +99,32 @@ async def transcribe(request: Request):
     if not audio:
         raise HTTPException(status_code=400, detail="Audio body is required")
 
+    content_type = str(request.headers.get("content-type", "")).lower()
+    if "webm" in content_type:
+        suffix = ".webm"
+    elif "mpeg" in content_type or "mp3" in content_type:
+        suffix = ".mp3"
+    elif "wav" in content_type:
+        suffix = ".wav"
+    else:
+        suffix = ".wav"
+
     with tempfile.TemporaryDirectory() as tmp_dir:
-        audio_path = Path(tmp_dir) / "speech.wav"
+        audio_path = Path(tmp_dir) / f"speech{suffix}"
         audio_path.write_bytes(audio)
-        segments, _info = model.transcribe(str(audio_path), language="en")
+        segments, _info = model.transcribe(
+            str(audio_path),
+            language="en",
+            vad_filter=True,
+            vad_parameters={
+                "min_silence_duration_ms": 250,
+                "speech_pad_ms": 120,
+            },
+            beam_size=1,
+            best_of=1,
+            temperature=0.0,
+            condition_on_previous_text=False,
+        )
         text = " ".join(segment.text.strip() for segment in segments).strip()
 
     return {"text": text}

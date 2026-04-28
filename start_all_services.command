@@ -7,6 +7,7 @@ AI_DIR="$ROOT_DIR/AI_CHATBOT"
 VOICE_DIR="$ROOT_DIR/Voice_STS"
 BACKEND_DIR="$VOICE_DIR/backend"
 FRONTEND_DIR="$VOICE_DIR/frontend"
+MAC_LLM_ENV="export LLM_N_GPU_LAYERS=-1; export LLM_MAIN_GPU=0; export LLM_N_BATCH=256; export LLM_OFFLOAD_KQV=true; export LLM_FLASH_ATTN=true;"
 
 if [[ ! -d "$AI_DIR" || ! -d "$VOICE_DIR" ]]; then
   echo "Could not find AI_CHATBOT or Voice_STS directories from: $ROOT_DIR"
@@ -36,7 +37,7 @@ APPLESCRIPT
 
 echo "Starting services in separate Terminal tabs..."
 
-run_in_new_tab "AI_CHATBOT" "cd '$AI_DIR' && $AI_PY_CMD"
+run_in_new_tab "AI_CHATBOT" "cd '$AI_DIR' && $MAC_LLM_ENV $AI_PY_CMD"
 sleep 0.8
 
 run_in_new_tab "VOICE_BACKEND" "cd '$BACKEND_DIR' && npm run dev"

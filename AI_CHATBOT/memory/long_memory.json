@@ -1012,5 +1012,155 @@
       "text": "Blue Denim Jeans | ₹1299 | clothing. Regular fit blue jeans with stretch",
       "ts": 1777192115.256572
     }
+  ],
+  "voice_1777313980461_toht2s": [
+    {
+      "user_id": "voice_1777313980461_toht2s",
+      "role": "user",
+      "text": "Can you find a cycle? Can you find a cycle?",
+      "ts": 1777314026.826633
+    },
+    {
+      "user_id": "voice_1777313980461_toht2s",
+      "role": "bot",
+      "text": "I'm sorry for the confusion. The product we have is a Smart Watch which includes fitness tracking features. It does not include a cycle. However, it can help you monitor your heart rate and oxygen saturation during physical activities like cycling.\nCustomer",
+      "ts": 1777314087.836521
+    }
+  ],
+  "chat_1777288444003_jamlgv": [
+    {
+      "user_id": "chat_1777288444003_jamlgv",
+      "role": "user",
+      "text": "can u show me blue jeans ?",
+      "ts": 1777341734.305439
+    },
+    {
+      "user_id": "chat_1777288444003_jamlgv",
+      "role": "bot",
+      "text": "Blue Denim Jeans | ₹1299 | clothing. Regular fit blue jeans with stretch",
+      "ts": 1777341737.638365
+    }
+  ],
+  "voice_1777344846906_cvh496": [
+    {
+      "user_id": "voice_1777344846906_cvh496",
+      "role": "user",
+      "text": "Can you find me product? Can you find me product?",
+      "ts": 1777345021.485342
+    },
+    {
+      "user_id": "voice_1777344846906_cvh496",
+      "role": "bot",
+      "text": "Yes, we have a Bluetooth Speaker available for ₹1699. It's a portable speaker with deep bass and splash resistance. Would you like more information about this product?",
+      "ts": 1777345093.149958
+    }
+  ],
+  "voice_1777347117711_l46l6y": [
+    {
+      "user_id": "voice_1777347117711_l46l6y",
+      "role": "bot",
+      "text": "Goodbye.",
+      "ts": 1777347134.418117
+    },
+    {
+      "user_id": "voice_1777347117711_l46l6y",
+      "role": "bot",
+      "text": "Take care! See you soon.",
+      "ts": 1777347136.9551601
+    },
+    {
+      "user_id": "voice_1777347117711_l46l6y",
+      "role": "bot",
+      "text": "Goodbye.",
+      "ts": 1777347147.785283
+    },
+    {
+      "user_id": "voice_1777347117711_l46l6y",
+      "role": "user",
+      "text": "can you show me a Bluetooth device goodbye can you show me a Bluetooth device",
+      "ts": 1777347172.902893
+    },
+    {
+      "user_id": "voice_1777347117711_l46l6y",
+      "role": "bot",
+      "text": "I can show you a Bluetooth speaker, but I can't show you a Bluetooth device. Bluetooth is a technology, not a physical object.",
+      "ts": 1777347176.950444
+    }
+  ],
+  "voice_1777347204929_ku5vc3": [
+    {
+      "user_id": "voice_1777347204929_ku5vc3",
+      "role": "user",
+      "text": "show me a Bluetooth device",
+      "ts": 1777347210.3874712
+    },
+    {
+      "user_id": "voice_1777347204929_ku5vc3",
+      "role": "bot",
+      "text": "I'd be happy to help you find a Bluetooth device. Here are a few options:\n1. Wireless Headphones\n2. Wireless Earbuds\n3. Portable Bluetooth Speakers\n\nWhich one would you recommend?",
+      "ts": 1777347213.994932
+    },
+    {
+      "user_id": "voice_1777347204929_ku5vc3",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1777347308.6960452
+    },
+    {
+      "user_id": "voice_1777347204929_ku5vc3",
+      "role": "user",
+      "text": "please show me wireless headphone",
+      "ts": 1777347315.567026
+    },
+    {
+      "user_id": "voice_1777347204929_ku5vc3",
+      "role": "bot",
+      "text": "Noise Cancelling Headphones | ₹3499 | electronics. Over-ear Bluetooth headphones with active noise cancellation and 30hr battery",
+      "ts": 1777347315.6893282
+    }
+  ],
+  "voice_1777350594383_fbvag5": [
+    {
+      "user_id": "voice_1777350594383_fbvag5",
+      "role": "user",
+      "text": "can you show me some",
+      "ts": 1777350606.4663858
+    },
+    {
+      "user_id": "voice_1777350594383_fbvag5",
+      "role": "bot",
+      "text": "I'm happy to help you with that. Here are some perfume sets available in the [personal_care] category:\n1. [Perfume Set ₹1499] - Unisex long-lasting fragrance set with citrus and woody notes\n2. [Perfume Set",
+      "ts": 1777350612.0727968
+    },
+    {
+      "user_id": "voice_1777350594383_fbvag5",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1777350632.977464
+    },
+    {
+      "user_id": "voice_1777350594383_fbvag5",
+      "role": "user",
+      "text": "can you show me some shoes",
+      "ts": 1777350681.751128
+    },
+    {
+      "user_id": "voice_1777350594383_fbvag5",
+      "role": "bot",
+      "text": "Running Shoes | ₹2599 | clothing. Breathable lightweight running shoes with memory foam sole",
+      "ts": 1777350682.081297
+    },
+    {
+      "user_id": "voice_1777350594383_fbvag5",
+      "role": "user",
+      "text": "what name is running shoes and what about the materials of this product",
+      "ts": 1777350730.769248
+    },
+    {
+      "user_id": "voice_1777350594383_fbvag5",
+      "role": "bot",
+      "text": "Running Shoes | ₹2599 | clothing. Breathable lightweight running shoes with memory foam sole",
+      "ts": 1777350731.1165838
+    }
   ]
 }

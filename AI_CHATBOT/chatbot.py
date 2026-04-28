@@ -23,12 +23,13 @@ from controller.intent_detector import detect_intent
 from nlp_core import extract_fact
 
 # ============ CONFIG ============
-MODEL_PATH = "models/Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf"
+# Use the smaller local model by default for lower latency.
+MODEL_PATH = "models/Llama-3.2-1B-Instruct-Q4_K_M.gguf"
 FAISS_INDEX_PATH = "./faiss_index.index"
 FAISS_META_PATH = "./faiss_meta.json"
 DATA_CSV = "./data/products2.csv"
 
-N_CTX = 1024
+N_CTX = 768
 TOP_K = 3
 DEBUG = True
 
@@ -267,9 +268,9 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
     timings = {}
     start = time.time()
     retrieval_k = 1 if voice_mode else TOP_K
-    product_max_tokens = 56 if voice_mode else 180
-    personalized_max_tokens = 72 if voice_mode else 220
-    general_max_tokens = 72 if voice_mode else 140
+    product_max_tokens = 110 if voice_mode else 180
+    personalized_max_tokens = 110 if voice_mode else 220
+    general_max_tokens = 72 if voice_mode else 64
 
     # ===== PATH 1: QUICK RESPONSES (GREETINGS) =====
     with timed("quick", timings):
@@ -380,7 +381,7 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
             results = await retrieve(query, top_k=retrieval_k)
 
         context = build_product_context(results, max_items=3)
-        history = get_full_history(user_id)
+        history = get_recent_history(user_id, max_turns=2) if voice_mode else get_full_history(user_id)
 
         with timed("llm_personalized", timings):
             reply = await model_manager.generate_reply(
@@ -434,9 +435,9 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
     timings = {}
     start = time.time()
     retrieval_k = 1 if voice_mode else TOP_K
-    product_max_tokens = 56 if voice_mode else 180
-    personalized_max_tokens = 72 if voice_mode else 220
-    general_max_tokens = 72 if voice_mode else 140
+    product_max_tokens = 110 if voice_mode else 180
+    personalized_max_tokens = 110 if voice_mode else 220
+    general_max_tokens = 96 if voice_mode else 140
 
     with timed("quick", timings):
         quick_reply = quick.get_response(query)
@@ -555,7 +556,7 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
         with timed("retrieval", timings):
             results = await retrieve(query, top_k=retrieval_k)
         context = build_product_context(results, max_items=3)
-        history = get_full_history(user_id)
+        history = get_recent_history(user_id, max_turns=2) if voice_mode else get_full_history(user_id)
         collected = []
         with timed("llm_personalized", timings):
             async for chunk in model_manager.stream_reply(

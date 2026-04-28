@@ -5,6 +5,48 @@
 import os, shutil, asyncio, re, threading
 from llama_cpp import Llama
 
+
+def _env_int(name, default):
+    raw = os.environ.get(name, "").strip()
+    if raw == "":
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        print(f"⚠️ Invalid integer for {name}={raw!r}; using {default}.")
+        return default
+
+
+def _env_bool(name, default):
+    raw = os.environ.get(name, "").strip().lower()
+    if raw == "":
+        return default
+    return raw in {"1", "true", "yes", "on"}
+
+
+def _default_llama_runtime():
+    is_apple_silicon = os.uname().sysname == "Darwin" and os.uname().machine == "arm64"
+    cpu_threads = os.cpu_count() or 4
+
+    if is_apple_silicon:
+        return {
+            "n_threads": min(cpu_threads, 8),
+            "n_batch": 256,
+            "n_gpu_layers": -1,
+            "main_gpu": 0,
+            "offload_kqv": True,
+            "flash_attn": True,
+        }
+
+    return {
+        "n_threads": cpu_threads,
+        "n_batch": 256,
+        "n_gpu_layers": 0,
+        "main_gpu": 0,
+        "offload_kqv": True,
+        "flash_attn": False,
+    }
+
 class ModelSessionManager:
     """
     Unified model manager for TinyLlama/Phi-3:
@@ -17,6 +59,13 @@ class ModelSessionManager:
         self.session_file = session_file
         self.verbose = verbose
         self._lock = asyncio.Lock()
+        runtime_defaults = _default_llama_runtime()
+        self.n_threads = _env_int("LLM_N_THREADS", runtime_defaults["n_threads"])
+        self.n_batch = _env_int("LLM_N_BATCH", runtime_defaults["n_batch"])
+        self.n_gpu_layers = _env_int("LLM_N_GPU_LAYERS", runtime_defaults["n_gpu_layers"])
+        self.main_gpu = _env_int("LLM_MAIN_GPU", runtime_defaults["main_gpu"])
+        self.offload_kqv = _env_bool("LLM_OFFLOAD_KQV", runtime_defaults["offload_kqv"])
+        self.flash_attn = _env_bool("LLM_FLASH_ATTN", runtime_defaults["flash_attn"])
 
         self.llm = Llama(
             model_path=self.model_path,
@@ -24,11 +73,23 @@ class ModelSessionManager:
             seed=42,
             verbose=self.verbose,
             chat_format=None,
-            n_threads=os.cpu_count() or 4,
-            n_batch=256
+            n_threads=self.n_threads,
+            n_batch=self.n_batch,
+            n_gpu_layers=self.n_gpu_layers,
+            main_gpu=self.main_gpu,
+            offload_kqv=self.offload_kqv,
+            flash_attn=self.flash_attn,
         )
 
-        print(f"✅ Model loaded: {os.path.basename(model_path)} (threads={os.cpu_count()}, n_ctx={n_ctx})")
+        gpu_mode = "CPU only" if self.n_gpu_layers == 0 else (
+            "GPU all layers" if self.n_gpu_layers < 0 else f"GPU offload {self.n_gpu_layers} layers"
+        )
+        print(
+            "✅ Model loaded: "
+            f"{os.path.basename(model_path)} "
+            f"(threads={self.n_threads}, n_batch={self.n_batch}, n_ctx={n_ctx}, "
+            f"{gpu_mode}, main_gpu={self.main_gpu}, offload_kqv={self.offload_kqv}, flash_attn={self.flash_attn})"
+        )
         self._safe_load_context()
 
     # ---------- Context management ----------

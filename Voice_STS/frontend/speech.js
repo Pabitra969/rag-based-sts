@@ -70,10 +70,14 @@ let voiceConversationId = null;
 let isVoicePanelOpen = false;
 let lastVoiceFinalText = "";
 let lastVoiceBotText = "";
+let lastVoiceBotAt = 0;
+let lastVoiceBotTurnId = null;
 let currentVoiceAssistantState = "idle";
 let renderedConversationId = null;
 let textTypingIndicatorEl = null;
 let isTextReplyPending = false;
+let liveVoiceBotDraft = null;
+let activeVoiceAssistantTurnId = null;
 
 function parseProductLine(line) {
   const trimmed = String(line || "").trim().replace(/^-+\s*/, "");
@@ -150,8 +154,8 @@ function loadConversations() {
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
     if (Array.isArray(stored) && stored.length > 0) {
-      conversations = stored;
-      activeConversationId = stored[0].id;
+      conversations = [...stored].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      activeConversationId = conversations[0].id;
       return;
     }
   } catch (error) {
@@ -172,7 +176,7 @@ function getActiveConversation() {
   let activeConversation = conversations.find((conversation) => conversation.id === activeConversationId);
 
   if (!activeConversation) {
-    activeConversation = conversations[0] || createConversation();
+    activeConversation = [...conversations].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))[0] || createConversation();
 
     if (!conversations.length) {
       conversations = [activeConversation];
@@ -295,6 +299,11 @@ function renderMessages() {
     chatBody.appendChild(createMessageBubble(message).bubble);
   });
 
+  if (liveVoiceBotDraft?.conversationId === activeConversation.id && liveVoiceBotDraft.text) {
+    const streamingBubble = createVoiceDraftBubble(liveVoiceBotDraft.text);
+    chatBody.appendChild(streamingBubble.bubble);
+  }
+
   scrollChatToBottom();
 }
 
@@ -415,6 +424,13 @@ function createStreamingBubble() {
   return { bubble, text };
 }
 
+function createVoiceDraftBubble(textValue = "") {
+  const streamingBubble = createStreamingBubble();
+  streamingBubble.bubble.classList.add("voice-live-draft");
+  streamingBubble.text.textContent = textValue;
+  return streamingBubble;
+}
+
 function showTextTypingIndicator() {
   if (textTypingIndicatorEl) {
     return;
@@ -433,6 +449,68 @@ function removeTextTypingIndicator() {
 
   textTypingIndicatorEl.remove();
   textTypingIndicatorEl = null;
+}
+
+function updateLiveVoiceDraft(text, conversationId = voiceConversationId || activeConversationId, turnId = null) {
+  const draftText = String(text || "").trim();
+  if (!draftText || !conversationId) {
+    return;
+  }
+
+  if (turnId && liveVoiceBotDraft?.turnId && liveVoiceBotDraft.turnId !== turnId) {
+    return;
+  }
+
+  liveVoiceBotDraft = {
+    conversationId,
+    turnId: turnId ?? liveVoiceBotDraft?.turnId ?? activeVoiceAssistantTurnId ?? null,
+    text: draftText,
+  };
+
+  if (renderedConversationId === conversationId) {
+    const lastBubble = chatBody.querySelector(".voice-live-draft:last-of-type");
+    if (lastBubble) {
+      const textEl = lastBubble.querySelector(".message-text");
+      if (textEl) {
+        textEl.textContent = draftText;
+        scrollChatToBottom();
+        return;
+      }
+    }
+  }
+
+  renderApp();
+}
+
+function clearLiveVoiceDraft(conversationId = null, turnId = null) {
+  if (!liveVoiceBotDraft) {
+    return;
+  }
+
+  if (conversationId && liveVoiceBotDraft.conversationId !== conversationId) {
+    return;
+  }
+
+  if (turnId && liveVoiceBotDraft.turnId !== turnId) {
+    return;
+  }
+
+  liveVoiceBotDraft = null;
+  renderApp();
+}
+
+function startLiveVoiceDraft(turnId, seedText = "", conversationId = voiceConversationId || activeConversationId) {
+  if (!conversationId || !turnId) {
+    return;
+  }
+
+  activeVoiceAssistantTurnId = turnId;
+  liveVoiceBotDraft = {
+    conversationId,
+    turnId,
+    text: String(seedText || "").trim(),
+  };
+  renderApp();
 }
 
 function scrollChatToBottom() {
@@ -698,6 +776,9 @@ function beginVoiceSession() {
   voiceConversationId = activeConversationId;
   lastVoiceFinalText = "";
   lastVoiceBotText = "";
+  lastVoiceBotTurnId = null;
+  liveVoiceBotDraft = null;
+  activeVoiceAssistantTurnId = null;
   voiceUserTranscript.textContent = "Listening for your first utterance…";
   voiceAssistantTranscript.textContent = "Assistant responses will appear here and in the main chat.";
   updateVoiceAssistant("connecting");
@@ -715,6 +796,8 @@ function endVoiceSession({ closePanel = false } = {}) {
 const voiceModeCallbacks = {
   onStateChange: (state, payload = {}) => {
     if (state === "idle") {
+      clearLiveVoiceDraft(voiceConversationId, payload.turnId || null);
+      activeVoiceAssistantTurnId = null;
       voiceConversationId = null;
       uiState = textInput.value.trim() ? UI_STATE.TYPING : UI_STATE.IDLE;
       textInput.disabled = false;
@@ -729,6 +812,8 @@ const voiceModeCallbacks = {
     }
 
     if (state === "error") {
+      clearLiveVoiceDraft(voiceConversationId, payload.turnId || null);
+      activeVoiceAssistantTurnId = null;
       uiState = textInput.value.trim() ? UI_STATE.TYPING : UI_STATE.IDLE;
       textInput.disabled = false;
       micTranscribeBtn.disabled = false;
@@ -749,11 +834,14 @@ const voiceModeCallbacks = {
     voiceChatBtn.classList.add("active");
     voiceChatBtn.querySelector(".btn-label").textContent = "Stop voice";
     renderUI();
+    if (state === "interrupted" && payload.turnId) {
+      clearLiveVoiceDraft(voiceConversationId || activeConversationId, payload.turnId);
+    }
     updateVoiceAssistant(state, payload);
   },
 
-  onPartialTranscript: (text) => {
-    const partial = String(text || "").trim();
+  onPartialTranscript: (payload) => {
+    const partial = String(payload?.text || payload || "").trim();
     if (!partial) {
       return;
     }
@@ -763,9 +851,9 @@ const voiceModeCallbacks = {
     autosizeInput();
   },
 
-  onFinalTranscript: (text) => {
-    const finalText = String(text || "").trim();
-    if (!finalText || finalText === lastVoiceFinalText) {
+  onFinalTranscript: (payload) => {
+    const finalText = String(payload?.text || payload || "").trim();
+    if (!finalText) {
       return;
     }
 
@@ -776,27 +864,55 @@ const voiceModeCallbacks = {
     autosizeInput();
   },
 
-  onBotPartial: (text) => {
-    const partial = String(text || "").trim();
+  onTurnStarted: ({ turnId, text }) => {
+    if (!turnId) {
+      return;
+    }
+
+    startLiveVoiceDraft(turnId, text, voiceConversationId || activeConversationId);
+  },
+
+  onBotPartial: (payload) => {
+    const partial = String(payload?.text || payload || "").trim();
+    const turnId = payload?.turnId ?? null;
     if (!partial) {
       return;
     }
 
+    if (turnId) {
+      activeVoiceAssistantTurnId = turnId;
+      if (!liveVoiceBotDraft || liveVoiceBotDraft.turnId !== turnId) {
+        startLiveVoiceDraft(turnId, "", voiceConversationId || activeConversationId);
+      }
+    }
+
     voiceAssistantTranscript.textContent = partial;
+    updateLiveVoiceDraft(partial, voiceConversationId || activeConversationId, turnId);
   },
 
-  onBotResponse: (text) => {
-    const reply = String(text || "").trim();
-    if (!reply || reply === lastVoiceBotText) {
+  onBotResponse: (payload) => {
+    const reply = String(payload?.text || payload || "").trim();
+    const turnId = payload?.turnId ?? null;
+    if (!reply) {
+      return;
+    }
+
+    if ((turnId && turnId === lastVoiceBotTurnId) || (!turnId && reply === lastVoiceBotText && Date.now() - lastVoiceBotAt < 1200)) {
+      return;
+    }
+
+    if (turnId && liveVoiceBotDraft?.turnId && liveVoiceBotDraft.turnId !== turnId) {
       return;
     }
 
     lastVoiceBotText = reply;
-    voiceAssistantTranscript.textContent = "";
-    void animateTextContent(voiceAssistantTranscript, reply, 200);
+    lastVoiceBotAt = Date.now();
+    lastVoiceBotTurnId = turnId;
+    activeVoiceAssistantTurnId = turnId;
+    voiceAssistantTranscript.textContent = reply;
+    clearLiveVoiceDraft(voiceConversationId || activeConversationId, turnId);
     addMessageToConversation("bot", reply, voiceConversationId || activeConversationId, {
-      animate: true,
-      stepMs: 200,
+      animate: false,
     });
   },
 };
