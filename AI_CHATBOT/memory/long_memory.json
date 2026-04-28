@@ -1386,5 +1386,25 @@
       "text": "Blue Denim Jeans | ₹1299 | clothing. Regular fit blue jeans with stretch",
       "ts": 1777358706.2040782
     }
+  ],
+  "voice_1777382613563_5e64ct": [
+    {
+      "user_id": "voice_1777382613563_5e64ct",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1777382617.9182038
+    },
+    {
+      "user_id": "voice_1777382613563_5e64ct",
+      "role": "user",
+      "text": "can you show me a Bluetooth speaker",
+      "ts": 1777382630.207811
+    },
+    {
+      "user_id": "voice_1777382613563_5e64ct",
+      "role": "bot",
+      "text": "Bluetooth Speaker | ₹1699 | electronics. Portable Bluetooth speaker with deep bass and splash resistance",
+      "ts": 1777382630.465894
+    }
   ]
 }

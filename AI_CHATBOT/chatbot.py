@@ -21,6 +21,7 @@ from memory.session_manager import SessionManager
 from quick_responder.quick_responder import QuickResponder
 from controller.intent_detector import detect_intent
 from nlp_core import extract_fact
+from web_search import search_web, compress_web_results, web_search_enabled
 
 # ============ CONFIG ============
 # Use the smaller local model by default for lower latency.
@@ -56,6 +57,14 @@ Do not mention products unless the user explicitly asks about products.
 Do not pretend to know live facts like weather, news, stock prices, or traffic.
 If a question needs real-time data that you do not have, say that clearly and offer the closest helpful alternative.
 Avoid filler, hype, and made-up specifics."""
+
+SYSTEM_PREAMBLE_WEB_SEARCH = """You are Aria, a customer support AI.
+Answer using only the provided web search results.
+Write a direct 2 to 4 sentence summary in plain language.
+Prefer the most concrete and recent-looking result from the provided snippets.
+If the snippets are weak or conflicting, say that briefly instead of guessing.
+Do not mention any fact that is not supported by the provided web search results.
+Keep the answer concise and do not add filler."""
 
 # ============ TIMING ============
 @contextmanager
@@ -97,6 +106,13 @@ TIME_QUERY_RE = re.compile(
     r"what('?s| is)\s+(the\s+)?time|"
     r"current\s+time|"
     r"time\s+now"
+    r")\b",
+    re.I,
+)
+WEB_FALLBACK_HINT_RE = re.compile(
+    r"\b("
+    r"latest|current|currently|today|recent|news|headline|weather|forecast|temperature|"
+    r"stock|score|traffic|time in|date in|who is the current|what is the current|search web"
     r")\b",
     re.I,
 )
@@ -154,7 +170,9 @@ def _fast_general_reply(user_id: str, query: str, voice_mode: bool) -> str:
             return f"Nice to meet you, {match.group(1).strip()}."
 
     if LIVE_INFO_HINT_RE.search(q):
-        return "I can't check live weather or other real-time updates in this offline setup yet."
+        if not web_search_enabled():
+            return "I can't check live weather or other real-time updates in this offline setup yet."
+        return ""
 
     if DATE_QUERY_RE.search(q):
         return datetime.now().strftime("Today is %A, %d %B %Y.")
@@ -172,6 +190,22 @@ def _fast_general_reply(user_id: str, query: str, voice_mode: bool) -> str:
         return "I'm Aria, a local AI support assistant built for this project."
 
     return ""
+
+
+def should_use_web_search(query: str) -> bool:
+    q = query.lower().strip()
+    if not web_search_enabled():
+        return False
+    return bool(WEB_FALLBACK_HINT_RE.search(q))
+
+
+async def get_web_context(query: str, voice_mode: bool = False) -> str:
+    max_results = 2 if voice_mode else 3
+    max_chars = 360 if voice_mode else 560
+    results = await search_web(query, max_results=max_results)
+    if not results:
+        return ""
+    return compress_web_results(results, max_chars=max_chars)
 
 async def _persist_conversation_state(user_id: str, save_model_context: bool = False):
     await asyncio.to_thread(sessions.flush_pending, user_id)
@@ -271,6 +305,7 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
     product_max_tokens = 110 if voice_mode else 180
     personalized_max_tokens = 110 if voice_mode else 220
     general_max_tokens = 72 if voice_mode else 64
+    web_max_tokens = 88 if voice_mode else 120
 
     # ===== PATH 1: QUICK RESPONSES (GREETINGS) =====
     with timed("quick", timings):
@@ -414,6 +449,38 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
     sessions.add_user_msg(user_id, query, persist_long=False)
     timings["retrieval"] = 0.0
 
+    if should_use_web_search(query):
+        if DEBUG:
+            print("[ROUTE] GENERAL QUERY → Web fallback")
+
+        with timed("web_search", timings):
+            web_context = await get_web_context(query, voice_mode=voice_mode)
+
+        if web_context:
+            with timed("llm_general_web", timings):
+                reply = await model_manager.generate_reply(
+                    SYSTEM_PREAMBLE_WEB_SEARCH,
+                    query,
+                    web_results_text=web_context,
+                    temperature=0.1,
+                    max_tokens=web_max_tokens,
+                )
+            if reply.strip():
+                sessions.add_bot_msg(user_id, reply, persist_long=False)
+                timings["persist"] = 0.0
+                timings["total"] = round(time.time() - start, 3)
+                if DEBUG:
+                    print(f"[TIMING] {timings}")
+                return reply
+
+        reply = "I couldn't find a reliable short web result for that just now."
+        sessions.add_bot_msg(user_id, reply, persist_long=False)
+        timings["persist"] = 0.0
+        timings["total"] = round(time.time() - start, 3)
+        if DEBUG:
+            print(f"[TIMING] {timings}")
+        return reply
+
     with timed("llm_general_fast", timings):
         reply = await model_manager.generate_fast_reply(
             SYSTEM_PREAMBLE_GENERAL_FAST,
@@ -438,6 +505,7 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
     product_max_tokens = 110 if voice_mode else 180
     personalized_max_tokens = 110 if voice_mode else 220
     general_max_tokens = 96 if voice_mode else 140
+    web_max_tokens = 100 if voice_mode else 120
 
     with timed("quick", timings):
         quick_reply = quick.get_response(query)
@@ -589,6 +657,50 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
     sessions.add_user_msg(user_id, query, persist_long=False)
     timings["retrieval"] = 0.0
     collected = []
+
+    if should_use_web_search(query):
+        if DEBUG:
+            print("[ROUTE] GENERAL QUERY → Web fallback")
+
+        with timed("web_search", timings):
+            web_context = await get_web_context(query, voice_mode=voice_mode)
+
+        if web_context:
+            with timed("llm_general_web", timings):
+                async for chunk in model_manager.stream_reply(
+                    SYSTEM_PREAMBLE_WEB_SEARCH,
+                    query,
+                    web_results_text=web_context,
+                    temperature=0.1,
+                    max_tokens=web_max_tokens,
+                    top_p=0.85,
+                    stop_tokens=[
+                        "\nCustomer:",
+                        "\nSystem:",
+                        "\nSupport Agent:",
+                    ],
+                ):
+                    collected.append(chunk)
+                    yield chunk
+
+            reply = clean_text("".join(collected))
+            if reply:
+                sessions.add_bot_msg(user_id, reply, persist_long=False)
+                timings["persist"] = 0.0
+                timings["total"] = round(time.time() - start, 3)
+                if DEBUG:
+                    print(f"[TIMING] {timings}")
+                return
+
+        reply = "I couldn't find a reliable short web result for that just now."
+        sessions.add_bot_msg(user_id, reply, persist_long=False)
+        timings["persist"] = 0.0
+        timings["total"] = round(time.time() - start, 3)
+        if DEBUG:
+            print(f"[TIMING] {timings}")
+        yield reply
+        return
+
     with timed("llm_general_fast", timings):
         async for chunk in model_manager.stream_reply(
             SYSTEM_PREAMBLE_GENERAL_FAST,

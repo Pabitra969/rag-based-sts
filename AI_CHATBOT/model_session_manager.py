@@ -139,7 +139,8 @@ class ModelSessionManager:
         return self.llm
 
     def _build_prompt(self, system_preamble: str, user_query: str,
-                      context_text: str = "", history_text: str = "") -> str:
+                      context_text: str = "", history_text: str = "",
+                      web_results_text: str = "") -> str:
         prompt_parts = []
 
         if system_preamble.strip():
@@ -150,6 +151,9 @@ class ModelSessionManager:
 
         if history_text.strip():
             prompt_parts.append(f"\nRecent Conversation:\n{history_text.strip()}")
+
+        if web_results_text.strip():
+            prompt_parts.append(f"\nWeb Search Results:\n{web_results_text.strip()}")
 
         prompt_parts.append(f"\nCustomer: {user_query.strip()}")
         prompt_parts.append("\nSupport Agent:")
@@ -183,6 +187,7 @@ class ModelSessionManager:
     # ---------- LLM wrapper ----------
     async def generate_reply(self, system_preamble: str, user_query: str,
                              context_text: str = "", history_text: str = "",
+                             web_results_text: str = "",
                              temperature: float = 0.25, max_tokens: int = 100):
         """
         Unified async inference wrapper with context + history injection.
@@ -193,6 +198,7 @@ class ModelSessionManager:
             user_query,
             context_text=context_text,
             history_text=history_text,
+            web_results_text=web_results_text,
         )
         return await self._generate(
             prompt,
@@ -227,6 +233,7 @@ class ModelSessionManager:
 
     async def stream_reply(self, system_preamble: str, user_query: str,
                            context_text: str = "", history_text: str = "",
+                           web_results_text: str = "",
                            temperature: float = 0.35, max_tokens: int = 100,
                            top_p: float = 0.9, stop_tokens=None):
         prompt = self._build_prompt(
@@ -234,6 +241,7 @@ class ModelSessionManager:
             user_query,
             context_text=context_text,
             history_text=history_text,
+            web_results_text=web_results_text,
         )
         stop_tokens = stop_tokens or [
             "\nCustomer:", "Customer:",
