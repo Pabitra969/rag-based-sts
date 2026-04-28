@@ -278,6 +278,7 @@ module.exports = function handleVoiceSession(ws) {
   const history = [];
   let ttsMode = "server";
   let sttMode = "server";
+  let sttProvider = "server";
 
   const vadRms = Number(process.env.LOCAL_STS_VAD_RMS || DEFAULT_VAD_RMS);
   const vadNoiseMultiplier = Number(
@@ -768,6 +769,7 @@ module.exports = function handleVoiceSession(ws) {
         } else if (msg.type === "session_config") {
           ttsMode = msg.ttsMode === "browser" ? "browser" : "server";
           sttMode = msg.sttMode === "browser" ? "browser" : "server";
+          sttProvider = msg.sttProvider === "whisper" ? "whisper" : sttMode;
         } else if (msg.type === "voice_text_final") {
           resetSpeechBuffer();
           enqueueTurn(msg.text, { emitFinal: false });

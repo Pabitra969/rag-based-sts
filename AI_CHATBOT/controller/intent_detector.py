@@ -113,7 +113,7 @@ def detect_intent(query: str) -> Tuple[str, float]:
     if re.match(r"^(thanks|thank you)\b", q):
         return ("thanks", 0.95)
 
-    if re.match(r"^(bye|goodbye|see you|take care)\b", q):
+    if re.fullmatch(r"(bye|goodbye|see you|take care)", q):
         return ("farewell", 0.95)
 
     # Personal queries (always override)
@@ -170,7 +170,7 @@ def detect_intent(query: str) -> Tuple[str, float]:
     if domain == "product":
         allowed = ["product_search", "price_filter", "meta_count"]
     else:
-        allowed = ["general_knowledge", "greeting", "thanks", "farewell"]
+        allowed = ["general_knowledge", "greeting", "thanks"]
 
     sims = {k: v for k, v in sims.items() if k in allowed}
 

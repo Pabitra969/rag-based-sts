@@ -69,6 +69,7 @@ let activeConversationId = null;
 let voiceConversationId = null;
 let isVoicePanelOpen = false;
 let lastVoiceFinalText = "";
+let lastVoiceFinalAt = 0;
 let lastVoiceBotText = "";
 let lastVoiceBotAt = 0;
 let lastVoiceBotTurnId = null;
@@ -270,6 +271,10 @@ function renderConversationList() {
     `;
 
     button.addEventListener("click", () => {
+      if (voiceMode?.isActive()) {
+        endVoiceSession({ closePanel: true });
+      }
+      resetVoiceUiState();
       activeConversationId = conversation.id;
       renderApp();
     });
@@ -793,6 +798,19 @@ function endVoiceSession({ closePanel = false } = {}) {
   }
 }
 
+function resetVoiceUiState() {
+  lastVoiceFinalText = "";
+  lastVoiceFinalAt = 0;
+  lastVoiceBotText = "";
+  lastVoiceBotAt = 0;
+  lastVoiceBotTurnId = null;
+  liveVoiceBotDraft = null;
+  activeVoiceAssistantTurnId = null;
+  voiceConversationId = null;
+  voiceUserTranscript.textContent = "Waiting for your voice…";
+  voiceAssistantTranscript.textContent = "Responses will appear here and in the main chat.";
+}
+
 const voiceModeCallbacks = {
   onStateChange: (state, payload = {}) => {
     if (state === "idle") {
@@ -857,7 +875,12 @@ const voiceModeCallbacks = {
       return;
     }
 
+    if (finalText === lastVoiceFinalText && Date.now() - lastVoiceFinalAt < 2600) {
+      return;
+    }
+
     lastVoiceFinalText = finalText;
+    lastVoiceFinalAt = Date.now();
     voiceUserTranscript.textContent = finalText;
     addMessageToConversation("user", finalText, voiceConversationId || activeConversationId);
     textInput.value = "";
@@ -923,7 +946,13 @@ document.addEventListener("DOMContentLoaded", () => {
   renderApp();
 
   newChatBtn.addEventListener("click", () => {
+    if (voiceMode?.isActive()) {
+      endVoiceSession({ closePanel: true });
+    }
+    resetVoiceUiState();
     ensureActiveConversationHasRoom();
+    textInput.value = "";
+    autosizeInput();
     textInput.focus();
   });
 

@@ -2,14 +2,18 @@ const VAD_THRESHOLD = 0.0035;
 const AUDIO_SAMPLE_RATE = 16000;
 const DEFAULT_WS = "ws://localhost:5005/ws/voice";
 const WEBSOCKET_URL = window.VOICE_WS_URL || DEFAULT_WS;
-const STT_MODE = window.VOICE_STT_MODE || (
-  (window.SpeechRecognition || window.webkitSpeechRecognition) ? "browser" : "server"
-);
-const TTS_MODE = window.VOICE_TTS_MODE || ("speechSynthesis" in window ? "browser" : "server");
+const REQUESTED_STT_MODE = resolveRequestedSttMode();
+const REQUESTED_TTS_MODE = resolveRequestedTtsMode();
+const BROWSER_TTS_VOICE = resolveRequestedBrowserTtsVoice();
+const BROWSER_TTS_RATE = resolveRequestedBrowserTtsRate();
+const BROWSER_TTS_PITCH = resolveRequestedBrowserTtsPitch();
 const BROWSER_STT_COMMIT_DEBOUNCE_MS = 180;
 const BROWSER_STT_IDLE_COMMIT_MS = 700;
-const BROWSER_STT_RESUME_AFTER_TTS_MS = 450;
+const BROWSER_STT_RESUME_AFTER_TTS_MS = 950;
 const BROWSER_STT_WATCHDOG_MS = 2200;
+const BROWSER_STT_DUPLICATE_WINDOW_MS = 2600;
+const BROWSER_STT_MIN_COMMIT_CHARS = 4;
+const ASSISTANT_ECHO_GUARD_MS = 900;
 const VAD_NOISE_MULTIPLIER = 2.35;
 const VAD_TRIGGER_FRAMES = 2;
 const VAD_HANGOVER_FRAMES = 2;
@@ -46,6 +50,9 @@ let browserSttResumeTimer = null;
 let browserSttWatchdogTimer = null;
 let browserFinalTranscript = "";
 let browserLatestInterim = "";
+let lastSubmittedBrowserTranscript = "";
+let lastSubmittedBrowserTranscriptAt = 0;
+let assistantEchoGuardUntil = 0;
 let activeAssistantTurnId = null;
 let activeSttMode = "server";
 let activeTtsMode = "server";
@@ -62,6 +69,116 @@ let onBotPartial = (_text) => {};
 let onBotResponse = (_text) => {};
 let onBotTts = (_text) => {};
 let onTurnStarted = (_payload) => {};
+
+function normalizeModeValue(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function resolveVoicePreset() {
+  const configured =
+    window.VOICE_PRESET ??
+    document.body?.dataset?.voicePreset ??
+    "";
+  const normalized = normalizeModeValue(configured);
+  if (["browser-server", "server-server", "browser-browser"].includes(normalized)) {
+    return normalized;
+  }
+  return "";
+}
+
+function resolveRequestedSttMode() {
+  const preset = resolveVoicePreset();
+  if (preset === "browser-server" || preset === "browser-browser") {
+    return "browser";
+  }
+  if (preset === "server-server") {
+    return "server";
+  }
+
+  const configured =
+    window.VOICE_STT_MODE ??
+    document.body?.dataset?.voiceSttMode ??
+    "auto";
+  const normalized = normalizeModeValue(configured);
+  if (["browser", "whisper", "server", "auto"].includes(normalized)) {
+    return normalized;
+  }
+  return "auto";
+}
+
+function resolveRequestedTtsMode() {
+  const preset = resolveVoicePreset();
+  if (preset === "browser-browser") {
+    return "browser";
+  }
+  if (preset === "browser-server" || preset === "server-server") {
+    return "server";
+  }
+
+  const configured =
+    window.VOICE_TTS_MODE ??
+    document.body?.dataset?.voiceTtsMode ??
+    "auto";
+  const normalized = normalizeModeValue(configured);
+  if (["browser", "server", "auto"].includes(normalized)) {
+    return normalized;
+  }
+  return "auto";
+}
+
+function resolveRequestedBrowserTtsVoice() {
+  return String(
+    window.BROWSER_TTS_VOICE ??
+    document.body?.dataset?.browserTtsVoice ??
+    ""
+  ).trim();
+}
+
+function clampNumber(value, fallback, min, max) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+  return Math.min(max, Math.max(min, parsed));
+}
+
+function resolveRequestedBrowserTtsRate() {
+  return clampNumber(
+    window.BROWSER_TTS_RATE ??
+    document.body?.dataset?.browserTtsRate ??
+    1.0,
+    1.0,
+    0.7,
+    1.3
+  );
+}
+
+function resolveRequestedBrowserTtsPitch() {
+  return clampNumber(
+    window.BROWSER_TTS_PITCH ??
+    document.body?.dataset?.browserTtsPitch ??
+    1.0,
+    1.0,
+    0.7,
+    1.3
+  );
+}
+
+function selectBrowserVoice() {
+  if (!supportsBrowserVoiceTts() || !BROWSER_TTS_VOICE) {
+    return null;
+  }
+
+  const voices = window.speechSynthesis.getVoices?.() || [];
+  if (!voices.length) {
+    return null;
+  }
+
+  const preferred = BROWSER_TTS_VOICE.toLowerCase();
+  return voices.find((voice) => String(voice.name || "").toLowerCase() === preferred)
+    || voices.find((voice) => String(voice.name || "").toLowerCase().includes(preferred))
+    || null;
+}
 
 function setVoiceState(state, payload = {}) {
   currentVoiceState = state;
@@ -152,8 +269,21 @@ function supportsBrowserVoiceTts() {
 }
 
 function resolveVoiceModes() {
-  activeSttMode = STT_MODE === "browser" && supportsBrowserVoiceStt() ? "browser" : "server";
-  activeTtsMode = TTS_MODE === "browser" && supportsBrowserVoiceTts() ? "browser" : "server";
+  if (REQUESTED_STT_MODE === "browser") {
+    activeSttMode = supportsBrowserVoiceStt() ? "browser" : "server";
+  } else if (REQUESTED_STT_MODE === "whisper" || REQUESTED_STT_MODE === "server") {
+    activeSttMode = "server";
+  } else {
+    activeSttMode = supportsBrowserVoiceStt() ? "browser" : "server";
+  }
+
+  if (REQUESTED_TTS_MODE === "browser") {
+    activeTtsMode = supportsBrowserVoiceTts() ? "browser" : "server";
+  } else if (REQUESTED_TTS_MODE === "server") {
+    activeTtsMode = "server";
+  } else {
+    activeTtsMode = supportsBrowserVoiceTts() ? "browser" : "server";
+  }
 }
 
 function sendVoiceControl(payload) {
@@ -169,10 +299,48 @@ function getBrowserTranscriptSnapshot() {
   return `${browserFinalTranscript} ${browserLatestInterim}`.replace(/\s+/g, " ").trim();
 }
 
+function normalizeTranscript(text) {
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function shouldIgnoreBrowserTranscript(text) {
+  const trimmed = String(text || "").trim();
+  if (!trimmed) {
+    return true;
+  }
+
+  const normalized = normalizeTranscript(trimmed);
+  const hasLettersOrDigits = /[\p{L}\p{N}]/u.test(normalized);
+  if (!hasLettersOrDigits || normalized.length < BROWSER_STT_MIN_COMMIT_CHARS) {
+    return true;
+  }
+
+  if (
+    normalized === lastSubmittedBrowserTranscript &&
+    Date.now() - lastSubmittedBrowserTranscriptAt < BROWSER_STT_DUPLICATE_WINDOW_MS
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 function resetBrowserTranscriptState() {
   clearBrowserCommitTimers();
   browserFinalTranscript = "";
   browserLatestInterim = "";
+}
+
+function activateAssistantEchoGuard(durationMs = ASSISTANT_ECHO_GUARD_MS) {
+  assistantEchoGuardUntil = Date.now() + Math.max(0, durationMs);
+}
+
+function isAssistantEchoGuardActive() {
+  return Date.now() < assistantEchoGuardUntil;
 }
 
 function disposeBrowserRecognition() {
@@ -246,12 +414,23 @@ function commitBrowserTranscript(reason = "final") {
   const transcript = getBrowserTranscriptSnapshot();
   resetBrowserTranscriptState();
 
-  if (!transcript || currentVoiceState === "thinking" || currentVoiceState === "speaking") {
+  if (
+    !transcript ||
+    currentVoiceState === "thinking" ||
+    currentVoiceState === "speaking" ||
+    isAssistantEchoGuardActive()
+  ) {
+    return;
+  }
+
+  if (shouldIgnoreBrowserTranscript(transcript)) {
     return;
   }
 
   browserRecognitionShouldRun = false;
   stopBrowserRecognition({ keepIntent: false });
+  lastSubmittedBrowserTranscript = normalizeTranscript(transcript);
+  lastSubmittedBrowserTranscriptAt = Date.now();
   onFinalTranscript({ text: transcript, mode: "browser", reason });
   sendVoiceControl({ type: "voice_text_final", text: transcript });
 }
@@ -327,11 +506,13 @@ function ensureBrowserRecognition() {
 
       browserLatestInterim = interim.trim();
       const snapshot = getBrowserTranscriptSnapshot();
-      if (snapshot) {
+      if (snapshot && !isAssistantEchoGuardActive()) {
         onPartialTranscript({ text: snapshot, mode: "browser", final: sawFinal });
       }
 
-      if (sawFinal) {
+      if (isAssistantEchoGuardActive()) {
+        resetBrowserTranscriptState();
+      } else if (sawFinal) {
         scheduleBrowserCommit(BROWSER_STT_COMMIT_DEBOUNCE_MS, "final");
       } else if (snapshot) {
         scheduleBrowserIdleCommit();
@@ -384,6 +565,29 @@ function trySetListeningAfterBrowserSpeech() {
     return;
   }
 
+  activateAssistantEchoGuard();
+  const payload = pendingListeningPayload || { state: "listening" };
+  pendingListeningPayload = null;
+  if (activeSttMode === "browser") {
+    browserRecognitionShouldRun = true;
+    resetBrowserTranscriptState();
+  }
+  setVoiceState("listening", payload);
+  if (activeSttMode === "browser") {
+    clearBrowserResumeTimer();
+    browserSttResumeTimer = window.setTimeout(() => {
+      browserSttResumeTimer = null;
+      restartBrowserRecognition();
+    }, BROWSER_STT_RESUME_AFTER_TTS_MS);
+  }
+}
+
+function trySetListeningAfterServerSpeech() {
+  if (!isVoiceModeActive || currentAudioSource || audioQueue.length) {
+    return;
+  }
+
+  activateAssistantEchoGuard();
   const payload = pendingListeningPayload || { state: "listening" };
   pendingListeningPayload = null;
   if (activeSttMode === "browser") {
@@ -417,11 +621,21 @@ function speakNextBrowserChunk() {
   }
 
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 1.02;
-  utterance.pitch = 1.0;
+  const selectedVoice = selectBrowserVoice();
+  if (selectedVoice) {
+    utterance.voice = selectedVoice;
+    if (selectedVoice.lang) {
+      utterance.lang = selectedVoice.lang;
+    }
+  } else {
+    utterance.lang = "en-IN";
+  }
+  utterance.rate = BROWSER_TTS_RATE;
+  utterance.pitch = BROWSER_TTS_PITCH;
   browserTtsActive = true;
   browserTtsCurrent = utterance;
   if (activeSttMode === "browser") {
+    activateAssistantEchoGuard(ASSISTANT_ECHO_GUARD_MS + 200);
     resetBrowserTranscriptState();
     stopBrowserRecognition({ keepIntent: false });
   }
@@ -555,7 +769,7 @@ function playNextAudioChunk() {
     if (!currentAudioSource && !audioQueue.length) {
       isPlayingQueue = false;
       if (isVoiceModeActive && currentVoiceState === "speaking") {
-        setVoiceState("listening");
+        trySetListeningAfterServerSpeech();
       }
     }
     return;
@@ -573,6 +787,7 @@ function sendInterruptSignal() {
     return;
   }
 
+  activateAssistantEchoGuard(250);
   stopPlayback();
   stopBrowserSpeech();
   if (activeSttMode === "browser") {
@@ -632,7 +847,13 @@ function handleSocketMessage(event) {
           break;
         }
 
-        if (msg.state === "listening" && activeTtsMode === "browser" && (browserTtsActive || browserTtsQueue.length)) {
+        if (
+          msg.state === "listening" &&
+          (
+            (activeTtsMode === "browser" && (browserTtsActive || browserTtsQueue.length)) ||
+            (activeTtsMode === "server" && (currentAudioSource || audioQueue.length || currentVoiceState === "speaking"))
+          )
+        ) {
           pendingListeningPayload = msg;
           break;
         }
@@ -640,8 +861,12 @@ function handleSocketMessage(event) {
         setVoiceState(msg.state || "idle", msg);
         if (activeSttMode === "browser") {
           if (msg.state === "listening") {
-            browserRecognitionShouldRun = true;
-            restartBrowserRecognition();
+            if (activeTtsMode === "server" && (currentAudioSource || audioQueue.length || currentVoiceState === "speaking")) {
+              pendingListeningPayload = msg;
+            } else {
+              browserRecognitionShouldRun = true;
+              restartBrowserRecognition();
+            }
           } else if (msg.state === "thinking" || msg.state === "speaking") {
             stopBrowserRecognition({ keepIntent: false });
           }
@@ -658,6 +883,7 @@ function handleSocketMessage(event) {
 
   clearPlaybackTimer();
   resetDetector();
+  activateAssistantEchoGuard(ASSISTANT_ECHO_GUARD_MS + 250);
   setVoiceState("speaking");
   audioQueue.push(event.data);
   playNextAudioChunk();
@@ -675,7 +901,12 @@ function setupWebSocket() {
   voiceSocket.binaryType = "arraybuffer";
 
   voiceSocket.onopen = () => {
-    voiceSocket.send(JSON.stringify({ type: "session_config", ttsMode: activeTtsMode, sttMode: activeSttMode }));
+    voiceSocket.send(JSON.stringify({
+      type: "session_config",
+      ttsMode: activeTtsMode,
+      sttMode: activeSttMode,
+      sttProvider: REQUESTED_STT_MODE === "whisper" ? "whisper" : activeSttMode,
+    }));
     setVoiceState("connecting");
   };
 
@@ -703,7 +934,7 @@ function processAudio(event) {
   }
 
   // Accept user audio whenever the session is active, but keep it blocked while the assistant is speaking or thinking.
-  if (currentVoiceState === "speaking" || currentVoiceState === "thinking") {
+  if (currentVoiceState === "speaking" || currentVoiceState === "thinking" || isAssistantEchoGuardActive()) {
     resetDetector();
     return;
   }
@@ -827,6 +1058,8 @@ function stopVoiceMode(finalState = "idle", payload = {}) {
   stopBrowserRecognition({ keepIntent: false });
   disposeBrowserRecognition();
   resetBrowserTranscriptState();
+  lastSubmittedBrowserTranscript = "";
+  lastSubmittedBrowserTranscriptAt = 0;
   resetDetector();
 
   if (voiceSocket) {

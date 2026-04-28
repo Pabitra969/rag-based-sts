@@ -8,6 +8,7 @@ VOICE_DIR="$ROOT_DIR/Voice_STS"
 BACKEND_DIR="$VOICE_DIR/backend"
 FRONTEND_DIR="$VOICE_DIR/frontend"
 MAC_LLM_ENV="export LLM_N_GPU_LAYERS=-1; export LLM_MAIN_GPU=0; export LLM_N_BATCH=256; export LLM_OFFLOAD_KQV=true; export LLM_FLASH_ATTN=true;"
+PIPER_ENV="export PIPER_MODEL_PATH='$VOICE_DIR/models/piper/en_US-lessac-medium.onnx'; export PIPER_CONFIG_PATH='$VOICE_DIR/models/piper/en_US-lessac-medium.onnx.json'; export PIPER_ACCELERATION='cpu';"
 
 if [[ ! -d "$AI_DIR" || ! -d "$VOICE_DIR" ]]; then
   echo "Could not find AI_CHATBOT or Voice_STS directories from: $ROOT_DIR"
@@ -46,6 +47,6 @@ sleep 0.8
 run_in_new_tab "VOICE_FRONTEND" "cd '$FRONTEND_DIR' && python3 -m http.server 8080"
 sleep 0.8
 
-run_in_new_tab "LOCAL_STS" "cd '$VOICE_DIR' && python3 local_speech_server.py"
+run_in_new_tab "LOCAL_STS" "cd '$VOICE_DIR' && $PIPER_ENV python3 local_speech_server.py"
 
 echo "All launch commands sent to Terminal."
