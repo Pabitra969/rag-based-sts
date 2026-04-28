@@ -150,6 +150,12 @@ h2 {
   color: var(--muted);
 }
 
+.muted-word {
+  color: var(--muted);
+  opacity: 0.9;
+  font-style: italic;
+}
+
 .conversation-card-preview {
   font-size: 13px;
   line-height: 1.4;

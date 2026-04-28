@@ -35,36 +35,49 @@ TOP_K = 3
 DEBUG = True
 
 # System preambles for different intents
-SYSTEM_PREAMBLE_PRODUCT = """You are Aria, a customer support AI.
-Answer using only the provided product context.
-Never invent product names, prices, categories, stock, features, or discounts.
-If the exact answer is not in the context, say that clearly instead of guessing.
-If helpful, recommend 1 to 3 related items from the provided context only.
-Keep the answer factual, clear, and professional."""
+SYSTEM_PREAMBLE_PRODUCT = """You are Aria, a specialized product support chatbot for a shopping catalog.
+Your job is to answer product questions clearly, consistently, and professionally using only the provided product context.
+Rules:
+- Never invent product names, prices, categories, stock, features, delivery times, discounts, or policies.
+- If the requested detail is missing, say: "I don't have that product detail in the current catalog context."
+- Answer the user's exact product question first.
+- When listing matching products, use one line per product in this exact format:
+  Product Name | ₹Price | Category. Short description
+- Show at most 3 products unless the user explicitly asks for more.
+- When the user asks to know more about a product, explain the available details in short plain sentences from the context only.
+- Keep the tone calm, helpful, and specialized for product support.
+- Do not repeat abusive or vulgar wording from the user. Refer to it neutrally as "that language" if needed."""
 
-SYSTEM_PREAMBLE_PERSONALIZED = """You are Aria, a customer support AI.
-Help the customer using their recent conversation and the provided product context.
-Be warm and practical, but stay factual.
-Do not invent account details, orders, preferences, or product facts.
-If something is missing from the conversation or context, say so clearly.
-Give a direct answer first, then a short helpful follow-up if needed."""
+SYSTEM_PREAMBLE_PERSONALIZED = """You are Aria, a specialized customer support chatbot.
+Use the recent conversation and provided product context to help the customer with consistent, practical answers.
+Rules:
+- Be warm, clear, and factual.
+- Never invent account details, order details, shipment updates, refund outcomes, preferences, or product facts.
+- If the customer asks for order status, tracking, account status, refund status, or similar information that is not verifiable from the current data, say clearly that you cannot verify it from the current information and ask for the exact missing detail such as order ID.
+- If context is missing, say so directly instead of guessing.
+- Answer in 2 to 4 concise sentences when possible.
+- Do not repeat abusive or vulgar wording from the user. Refer to it neutrally as "that language" if needed."""
 
-SYSTEM_PREAMBLE_GENERAL_FAST = """You are Aria, a customer support AI.
-Answer the question directly in 2 to 4 short sentences.
-Be clear, accurate, and concise.
-If you are not sure, say that briefly instead of guessing.
-Do not mention products unless the user explicitly asks about products.
-Do not pretend to know live facts like weather, news, stock prices, or traffic.
-If a question needs real-time data that you do not have, say that clearly and offer the closest helpful alternative.
-Avoid filler, hype, and made-up specifics."""
+SYSTEM_PREAMBLE_GENERAL_FAST = """You are Aria, a specialized customer support chatbot.
+Give consistent, direct, well-formed answers in 2 to 4 short sentences.
+Rules:
+- Answer the question directly first.
+- Be clear, calm, and accurate.
+- If you do not have enough verified information, say: "I don't have enough verified information for that."
+- Do not pretend to know live facts like weather, news, stock prices, traffic, or private customer data unless verified context is provided.
+- Do not drift into unrelated topics, roleplay, hype, or filler.
+- Do not repeat abusive or vulgar wording from the user. Refer to it neutrally as "that language" if needed.
+- Mention products only when the user asks about products."""
 
-SYSTEM_PREAMBLE_WEB_SEARCH = """You are Aria, a customer support AI.
+SYSTEM_PREAMBLE_WEB_SEARCH = """You are Aria, a specialized customer support chatbot.
 Answer using only the provided web search results.
-Write a direct 2 to 4 sentence summary in plain language.
-Prefer the most concrete and recent-looking result from the provided snippets.
-If the snippets are weak or conflicting, say that briefly instead of guessing.
-Do not mention any fact that is not supported by the provided web search results.
-Keep the answer concise and do not add filler."""
+Rules:
+- Write a direct 2 to 4 sentence summary in plain language.
+- Prefer the most concrete and recent-looking result from the provided snippets.
+- If the snippets are weak, missing, or conflicting, say that briefly instead of guessing.
+- Do not mention any fact that is not supported by the provided web search results.
+- Keep the answer concise, neutral, and useful.
+- Do not repeat abusive or vulgar wording from the user. Refer to it neutrally as "that language" if needed."""
 
 # ============ TIMING ============
 @contextmanager
@@ -77,6 +90,15 @@ def clean_text(t: str):
     if not t:
         return ""
     return t.replace("Assistant:", "").replace("User:", "").strip()
+
+
+def normalize_support_reply(text: str) -> str:
+    cleaned = clean_text(text)
+    if not cleaned:
+        return ""
+    cleaned = re.sub(r"\b(i\s+am|i'm)\s+sorry\b[:,]?\s*", "", cleaned, count=1, flags=re.I)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned
 
 PRODUCT_HINT_RE = re.compile(
     r"\b(jeans|t[- ]?shirts?|tshirts?|shirt|pants|shoes|electronics|phone|laptop|pc|computer|desktop|watch|bag|wallet|saree|dress|clothes|clothing|perfume|cream|skincare|skin|face|hair|beauty|cosmetics?|chair|table|furniture|mouse|speaker|backpack|product|item|catalog|inventory|price|cost)\b",
@@ -184,7 +206,7 @@ def _fast_general_reply(user_id: str, query: str, voice_mode: bool) -> str:
         return "I'm here and listening."
 
     if HELP_HINT_RE.search(q):
-        return "I can answer general questions quickly and help with product details from our catalog."
+        return "I can help with product questions, catalog details, and general support answers."
 
     if re.search(r"\b(who made you|who created you)\b", q):
         return "I'm Aria, a local AI support assistant built for this project."
@@ -373,8 +395,9 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
                     temperature=0.15,
                     max_tokens=product_max_tokens
                 )
-            if not reply.strip():
-                reply = "I couldn't find that product. Could you be more specific?"
+            reply = normalize_support_reply(reply)
+            if not reply:
+                reply = "I couldn't find a matching product in the current catalog. Please be a little more specific."
 
         sessions.add_bot_msg(user_id, reply, persist_long=True)
         if not voice_mode:
@@ -398,7 +421,10 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
         # Early handling for order-related queries (avoid hallucination)
         ql = query.lower()
         if re.search(r"\border(\b|\s)|track|order\s*status", ql):
-            reply = "To check your order, please share your order ID (e.g., ORD1234). I'll track the status for you."
+            reply = (
+                "I can help with order status, but I cannot verify it from the current information. "
+                "Please share your order ID, such as ORD1234."
+            )
             sessions.add_bot_msg(user_id, reply, persist_long=True)
             if not voice_mode:
                 with timed("persist", timings):
@@ -427,8 +453,9 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
                 temperature=0.25,
                 max_tokens=personalized_max_tokens
             )
-        if not reply.strip():
-            reply = "I'm here to help! Could you tell me more about what you need?"
+        reply = normalize_support_reply(reply)
+        if not reply:
+            reply = "I don't have enough verified information for that yet. Please share a bit more detail."
 
         sessions.add_bot_msg(user_id, reply, persist_long=True)
         if not voice_mode:
@@ -465,7 +492,8 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
                     temperature=0.1,
                     max_tokens=web_max_tokens,
                 )
-            if reply.strip():
+            reply = normalize_support_reply(reply)
+            if reply:
                 sessions.add_bot_msg(user_id, reply, persist_long=False)
                 timings["persist"] = 0.0
                 timings["total"] = round(time.time() - start, 3)
@@ -473,7 +501,7 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
                     print(f"[TIMING] {timings}")
                 return reply
 
-        reply = "I couldn't find a reliable short web result for that just now."
+        reply = "I don't have a reliable verified answer for that right now."
         sessions.add_bot_msg(user_id, reply, persist_long=False)
         timings["persist"] = 0.0
         timings["total"] = round(time.time() - start, 3)
@@ -488,8 +516,9 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
             temperature=0.10 if voice_mode else 0.15,
             max_tokens=general_max_tokens
         )
-    if not reply.strip():
-        reply = "I'm not fully sure, but here's the short answer as I understand it."
+    reply = normalize_support_reply(reply)
+    if not reply:
+        reply = "I don't have enough verified information for that."
 
     sessions.add_bot_msg(user_id, reply, persist_long=False)
     timings["persist"] = 0.0
@@ -586,7 +615,9 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
                 collected.append(chunk)
                 yield chunk
 
-        reply = clean_text("".join(collected)) or "I couldn't find that product. Could you be more specific?"
+        reply = normalize_support_reply("".join(collected)) or (
+            "I couldn't find a matching product in the current catalog. Please be a little more specific."
+        )
         sessions.add_bot_msg(user_id, reply, persist_long=True)
         if not voice_mode:
             with timed("persist", timings):
@@ -606,7 +637,10 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
         sessions.add_user_msg(user_id, query, persist_long=True)
         ql = query.lower()
         if re.search(r"\border(\b|\s)|track|order\s*status", ql):
-            reply = "To check your order, please share your order ID (e.g., ORD1234). I'll track the status for you."
+            reply = (
+                "I can help with order status, but I cannot verify it from the current information. "
+                "Please share your order ID, such as ORD1234."
+            )
             sessions.add_bot_msg(user_id, reply, persist_long=True)
             if not voice_mode:
                 with timed("persist", timings):
@@ -638,7 +672,9 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
                 collected.append(chunk)
                 yield chunk
 
-        reply = clean_text("".join(collected)) or "I'm here to help! Could you tell me more about what you need?"
+        reply = normalize_support_reply("".join(collected)) or (
+            "I don't have enough verified information for that yet. Please share a bit more detail."
+        )
         sessions.add_bot_msg(user_id, reply, persist_long=True)
         if not voice_mode:
             with timed("persist", timings):
@@ -683,7 +719,7 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
                     collected.append(chunk)
                     yield chunk
 
-            reply = clean_text("".join(collected))
+            reply = normalize_support_reply("".join(collected))
             if reply:
                 sessions.add_bot_msg(user_id, reply, persist_long=False)
                 timings["persist"] = 0.0
@@ -692,7 +728,7 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
                     print(f"[TIMING] {timings}")
                 return
 
-        reply = "I couldn't find a reliable short web result for that just now."
+        reply = "I don't have a reliable verified answer for that right now."
         sessions.add_bot_msg(user_id, reply, persist_long=False)
         timings["persist"] = 0.0
         timings["total"] = round(time.time() - start, 3)
@@ -717,7 +753,7 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
             collected.append(chunk)
             yield chunk
 
-    reply = clean_text("".join(collected)) or "I'm not fully sure, but here's the short answer as I understand it."
+    reply = normalize_support_reply("".join(collected)) or "I don't have enough verified information for that."
     sessions.add_bot_msg(user_id, reply, persist_long=False)
     timings["persist"] = 0.0
     timings["total"] = round(time.time() - start, 3)

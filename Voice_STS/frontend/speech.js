@@ -79,6 +79,7 @@ let textTypingIndicatorEl = null;
 let isTextReplyPending = false;
 let liveVoiceBotDraft = null;
 let activeVoiceAssistantTurnId = null;
+const MUTED_WORD_RE = /\b(fuck|fucking|shit|bitch|asshole|bastard|dick|pussy|slut|whore|motherfucker|boobs?)\b/gi;
 
 function parseProductLine(line) {
   const trimmed = String(line || "").trim().replace(/^-+\s*/, "");
@@ -220,6 +221,44 @@ function formatTimestamp(value) {
   });
 }
 
+function maskMutedWord(word) {
+  const clean = String(word || "");
+  if (clean.length <= 2) {
+    return "*".repeat(clean.length);
+  }
+
+  return `${clean[0]}${"*".repeat(Math.max(clean.length - 2, 1))}${clean[clean.length - 1]}`;
+}
+
+function buildMutedTextFragment(value) {
+  const text = String(value || "");
+  const fragment = document.createDocumentFragment();
+  let lastIndex = 0;
+
+  text.replace(MUTED_WORD_RE, (match, _group, offset) => {
+    if (offset > lastIndex) {
+      fragment.appendChild(document.createTextNode(text.slice(lastIndex, offset)));
+    }
+
+    const mutedWord = document.createElement("span");
+    mutedWord.className = "muted-word";
+    mutedWord.textContent = maskMutedWord(match);
+    fragment.appendChild(mutedWord);
+    lastIndex = offset + match.length;
+    return match;
+  });
+
+  if (lastIndex < text.length) {
+    fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+  }
+
+  return fragment;
+}
+
+function setMutedTextContent(element, value) {
+  element.replaceChildren(buildMutedTextFragment(value));
+}
+
 function autosizeInput() {
   textInput.style.height = "auto";
   textInput.style.height = `${Math.min(textInput.scrollHeight, 168)}px`;
@@ -245,9 +284,10 @@ function updateVoiceAssistant(state, payload = {}) {
   voiceVisualizer.dataset.state = state;
   voiceStateLabel.textContent = copy.label;
   voiceStateHint.textContent = payload.detail || payload.text || copy.hint;
-  voicePanelTitle.textContent = voiceConversationId
-    ? `Live with ${getConversationTitle(voiceConversation)}`
-    : "Assistant live";
+  setMutedTextContent(
+    voicePanelTitle,
+    voiceConversationId ? `Live with ${getConversationTitle(voiceConversation)}` : "Assistant live",
+  );
 }
 
 function renderConversationList() {
@@ -264,11 +304,21 @@ function renderConversationList() {
       button.classList.add("active");
     }
 
-    button.innerHTML = `
-      <p class="conversation-card-title">${escapeHtml(getConversationTitle(conversation))}</p>
-      <p class="conversation-card-preview">${escapeHtml(getConversationPreview(conversation))}</p>
-      <p class="conversation-card-time">Updated ${formatTimestamp(conversation.updatedAt)}</p>
-    `;
+    const title = document.createElement("p");
+    title.className = "conversation-card-title";
+    setMutedTextContent(title, getConversationTitle(conversation));
+
+    const preview = document.createElement("p");
+    preview.className = "conversation-card-preview";
+    setMutedTextContent(preview, getConversationPreview(conversation));
+
+    const time = document.createElement("p");
+    time.className = "conversation-card-time";
+    time.textContent = `Updated ${formatTimestamp(conversation.updatedAt)}`;
+
+    button.appendChild(title);
+    button.appendChild(preview);
+    button.appendChild(time);
 
     button.addEventListener("click", () => {
       if (voiceMode?.isActive()) {
@@ -285,7 +335,7 @@ function renderConversationList() {
 
 function renderMessages() {
   const activeConversation = getActiveConversation();
-  chatTitle.textContent = getConversationTitle(activeConversation);
+  setMutedTextContent(chatTitle, getConversationTitle(activeConversation));
   chatBody.innerHTML = "";
   renderedConversationId = activeConversation.id;
 
@@ -322,7 +372,7 @@ function createMessageBubble(message) {
     if (productView.intro) {
       text = document.createElement("p");
       text.className = "message-text";
-      text.textContent = productView.intro;
+      setMutedTextContent(text, productView.intro);
       bubble.appendChild(text);
     }
 
@@ -338,7 +388,7 @@ function createMessageBubble(message) {
 
       const title = document.createElement("h3");
       title.className = "product-title";
-      title.textContent = product.title;
+      setMutedTextContent(title, product.title);
 
       const price = document.createElement("span");
       price.className = "product-price";
@@ -349,11 +399,11 @@ function createMessageBubble(message) {
 
       const category = document.createElement("div");
       category.className = "product-category";
-      category.textContent = product.category;
+      setMutedTextContent(category, product.category);
 
       const description = document.createElement("p");
       description.className = "product-description";
-      description.textContent = product.description;
+      setMutedTextContent(description, product.description);
 
       card.appendChild(top);
       card.appendChild(category);
@@ -365,7 +415,7 @@ function createMessageBubble(message) {
   } else {
     text = document.createElement("p");
     text.className = "message-text";
-    text.textContent = message.text;
+    setMutedTextContent(text, message.text);
     bubble.appendChild(text);
   }
 
@@ -379,7 +429,7 @@ function createMessageBubble(message) {
 
 function animateTextContent(target, text, stepMs = 50) {
   const words = String(text || "").split(/(\s+)/).filter(Boolean);
-  target.textContent = "";
+  setMutedTextContent(target, "");
 
   if (!words.length) {
     return Promise.resolve();
@@ -387,8 +437,10 @@ function animateTextContent(target, text, stepMs = 50) {
 
   return new Promise((resolve) => {
     let index = 0;
+    let rendered = "";
     const timer = window.setInterval(() => {
-      target.textContent += words[index];
+      rendered += words[index];
+      setMutedTextContent(target, rendered);
       index += 1;
       scrollChatToBottom();
 
@@ -432,7 +484,7 @@ function createStreamingBubble() {
 function createVoiceDraftBubble(textValue = "") {
   const streamingBubble = createStreamingBubble();
   streamingBubble.bubble.classList.add("voice-live-draft");
-  streamingBubble.text.textContent = textValue;
+  setMutedTextContent(streamingBubble.text, textValue);
   return streamingBubble;
 }
 
@@ -477,7 +529,7 @@ function updateLiveVoiceDraft(text, conversationId = voiceConversationId || acti
     if (lastBubble) {
       const textEl = lastBubble.querySelector(".message-text");
       if (textEl) {
-        textEl.textContent = draftText;
+        setMutedTextContent(textEl, draftText);
         scrollChatToBottom();
         return;
       }
@@ -605,7 +657,7 @@ function addMessageToConversation(sender, text, conversationId = activeConversat
       renderConversationList();
       updateVoiceAssistant(currentVoiceAssistantState);
       if (options.animate && sender === "bot" && textEl) {
-        textEl.textContent = "";
+        setMutedTextContent(textEl, "");
         void animateTextContent(textEl, message.text, options.stepMs || 20);
       }
     } else {
@@ -748,7 +800,7 @@ async function sendTextMessage() {
         const payload = JSON.parse(line.slice(6));
         if (payload.type === "delta") {
           answer += payload.text || "";
-          streamingBubble.text.textContent = answer;
+          setMutedTextContent(streamingBubble.text, answer);
           scrollChatToBottom();
         } else if (payload.type === "error") {
           throw new Error(payload.error || "stream failed");
@@ -784,8 +836,8 @@ function beginVoiceSession() {
   lastVoiceBotTurnId = null;
   liveVoiceBotDraft = null;
   activeVoiceAssistantTurnId = null;
-  voiceUserTranscript.textContent = "Listening for your first utterance…";
-  voiceAssistantTranscript.textContent = "Assistant responses will appear here and in the main chat.";
+  setMutedTextContent(voiceUserTranscript, "Listening for your first utterance…");
+  setMutedTextContent(voiceAssistantTranscript, "Assistant responses will appear here and in the main chat.");
   updateVoiceAssistant("connecting");
   voiceMode.start();
 }
@@ -807,8 +859,8 @@ function resetVoiceUiState() {
   liveVoiceBotDraft = null;
   activeVoiceAssistantTurnId = null;
   voiceConversationId = null;
-  voiceUserTranscript.textContent = "Waiting for your voice…";
-  voiceAssistantTranscript.textContent = "Responses will appear here and in the main chat.";
+  setMutedTextContent(voiceUserTranscript, "Waiting for your voice…");
+  setMutedTextContent(voiceAssistantTranscript, "Responses will appear here and in the main chat.");
 }
 
 const voiceModeCallbacks = {
@@ -864,7 +916,7 @@ const voiceModeCallbacks = {
       return;
     }
 
-    voiceUserTranscript.textContent = partial;
+    setMutedTextContent(voiceUserTranscript, partial);
     textInput.value = partial;
     autosizeInput();
   },
@@ -881,7 +933,7 @@ const voiceModeCallbacks = {
 
     lastVoiceFinalText = finalText;
     lastVoiceFinalAt = Date.now();
-    voiceUserTranscript.textContent = finalText;
+    setMutedTextContent(voiceUserTranscript, finalText);
     addMessageToConversation("user", finalText, voiceConversationId || activeConversationId);
     textInput.value = "";
     autosizeInput();
@@ -909,7 +961,7 @@ const voiceModeCallbacks = {
       }
     }
 
-    voiceAssistantTranscript.textContent = partial;
+    setMutedTextContent(voiceAssistantTranscript, partial);
     updateLiveVoiceDraft(partial, voiceConversationId || activeConversationId, turnId);
   },
 
@@ -932,7 +984,7 @@ const voiceModeCallbacks = {
     lastVoiceBotAt = Date.now();
     lastVoiceBotTurnId = turnId;
     activeVoiceAssistantTurnId = turnId;
-    voiceAssistantTranscript.textContent = reply;
+    setMutedTextContent(voiceAssistantTranscript, reply);
     clearLiveVoiceDraft(voiceConversationId || activeConversationId, turnId);
     addMessageToConversation("bot", reply, voiceConversationId || activeConversationId, {
       animate: false,
