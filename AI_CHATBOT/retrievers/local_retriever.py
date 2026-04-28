@@ -41,8 +41,7 @@
 
 
 import csv
-import json
-import numpy as np
+import re
 
 class LocalRetriever:
     """
@@ -76,6 +75,83 @@ class LocalRetriever:
                 print(f"LocalRetriever: failed to load {self.csv_path}: {e}")
         return rows
 
+    @staticmethod
+    def _tokens(text):
+        return re.findall(r"[a-z0-9]+", str(text or "").lower())
+
+    @staticmethod
+    def _singular(token):
+        if token.endswith("ies") and len(token) > 4:
+            return token[:-3] + "y"
+        if token.endswith("s") and len(token) > 3:
+            return token[:-1]
+        return token
+
+    def _keyword_search(self, query: str, top_k: int):
+        stopwords = {
+            "a", "an", "the", "do", "you", "have", "has", "is", "are", "me",
+            "show", "find", "some", "any", "please", "can", "could", "want",
+            "need", "about", "details", "detail", "product", "products",
+            "available", "recommend", "suggest", "give", "for", "with", "of",
+            "in", "to", "and", "sir", "mam",
+        }
+        raw_tokens = self._tokens(query)
+        q_tokens = [
+            self._singular(t)
+            for t in raw_tokens
+            if len(t) > 1 and t not in stopwords
+        ]
+        if "drawing" in q_tokens and any(t in {"kid", "kids"} for t in raw_tokens):
+            q_tokens = [t for t in q_tokens if t != "kid"] + ["kit"]
+        if not q_tokens:
+            return []
+
+        q_phrase = " ".join(q_tokens)
+        scored = []
+
+        for r in self.data:
+            m = r.get("metadata", {})
+            title = str(m.get("title", ""))
+            description = str(m.get("description", ""))
+            category = str(m.get("category", ""))
+            brand = str(m.get("brand", ""))
+            color = str(m.get("color", ""))
+            material = str(m.get("material", ""))
+
+            title_tokens = {self._singular(t) for t in self._tokens(title)}
+            desc_tokens = {self._singular(t) for t in self._tokens(description)}
+            category_tokens = {self._singular(t) for t in self._tokens(category.replace("_", " "))}
+            attribute_tokens = {
+                self._singular(t)
+                for t in self._tokens(" ".join([brand, color, material]))
+            }
+            searchable = " ".join(self._tokens(" ".join([title, description, category]))).lower()
+
+            score = 0.0
+            if q_phrase and q_phrase in " ".join(self._tokens(title)).lower():
+                score += 12.0
+            if q_phrase and q_phrase in searchable:
+                score += 5.0
+
+            for token in q_tokens:
+                if token in title_tokens:
+                    score += 6.0
+                if token in category_tokens:
+                    score += 4.0
+                if token in desc_tokens:
+                    score += 2.0
+                if token in attribute_tokens:
+                    score += 1.0
+
+            if score > 0:
+                item = dict(r)
+                item["score"] = score
+                item["source"] = "local"
+                scored.append((score, item))
+
+        scored.sort(reverse=True, key=lambda x: x[0])
+        return [r for _, r in scored[:top_k]]
+
     async def search(self, query: str, top_k: int = 5):
         """
         Simple offline keyword-based or embedding-based search.
@@ -84,31 +160,8 @@ class LocalRetriever:
         if not self.data:
             return []
 
-        # Use embeddings if embedder exists
-        if self.embedder:
-            try:
-                query_emb = np.array(self.embedder.encode([query])[0], dtype=np.float32)
-                scores = []
-                for r in self.data:
-                    emb_text = r["content"]
-                    emb_vec = np.array(self.embedder.encode([emb_text])[0], dtype=np.float32)
-                    sim = float(np.dot(query_emb, emb_vec))
-                    scores.append((sim, r))
-                scores.sort(reverse=True, key=lambda x: x[0])
-                results = [r for _, r in scores[:top_k]]
-                if self.debug:
-                    print(f"LocalRetriever: embed search returned {len(results)} results")
-                return results
-            except Exception as e:
-                if self.debug:
-                    print(f"LocalRetriever embed fallback: {e}")
+        keyword_results = self._keyword_search(query, top_k)
+        if keyword_results:
+            return keyword_results
 
-        # fallback: simple keyword matching
-        q_words = query.lower().split()
-        scored = []
-        for r in self.data:
-            text = r["content"].lower()
-            score = sum(text.count(w) for w in q_words)
-            scored.append((score, r))
-        scored.sort(reverse=True, key=lambda x: x[0])
-        return [r for _, r in scored[:top_k]]
+        return []

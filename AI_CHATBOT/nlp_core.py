@@ -13,9 +13,7 @@ def _load_catalog():
     csv_path = os.path.abspath("./data/products2.csv")
     data = []
     try:
-        if os.path.exists(meta_path):
-            data = json.load(open(meta_path, "r", encoding="utf-8"))
-        elif os.path.exists(csv_path):
+        if os.path.exists(csv_path):
             import csv
             with open(csv_path, newline='', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
@@ -27,6 +25,8 @@ def _load_catalog():
                         "category": r.get("category",""),
                         "id": int(r.get("id","0") or 0)
                     })
+        elif os.path.exists(meta_path):
+            data = json.load(open(meta_path, "r", encoding="utf-8"))
     except Exception:
         data = []
     _CATALOG = data or []
@@ -75,6 +75,18 @@ def extract_fact(query: str, results: List[Dict[str, Any]]) -> Optional[str]:
     if not results and not cats:
         return None
 
+    # === NEGATIVE AVAILABILITY GATING for specific unavailable product names ===
+    if re.search(r"\bgaming\b", q) and re.search(r"\bchair\b", q):
+        has_gaming_chair = any(
+            "gaming" in f"{r.get('title','')} {r.get('description','')}".lower()
+            and "chair" in f"{r.get('title','')} {r.get('description','')}".lower()
+            for r in cats
+        )
+        if not has_gaming_chair:
+            related = _find_items_by_titles(["Office Chair"])
+            lines = "\n".join(_format_item_line(i) for i in related)
+            return f"I don't have a gaming chair in the current catalog. Related option:\n{lines}" if lines else "I don't have a gaming chair in the current catalog."
+
     # === PRICE QUERIES ===
     if any(w in q for w in ["price", "cost", "how much", "rate", "price of"]):
         for r in results or []:
@@ -107,8 +119,20 @@ def extract_fact(query: str, results: List[Dict[str, Any]]) -> Optional[str]:
 
     # === GENERAL PRODUCT DESCRIPTION (Only if query clearly product-related) ===
     # If query contains product keywords, return best matching result from results list
-    product_keywords = r"\b(jeans|t-shirt|shirt|pants|shoes|electronics|phone|laptop|watch|bag|wallet|saree|dress|perfume|cream|skincare|headphone|speaker|chair|table|furniture|mouse)\b"
+    product_keywords = (
+        r"\b("
+        r"jeans|t[- ]?shirt|shirt|pants|trouser|shorts|shoes|sneakers|"
+        r"electronics|phone|laptop|watch|bag|wallet|belt|saree|dress|kurti|"
+        r"kurta|sweater|jacket|hoodie|leggings|perfume|cream|skincare|trimmer|"
+        r"headphones?|headset|earphones?|earbuds|speaker|chair|table|furniture|"
+        r"mouse|keyboard|webcam|ssd|tablet|drawing|graphic|plug|charger|router|"
+        r"cooler|purifier|heater|fan|geyser|refrigerator|microwave|dishwasher|"
+        r"toothbrush|screen protector|product|item"
+        r")\b"
+    )
     if re.search(product_keywords, q):
+        if not results:
+            return "I don't have that product detail in the current catalog context."
         # Prefer first result that matches key terms from the query in title/description/category
         q_terms = re.findall(r"[a-zA-Z-]+", q)
         chosen = None

@@ -101,7 +101,16 @@ def normalize_support_reply(text: str) -> str:
     return cleaned
 
 PRODUCT_HINT_RE = re.compile(
-    r"\b(jeans|t[- ]?shirts?|tshirts?|shirt|pants|shoes|electronics|phone|laptop|pc|computer|desktop|watch|bag|wallet|saree|dress|clothes|clothing|perfume|cream|skincare|skin|face|hair|beauty|cosmetics?|chair|table|furniture|mouse|speaker|backpack|product|item|catalog|inventory|price|cost)\b",
+    r"\b("
+    r"jeans|t[- ]?shirts?|tshirts?|shirt|pants|trouser|shorts|shoes|sneakers|"
+    r"electronics|phone|laptop|pc|computer|desktop|watch|bag|wallet|belt|saree|"
+    r"dress|kurti|kurta|sweater|jacket|hoodie|leggings|clothes|clothing|"
+    r"perfume|cream|skincare|skin|face|hair|beauty|cosmetics?|toothbrush|trimmer|"
+    r"chair|table|furniture|mouse|speaker|headphones?|headset|earphones?|earbuds|"
+    r"backpack|keyboard|webcam|ssd|tablet|drawing|graphic|plug|charger|router|screen protector|"
+    r"cooler|purifier|heater|fan|geyser|refrigerator|microwave|dishwasher|"
+    r"product|item|catalog|inventory|price|cost"
+    r")\b",
     re.I,
 )
 
@@ -134,7 +143,9 @@ TIME_QUERY_RE = re.compile(
 WEB_FALLBACK_HINT_RE = re.compile(
     r"\b("
     r"latest|current|currently|today|recent|news|headline|weather|forecast|temperature|"
-    r"stock|score|traffic|time in|date in|who is the current|what is the current|search web"
+    r"stock|score|traffic|time in|date in|search web|"
+    r"who is the current|what is the current|"
+    r"who is the (prime minister|president|ceo|governor|mayor)"
     r")\b",
     re.I,
 )
@@ -246,16 +257,34 @@ print("✅ Modules loaded. Chatbot ready.")
 
 # ============ RETRIEVAL ============
 async def retrieve(query: str, top_k: int = TOP_K):
+    local_items = await local.search(query, top_k=top_k)
+    if not local_items:
+        if DEBUG:
+            print("[DEBUG] Local catalog returned 0 items")
+        return []
     try:
         emb = list(embedder.encode_cached(query))
         items = await faiss.search_with_embedding(emb, top_k=top_k)
+        if local_items:
+            seen = set()
+            merged = []
+            for item in local_items + items:
+                m = item.get("metadata", {}) or {}
+                key = str(m.get("id") or m.get("sku") or m.get("title") or item.get("content", ""))
+                if key in seen:
+                    continue
+                seen.add(key)
+                merged.append(item)
+                if len(merged) >= top_k:
+                    break
+            items = merged
         if DEBUG:
             print(f"[DEBUG] Faiss returned {len(items)} items")
         return items
     except Exception as e:
         if DEBUG:
             print(f"[DEBUG] Faiss failed: {e} — fallback to local")
-        return await local.search(query, top_k=top_k)
+        return local_items
 
 # ============ HISTORY HELPERS ============
 def get_recent_history(user_id: str, max_turns: int = 3) -> str:
@@ -323,7 +352,7 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
     """
     timings = {}
     start = time.time()
-    retrieval_k = 1 if voice_mode else TOP_K
+    retrieval_k = TOP_K
     product_max_tokens = 110 if voice_mode else 180
     personalized_max_tokens = 110 if voice_mode else 220
     general_max_tokens = 72 if voice_mode else 64
@@ -530,7 +559,7 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
 async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool = False):
     timings = {}
     start = time.time()
-    retrieval_k = 1 if voice_mode else TOP_K
+    retrieval_k = TOP_K
     product_max_tokens = 110 if voice_mode else 180
     personalized_max_tokens = 110 if voice_mode else 220
     general_max_tokens = 96 if voice_mode else 140

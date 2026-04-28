@@ -1406,5 +1406,143 @@
       "text": "Bluetooth Speaker | ₹1699 | electronics. Portable Bluetooth speaker with deep bass and splash resistance",
       "ts": 1777382630.465894
     }
+  ],
+  "voice_1777388040983_l8nafn": [
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1777388081.058135
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "bot",
+      "text": "My name is Aria. How can I help you today?",
+      "ts": 1777388165.055866
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "user",
+      "text": "phone phone",
+      "ts": 1777388234.261344
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "bot",
+      "text": "Bluetooth Speaker | ₹1699 | electronics. Portable Bluetooth speaker with deep bass and splash resistance",
+      "ts": 1777388234.6831691
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "user",
+      "text": "can you show me a belt",
+      "ts": 1777388255.7277062
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "bot",
+      "text": "I don't have that product detail in the current catalog context.",
+      "ts": 1777388258.54267
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "user",
+      "text": "yes please recommend some",
+      "ts": 1777388292.6655822
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "bot",
+      "text": "Perfume Set ₹1499 [personal_care] - Unisex long-lasting fragrance set with citrus and woody notes",
+      "ts": 1777388296.546963
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "user",
+      "text": "yes please recommend some sneakers",
+      "ts": 1777388310.081184
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "bot",
+      "text": "I don't have that product detail in the current catalog context.",
+      "ts": 1777388311.6694431
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "bot",
+      "text": "Hello! How can I help you?",
+      "ts": 1777388338.298008
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "user",
+      "text": "can you show me some giving sir",
+      "ts": 1777388347.889614
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "bot",
+      "text": "I don't have that product detail in the current catalog context.",
+      "ts": 1777388349.728829
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "user",
+      "text": "can you show me a gaming",
+      "ts": 1777388371.621145
+    },
+    {
+      "user_id": "voice_1777388040983_l8nafn",
+      "role": "bot",
+      "text": "I'd be happy to help. However, I don't have that product detail in the current catalog context.",
+      "ts": 1777388374.281298
+    }
+  ],
+  "voice_1777393205168_v374bp": [
+    {
+      "user_id": "voice_1777393205168_v374bp",
+      "role": "user",
+      "text": "can you give me track pants",
+      "ts": 1777393219.024181
+    },
+    {
+      "user_id": "voice_1777393205168_v374bp",
+      "role": "bot",
+      "text": "I can help with order status, but I cannot verify it from the current information. Please share your order ID, such as ORD1234.",
+      "ts": 1777393219.0243342
+    },
+    {
+      "user_id": "voice_1777393205168_v374bp",
+      "role": "user",
+      "text": "I am asking about the product track pants",
+      "ts": 1777393239.108219
+    },
+    {
+      "user_id": "voice_1777393205168_v374bp",
+      "role": "bot",
+      "text": "I can help with order status, but I cannot verify it from the current information. Please share your order ID, such as ORD1234.",
+      "ts": 1777393239.1082969
+    }
+  ],
+  "voice_1777397186986_xplp3j": [
+    {
+      "user_id": "voice_1777397186986_xplp3j",
+      "role": "bot",
+      "text": "I’m Aria. A offline support assistant, here to help with your product questions.",
+      "ts": 1777397192.799278
+    },
+    {
+      "user_id": "voice_1777397186986_xplp3j",
+      "role": "user",
+      "text": "can you show me some deodorant",
+      "ts": 1777397230.410731
+    },
+    {
+      "user_id": "voice_1777397186986_xplp3j",
+      "role": "bot",
+      "text": "I can show you some deodorants. Here are a few options: Deodorant Roll-On | ₹299 | 48hr protection roll-on deodorant with no aluminum chloride Deodorant Stick | ₹199 | 24hr protection deodorant stick Deodorant Gel | ₹499 | 72hr protection deodorant gel Deodorant Spray | ₹299 | 48hr protection roll-on deodorant spray Deodorant Cream | ₹499 | 96hr protection deodor",
+      "ts": 1777397243.606573
+    }
   ]
 }

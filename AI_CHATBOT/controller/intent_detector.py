@@ -2,6 +2,10 @@
 import re
 from typing import Tuple
 import numpy as np
+# controller/intent_detector.py
+import re
+from typing import Tuple
+import numpy as np
 from fast_embedder import FastEmbedder
 
 
@@ -27,22 +31,29 @@ INTENT_BANK = {
     "product_search": [
         "find product", "show items", "search clothing",
         "display products", "recommend items",
-        "need jeans", "want shirt"
+        "need jeans", "want shirt",
+        "track pants", "sports shoes", "smart watch", "leather jacket",
+        "summer dress", "formal shirt", "running shoes", "denim jeans",
+        "silk scarf", "women's bag", "men's belt",
     ],
     "price_filter": [
         "under price", "below price",
         "cheap products", "affordable items",
-        "budget friendly"
+        "budget friendly",
+        "price less than", "cost under",
     ],
     "meta_count": [
         "how many products", "count items",
-        "number of products", "total items available"
+        "number of products", "total items available",
+        "how many shirts", "count jackets",
     ],
 
-    # USER
+    # USER PERSONAL QUERIES
     "personal_query": [
-        "my order", "order id", "track my order",
-        "my profile", "my account", "order status"
+        "my order", "order id", "track order", "track my order",
+        "order status", "my profile", "my account",
+        "purchase history", "recent orders",
+        "track my purchase",
     ],
 }
 
@@ -62,9 +73,19 @@ _INTENT_VECS = {
 # STAGE 1: PRODUCT DETECTOR (HARD GATE)
 # =========================
 def is_product_query(q: str) -> bool:
-    product_keywords = r"\b(jeans|t[- ]?shirts?|shirt|pants|shoes|phone|laptop|watch|bag|wallet|saree|dress|clothes|perfume|skincare|hair|cosmetics|chair|table|furniture|mouse|speaker|backpack)\b"
+    product_keywords = (
+        r"\b("
+        r"jeans|t[- ]?shirts?|shirt|pants|trouser|shorts|shoes|sneakers|"
+        r"phone|laptop|watch|bag|wallet|belt|saree|dress|kurti|kurta|"
+        r"sweater|jacket|hoodie|leggings|clothes|clothing|perfume|skincare|"
+        r"hair|cosmetics|toothbrush|trimmer|chair|table|furniture|mouse|speaker|"
+        r"headphones?|headset|earphones?|earbuds|backpack|keyboard|webcam|"
+        r"ssd|tablet|drawing|graphic|plug|charger|router|screen protector|cooler|purifier|"
+        r"heater|fan|geyser|refrigerator|microwave|dishwasher|product|item|catalog"
+        r")\b"
+    )
 
-    buying_intent = r"\b(buy|purchase|get|order|want|need|looking for|recommend|suggest|show|find)\b"
+    buying_intent = r"\b(buy|purchase|get|order|want|need|looking for|recommend|suggest|show|find|details?)\b"
 
     gift_context = r"\b(gift|present|for girlfriend|for boyfriend|for mom|for dad|for wife|for husband)\b"
 
@@ -103,82 +124,58 @@ def detect_intent(query: str) -> Tuple[str, float]:
         domain = "general"
 
     # =========================
-    # HIGH PRIORITY RULES
+    # HIGH PRIORITY RULES (Regex)
     # =========================
 
     # Greetings
     if re.match(r"^(hi|hello|hey|hlw)\b", q):
-        return ("greeting", 0.95)
-
-    if re.match(r"^(thanks|thank you)\b", q):
-        return ("thanks", 0.95)
-
-    if re.fullmatch(r"(bye|goodbye|see you|take care)", q):
-        return ("farewell", 0.95)
-
-    # Personal queries (always override)
-    if re.search(r"\b(my order|order id|track|profile|account|purchase)\b", q):
-        return ("personal_query", 0.90)
-
-    # =========================
-    # PRODUCT DOMAIN LOGIC
-    # =========================
-    if domain == "product":
-
-        # Price queries
-        if re.search(r"\b(price|cost|under|below|less than|within|cheap|affordable)\b", q):
-            return ("price_filter", 0.90)
-
-        # Count queries
-        if re.search(r"\b(how many|count|number of)\b", q):
-            return ("meta_count", 0.90)
-
-        # Default product intent
-        return ("product_search", 0.85)
-
-    # =========================
-    # GENERAL DOMAIN LOGIC
-    # =========================
+        regex_intent, regex_conf = "greeting", 0.95
+    elif re.match(r"^(thanks|thank you)\b", q):
+        regex_intent, regex_conf = "thanks", 0.95
+    elif re.fullmatch(r"(bye|goodbye|see you|take care)", q):
+        regex_intent, regex_conf = "farewell", 0.95
+    elif re.search(r"\b(my order|order id|track order|track my order|order status|profile|account|purchase)\b", q):
+        regex_intent, regex_conf = "personal_query", 0.90
+    elif domain == "product" and re.search(r"\b(price|cost|under|below|less than|within|cheap|affordable)\b", q):
+        regex_intent, regex_conf = "price_filter", 0.90
+    elif domain == "product" and re.search(r"\b(how many|count|number of)\b", q):
+        regex_intent, regex_conf = "meta_count", 0.90
+    elif domain == "product":
+        regex_intent, regex_conf = "product_search", 0.85
     else:
-
-        # Math queries
+        # General domain heuristics
         if re.search(r"\b\d+\s*[+\-*/]\s*\d+\b", q):
-            return ("general_knowledge", 0.95)
-
-        # Live info and date/time
-        if re.search(r"\b(temperature|weather|forecast|rain|humidity|wind|news|headline|stock|traffic|score)\b", q):
-            return ("general_knowledge", 0.95)
-
-        if re.search(r"\b(what\s+date|current\s+date|today'?s\s+date|what\s+day\s+is\s+it|which\s+day\s+is\s+it|time now|what time|current\s+time)\b", q):
-            return ("general_knowledge", 0.95)
-
-        # WH questions ONLY if not product
-        if re.search(r"\b(what|why|how|when|where|which|explain|define|meaning)\b", q):
-            return ("general_knowledge", 0.85)
+            regex_intent, regex_conf = "general_knowledge", 0.95
+        elif re.search(r"\b(temperature|weather|forecast|rain|humidity|wind|news|headline|stock|traffic|score)\b", q):
+            regex_intent, regex_conf = "general_knowledge", 0.95
+        elif re.search(r"\b(what\s+date|current\s+date|today'?s\s+date|what\s+day\s+is\s+it|which\s+day\s+is\s+it|time now|what time|current\s+time)\b", q):
+            regex_intent, regex_conf = "general_knowledge", 0.95
+        elif re.search(r"\b(what|why|how|when|where|which|explain|define|meaning)\b", q):
+            regex_intent, regex_conf = "general_knowledge", 0.85
+        else:
+            regex_intent, regex_conf = "general_knowledge", 0.80
 
     # =========================
-    # STAGE 2: EMBEDDING FALLBACK
+    # STAGE 2: EMBEDDING FALLBACK (Always run)
     # =========================
     q_vec = _embedder.encode([q])[0]
-
     sims = {
         k: float(np.dot(q_vec, v) / (np.linalg.norm(v) + 1e-9))
         for k, v in _INTENT_VECS.items()
     }
 
-    # Restrict intents by domain
+    # Restrict intents by domain for safety
     if domain == "product":
         allowed = ["product_search", "price_filter", "meta_count"]
     else:
-        allowed = ["general_knowledge", "greeting", "thanks"]
-
+        allowed = ["general_knowledge", "greeting", "thanks", "farewell"]
     sims = {k: v for k, v in sims.items() if k in allowed}
 
-    best_intent = max(sims, key=sims.get)
-    best_score = sims[best_intent]
+    embed_intent = max(sims, key=sims.get) if sims else "general_knowledge"
+    embed_score = sims.get(embed_intent, 0.0)
 
-    # Strict threshold
-    if best_score < 0.65:
-        return ("general_knowledge", best_score)
-
-    return (best_intent, best_score)
+    # Choose the intent with higher confidence between regex and embedding
+    if embed_score > regex_conf:
+        return (embed_intent, embed_score)
+    else:
+        return (regex_intent, regex_conf)
