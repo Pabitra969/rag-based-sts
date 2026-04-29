@@ -4,6 +4,7 @@
 
 import os, shutil, asyncio, re, threading
 from typing import List, Dict
+from datetime import datetime
 from llama_cpp import Llama
 
 
@@ -151,15 +152,16 @@ class ModelSessionManager:
                       web_results_text: str = "") -> str:
         prompt_parts = []
         if system_preamble.strip():
-            prompt_parts.append(f"System: {system_preamble.strip()}")
+            today = datetime.now().strftime("%B %d, %Y")
+            prompt_parts.append(f"System: {system_preamble.strip()}\nToday's date: {today}")
         if context_text.strip():
-            prompt_parts.append(f"\nProduct Information:\n{context_text.strip()}")
+            prompt_parts.append(f"\n---\nProduct Information:\n{context_text.strip()}")
         if history_text.strip():
-            prompt_parts.append(f"\nRecent Conversation:\n{history_text.strip()}")
+            prompt_parts.append(f"\n---\nRecent Conversation:\n{history_text.strip()}")
         if web_results_text.strip():
-            prompt_parts.append(f"\nWeb Search Results:\n{web_results_text.strip()}")
+            prompt_parts.append(f"\n---\nWeb Search Results:\n{web_results_text.strip()}")
             
-        prompt_parts.append(f"\nUser: {user_query.strip()}")
+        prompt_parts.append(f"\n---\nUser: {user_query.strip()}")
         prompt_parts.append("\nAssistant:")
         return "".join(prompt_parts)
 
@@ -182,7 +184,7 @@ class ModelSessionManager:
             text = out.get("choices", [{}])[0].get("text", "") or ""
             cleaned = text.strip()
             cleaned = re.sub(r"^(Support Agent:|Agent:|Assistant:|support agent:|Aria:|aria:)", "", cleaned, flags=re.I).strip()
-            cleaned = re.sub(r"\n+", " ", cleaned)
+            cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
             return cleaned
         except Exception as e:
             print(f"[LLM ERROR] {e}")

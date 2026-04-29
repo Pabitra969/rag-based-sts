@@ -30,64 +30,69 @@ FAISS_INDEX_PATH = "./faiss_index.index"
 FAISS_META_PATH = "./faiss_meta.json"
 DATA_CSV = "./data/products2.csv"
 
-N_CTX = 768
+N_CTX = 2048
 TOP_K = 5
 DEBUG = True
 
 # System preambles for different intents
-SYSTEM_PREAMBLE_PRODUCT = """You are Aria, a specialized product support chatbot for a shopping catalog.
-Your job is to answer product questions clearly, consistently, and professionally using only the provided product context.
-Rules:
-- Do not invent new products, prices, or categories.
-- If the requested product is completely missing, say: "I don't have that product in the current catalog context."
-- Answer the user's exact product question first.
-- When listing matching products, use one line per product in this exact format:
-  Product Name | ₹Price | Category. Short description
-- Show at most 3 products unless the user explicitly asks for more.
-- STRICT RULE: When the user asks for details about a specific product, you MUST start your response by outputting its product card on the very first line. Do not say anything before the card. Format it exactly like this:
-  Product Name | ₹Price | Category. Short description
+SYSTEM_PREAMBLE_PRODUCT = """You are Aria, a helpful product assistant for an online shopping catalog.
+Answer product questions using ONLY the provided Product Information below. Never invent products, prices, or details.
 
-  After the blank line, creatively generate a rich, conversational, and detailed paragraph elaborating on its likely features and benefits to answer their question.
-- Keep the tone calm, helpful, and specialized for product support.
-- Start your response directly. Do not output your own name or prefix, and do not refer to yourself in the third person.
-- Do not repeat abusive or vulgar wording from the user. Refer to it neutrally as "that language" if needed."""
+Format rules:
+- List products as: Product Name | ₹Price | Category. Description
+- Show at most 3 products unless asked for more.
+- For product details, show the product card first, then a short paragraph about features and benefits.
+- If the product is not found, say: "I don't have that product in our catalog."
 
-SYSTEM_PREAMBLE_PERSONALIZED = """You are Aria, a specialized customer support chatbot.
-Use the recent conversation and provided product context to help the customer with consistent, practical answers.
-Rules:
-- Be warm, clear, and factual.
-- Never invent account details, order details, shipment updates, refund outcomes, preferences, or product facts.
-- If the customer asks for order status, tracking, account status, refund status, or similar information that is not verifiable from the current data, say clearly that you cannot verify it from the current information and ask for the exact missing detail such as order ID.
-- If context is missing, say so directly instead of guessing.
-- Answer in 2 to 4 concise sentences when possible.
-- Do not repeat abusive or vulgar wording from the user. Refer to it neutrally as "that language" if needed."""
+Behavior rules:
+- Answer directly. Do not say "I am Aria" or refer to yourself.
+- Do not discuss topics outside the catalog.
+- Keep answers concise: 2-5 sentences max.
 
-SYSTEM_PREAMBLE_GENERAL_FAST = """You are Aria, a specialized customer support chatbot.
-Give consistent, direct, well-formed answers in 2 to 4 short sentences.
-Rules:
-- Answer the question directly first.
-- Be clear, calm, and accurate.
-- If you do not have enough verified information, say: "I don't have enough verified information for that."
-- Do not pretend to know live facts like weather, news, stock prices, traffic, or private customer data unless verified context is provided.
-- Do not drift into unrelated topics, roleplay, hype, or filler.
-- Do not repeat abusive or vulgar wording from the user. Refer to it neutrally as "that language" if needed.
-- Mention products only when the user asks about products."""
+Example:
+User: show me track pants
+Assistant: Here are some options:
+Track Pants | ₹799 | clothing. Moisture-wicking polyester track pants with drawstring waist
+Yoga Pants | ₹1099 | clothing. 4-way stretch yoga pants with hidden waistband pocket
 
-SYSTEM_PREAMBLE_WEB_SEARCH = """You are Aria, a specialized customer support chatbot.
-Answer using only the provided web search results.
+Example:
+User: tell me about the track pants
+Assistant: Track Pants | ₹799 | clothing. Moisture-wicking polyester track pants with drawstring waist
+
+These track pants are ideal for workouts and casual wear. Made from moisture-wicking polyester, they keep you dry during exercise. The drawstring waist offers an adjustable fit, available in sizes S to XXL."""
+
+SYSTEM_PREAMBLE_PERSONALIZED = """You are Aria, a helpful shopping assistant.
+Use the Recent Conversation and Product Information provided below to give consistent, personalized answers.
+
 Rules:
-- STRICT RULE: Limit your entire response to a maximum of 3 to 4 sentences. Do not ramble.
-- STRICT RULE: Summarize the answer in your own words. DO NOT copy-paste the web snippets.
-- STRICT RULE: DO NOT include source links, URLs, or "Wikipedia" in your output. Just give the direct answer.
-- Be concise and direct.
-- Do NOT generate or make up any additional web search results.
-- Answer the user's question immediately.
-- If the web results do not contain the answer, say so.
-- Start your response directly. Do not output your own name or prefix, and do not refer to yourself in the third person.
-- If the snippets are weak, missing, or conflicting, say that briefly instead of guessing.
-- Do not mention any fact that is not supported by the provided web search results.
-- Keep the answer neutral and useful.
-- Do not repeat abusive or vulgar wording from the user. Refer to it neutrally as "that language" if needed."""
+- Be warm, clear, and factual. Use the conversation history to stay consistent.
+- NEVER invent order details, tracking info, refund status, or account data.
+- If the user asks about orders or account info you cannot verify, say: "I can't verify that right now. Could you share your order ID?"
+- If context is missing, say so honestly instead of guessing.
+- Keep answers to 2-4 sentences.
+- Answer directly. Do not say "I am Aria" or refer to yourself."""
+
+SYSTEM_PREAMBLE_GENERAL_FAST = """You are Aria, a knowledgeable AI assistant.
+Answer general knowledge questions accurately and concisely in 2-4 sentences.
+
+Rules:
+- Answer the question directly first. No preamble.
+- Be accurate. If unsure, say: "I'm not confident about that."
+- Do NOT guess about live/real-time data (weather, news, scores, stocks) unless provided in context.
+- Do NOT mention products or shopping unless the user asks.
+- Keep the tone natural and conversational.
+- Answer directly. Do not say "I am Aria" or refer to yourself."""
+
+SYSTEM_PREAMBLE_WEB_SEARCH = """You are Aria, a knowledgeable AI assistant.
+Answer the user's question using ONLY the Web Search Results provided below.
+
+STRICT rules:
+- Write your answer in 2-4 sentences MAX. Be concise.
+- Summarize in your OWN words. Do NOT copy-paste snippets.
+- Do NOT include URLs, links, source names, or "Wikipedia" in your answer.
+- If the search results don't contain the answer, say: "I couldn't find a clear answer for that."
+- ONLY state facts that appear in the search results. Do not add your own knowledge.
+- Answer directly. Do not say "I am Aria" or refer to yourself."""
 
 # ============ TIMING ============
 @contextmanager
@@ -107,7 +112,7 @@ def normalize_support_reply(text: str) -> str:
     if not cleaned:
         return ""
     cleaned = re.sub(r"\b(i\s+am|i'm)\s+sorry\b[:,]?\s*", "", cleaned, count=1, flags=re.I)
-    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned).strip()
     return cleaned
 
 PRODUCT_HINT_RE = re.compile(
@@ -119,6 +124,11 @@ PRODUCT_HINT_RE = re.compile(
     r"chair|table|furniture|mouse|speaker|headphones?|headset|earphones?|earbuds|"
     r"backpack|keyboard|webcam|ssd|tablet|drawing|graphic|plug|charger|router|screen protector|"
     r"cooler|purifier|heater|fan|geyser|refrigerator|microwave|dishwasher|"
+    r"blender|mixer|kettle|cooker|pressure cooker|frying pan|knife|"
+    r"chopping board|tiffin|casserole|idli|grater|rolling pin|roti maker|"
+    r"spice rack|mixing bowl|oil dispenser|food storage|container|"
+    r"stool|bar stool|recliner|bookshelf|sofa|mattress|pillow|bedsheet|curtain|"
+    r"iron|washing machine|vacuum|air conditioner|ac|tv|television|"
     r"product|item|catalog|inventory|price|cost"
     r")\b",
     re.I,
@@ -277,7 +287,7 @@ model_manager = ModelSessionManager(model_path=MODEL_PATH, n_ctx=N_CTX, verbose=
 embedder = FastEmbedder(persist_cache=True)
 faiss = FaissRetriever(index_path=FAISS_INDEX_PATH, meta_path=FAISS_META_PATH, debug=False)
 local = LocalRetriever(DATA_CSV, embedder=embedder, debug=False)
-sessions = SessionManager(short_turns=3, long_memory_path="memory/long_memory.json", debug=DEBUG)
+sessions = SessionManager(short_turns=8, long_memory_path="memory/long_memory.json", debug=DEBUG)
 quick = QuickResponder(beautify_with_model=False)
 print("✅ Modules loaded. Chatbot ready.")
 
@@ -397,10 +407,10 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
     timings = {}
     start = time.time()
     retrieval_k = TOP_K
-    product_max_tokens = 350
-    personalized_max_tokens = 350
-    general_max_tokens = 300
-    web_max_tokens = 300
+    product_max_tokens = 200 if voice_mode else 350
+    personalized_max_tokens = 200 if voice_mode else 350
+    general_max_tokens = 150 if voice_mode else 300
+    web_max_tokens = 150 if voice_mode else 300
 
     # ===== PATH 1: QUICK RESPONSES (GREETINGS) =====
     with timed("quick", timings):
@@ -439,6 +449,29 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
             print(f"[TIMING] {timings}")
         return reply
 
+    # ===== PRODUCT CONTEXT CHECK (follow-up detail queries) =====
+    stored_products = model_manager.get_product_context(user_id)
+    if stored_products and intent in ["product_search", "price_filter"]:
+        query_lower = query.lower()
+        for prod in stored_products:
+            m = prod.get("metadata", {}) or {}
+            name = (m.get("title") or m.get("name") or "").lower()
+            if name and len(name) > 3 and name in query_lower:
+                title = m.get("title") or m.get("name") or "Product"
+                price = m.get("price", "")
+                desc = m.get("description", "")
+                cat = m.get("category", "")
+                price_str = f"₹{price}" if price else ""
+                head = " | ".join([x for x in [title, price_str, cat] if x])
+                reply = f"{head}. {desc}".strip()
+                sessions.add_user_msg(user_id, query, persist_long=True)
+                sessions.add_bot_msg(user_id, reply, persist_long=True)
+                timings["total"] = round(time.time() - start, 3)
+                if DEBUG:
+                    print(f"[ROUTE] PRODUCT DETAIL FROM CONTEXT → Direct reply")
+                    print(f"[TIMING] {timings}")
+                return reply
+
     # ===== PATH 2: PRODUCT/DATABASE QUERIES =====
     if intent in ["product_search", "price_filter", "meta_count"]:
         if DEBUG:
@@ -448,6 +481,10 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
 
         with timed("retrieval", timings):
             results = await retrieve(query, top_k=retrieval_k)
+
+        # Store product context for follow-up queries
+        if results:
+            model_manager.set_product_context(user_id, results)
 
         # Try deterministic extraction first
         with timed("extract", timings):
@@ -459,12 +496,13 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
         else:
             # No deterministic fact, use context with LLM (still constrained)
             context = build_product_context(results)
+            history = get_recent_history(user_id, max_turns=3)
             with timed("llm_product", timings):
                 reply = await model_manager.generate_reply(
                     SYSTEM_PREAMBLE_PRODUCT,
                     query,
                     context_text=context,
-                    history_text="",
+                    history_text=history,
                     temperature=0.15,
                     max_tokens=product_max_tokens
                 )
@@ -547,6 +585,7 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
         print(f"[ROUTE] GENERAL QUERY → Fast LLM path")
 
     sessions.add_user_msg(user_id, query, persist_long=False)
+    general_history = get_recent_history(user_id, max_turns=3)
     timings["retrieval"] = 0.0
 
     if should_use_web_search(query):
@@ -583,9 +622,10 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
         return reply
 
     with timed("llm_general_fast", timings):
-        reply = await model_manager.generate_fast_reply(
+        reply = await model_manager.generate_reply(
             SYSTEM_PREAMBLE_GENERAL_FAST,
             query,
+            history_text=general_history,
             temperature=0.10 if voice_mode else 0.15,
             max_tokens=general_max_tokens
         )
@@ -604,10 +644,10 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
     timings = {}
     start = time.time()
     retrieval_k = TOP_K
-    product_max_tokens = 350
-    personalized_max_tokens = 350
-    general_max_tokens = 300
-    web_max_tokens = 300
+    product_max_tokens = 200 if voice_mode else 350
+    personalized_max_tokens = 200 if voice_mode else 350
+    general_max_tokens = 150 if voice_mode else 300
+    web_max_tokens = 150 if voice_mode else 300
 
     with timed("quick", timings):
         quick_reply = quick.get_response(query)
@@ -647,6 +687,30 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
         yield reply
         return
 
+    # ===== PRODUCT CONTEXT CHECK (follow-up detail queries) =====
+    stored_products = model_manager.get_product_context(user_id)
+    if stored_products and intent in ["product_search", "price_filter"]:
+        query_lower = query.lower()
+        for prod in stored_products:
+            m = prod.get("metadata", {}) or {}
+            name = (m.get("title") or m.get("name") or "").lower()
+            if name and len(name) > 3 and name in query_lower:
+                title = m.get("title") or m.get("name") or "Product"
+                price = m.get("price", "")
+                desc = m.get("description", "")
+                cat = m.get("category", "")
+                price_str = f"₹{price}" if price else ""
+                head = " | ".join([x for x in [title, price_str, cat] if x])
+                reply = f"{head}. {desc}".strip()
+                sessions.add_user_msg(user_id, query, persist_long=True)
+                sessions.add_bot_msg(user_id, reply, persist_long=True)
+                timings["total"] = round(time.time() - start, 3)
+                if DEBUG:
+                    print(f"[ROUTE] PRODUCT DETAIL FROM CONTEXT → Direct reply")
+                    print(f"[TIMING] {timings}")
+                yield reply
+                return
+
     if intent in ["product_search", "price_filter", "meta_count"]:
         if DEBUG:
             print(f"[ROUTE] PRODUCT QUERY → Direct DB retrieval + Light LLM humanize")
@@ -655,6 +719,10 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
 
         with timed("retrieval", timings):
             results = await retrieve(query, top_k=retrieval_k)
+
+        # Store product context for follow-up queries
+        if results:
+            model_manager.set_product_context(user_id, results)
 
         with timed("extract", timings):
             fact = extract_fact(query, results)
@@ -675,13 +743,14 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
             return
 
         context = build_product_context(results)
+        history = get_recent_history(user_id, max_turns=3)
         collected = []
         with timed("llm_product", timings):
             async for chunk in model_manager.stream_reply(
                 SYSTEM_PREAMBLE_PRODUCT,
                 query,
                 context_text=context,
-                history_text="",
+                history_text=history,
                 temperature=0.15,
                 max_tokens=product_max_tokens,
             ):
@@ -764,6 +833,7 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
         print(f"[ROUTE] GENERAL QUERY → Fast LLM path")
 
     sessions.add_user_msg(user_id, query, persist_long=False)
+    general_history = get_recent_history(user_id, max_turns=3)
     timings["retrieval"] = 0.0
     collected = []
 
@@ -809,6 +879,7 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
         async for chunk in model_manager.stream_reply(
             SYSTEM_PREAMBLE_GENERAL_FAST,
             query,
+            history_text=general_history,
             temperature=0.10 if voice_mode else 0.15,
             max_tokens=general_max_tokens,
             top_p=0.9

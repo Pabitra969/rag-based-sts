@@ -81,7 +81,13 @@ def is_product_query(q: str) -> bool:
         r"hair|cosmetics|toothbrush|trimmer|chair|table|furniture|mouse|speaker|"
         r"headphones?|headset|earphones?|earbuds|backpack|keyboard|webcam|"
         r"ssd|tablet|drawing|graphic|plug|charger|router|screen protector|cooler|purifier|"
-        r"heater|fan|geyser|refrigerator|microwave|dishwasher|product|item|catalog"
+        r"heater|fan|geyser|refrigerator|microwave|dishwasher|"
+        r"blender|mixer|kettle|cooker|pressure cooker|frying pan|knife|"
+        r"chopping board|tiffin|casserole|idli|grater|rolling pin|roti maker|"
+        r"spice rack|mixing bowl|oil dispenser|food storage|container|"
+        r"stool|bar stool|recliner|bookshelf|sofa|mattress|pillow|bedsheet|curtain|"
+        r"iron|washing machine|vacuum|air conditioner|ac|tv|television|"
+        r"product|item|catalog"
         r")\b"
     )
 
@@ -91,14 +97,25 @@ def is_product_query(q: str) -> bool:
 
     vague_product = r"\b(something|anything|options|ideas)\b"
 
-    # Strong signals
+    # Strong Buying Intent (High Priority)
+    strong_buy = (
+        r"\b("
+        r"buy|purchase|order|shop|get|grab|pick up|want to buy|need to buy|looking for|"
+        r"can i get|do you have|any|available|search for|find me|show me|i need|i want|"
+        r"best|top rated|recommend|suggest|price of|cost of|how much"
+        r")\b"
+    )
+    if re.search(strong_buy, q):
+        return True
+
+    # Strong product keywords
     if re.search(product_keywords, q):
         return True
 
     if re.search(gift_context, q):
         return True
 
-    # Buying intent + vague object
+    # Buying intent + vague object (something, anything)
     if re.search(buying_intent, q) and re.search(vague_product, q):
         return True
 

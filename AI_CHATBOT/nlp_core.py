@@ -129,12 +129,23 @@ def extract_fact(query: str, results: List[Dict[str, Any]]) -> Optional[str]:
         r"headphones?|headset|earphones?|earbuds|speaker|chair|table|furniture|"
         r"mouse|keyboard|webcam|ssd|tablet|drawing|graphic|plug|charger|router|"
         r"cooler|purifier|heater|fan|geyser|refrigerator|microwave|dishwasher|"
-        r"toothbrush|screen protector|product|item|options"
+        r"toothbrush|screen protector|"
+        r"blender|mixer|kettle|cooker|pressure cooker|frying pan|knife|"
+        r"chopping board|tiffin|casserole|idli|grater|rolling pin|roti maker|"
+        r"spice rack|mixing bowl|oil dispenser|food storage|container|"
+        r"stool|bar stool|recliner|bookshelf|sofa|mattress|pillow|bedsheet|curtain|"
+        r"iron|washing machine|vacuum|air conditioner|ac|tv|television|"
+        r"product|item|options"
         r")\b"
     )
-    detail_keywords = r"\b(detail|details|more|about|describe|explain|tell me|information)\b"
-    
-    if re.search(product_keywords, q) and not re.search(detail_keywords, q):
+    # Only trigger detail mode when user EXPLICITLY asks for details/description
+    detail_keywords = r"\b(detail|details|describe|explain|information|features?|specification|specs?)\b"
+    # Also trigger detail mode when user says "tell me about X" or "more about X"
+    detail_phrase = r"\b(tell me about|more about|know about|info about|details? of|details? about)\b"
+
+    is_detail_query = bool(re.search(detail_keywords, q)) or bool(re.search(detail_phrase, q))
+
+    if re.search(product_keywords, q) and not is_detail_query:
         if not results:
             return "I don't have that product in the current catalog."
         lines = ["Here are some options for you:"]
@@ -144,7 +155,7 @@ def extract_fact(query: str, results: List[Dict[str, Any]]) -> Optional[str]:
             c = safe_get_meta(r, "category", "")
             d = safe_get_meta(r, "description", "") or (r.get("content") or "")[:120]
             head = " | ".join([x for x in [t, (f"₹{p}" if p else None), c] if x])
-            lines.append(f"{head}. {d} |".strip())
+            lines.append(f"{head}. {d}")
         return "\n".join(lines)
 
     # === NO DETERMINISTIC FACT FOUND ===

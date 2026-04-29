@@ -1750,5 +1750,147 @@
       "text": "Here's a detailed description of the Noise Cancelling Headphones: The Noise Cancelling Headphones are a premium product designed for those who want to enjoy uninterrupted music or calls while on-the-go. These headphones feature advanced noise-cancelling technology that reduces ambient noise by up to 50%. The ANC (Active Noise Cancellation) system works by generating a secondary sound wave that cancels out the unwanted noise, allowing users to focus on their audio. The headphones also have a 30hr battery life, ensuring that users can enjoy their music or calls for an extended period. The noise-cancelling mic is also equipped with a noise-cancelling feature, allowing users to clearly communicate with others. The headphones are available in different colors and sizes, making them a versatile product for various needs. The Noise Cancelling Headphones are a great choice for those who want to stay connected while on-the-go, and they are available for purchase at ₹3499.",
       "ts": 1777428457.406997
     }
+  ],
+  "voice_1777439695846_9v33tu": [
+    {
+      "user_id": "voice_1777439695846_9v33tu",
+      "role": "user",
+      "text": "I want to purchase a mixer",
+      "ts": 1777439700.035369
+    },
+    {
+      "user_id": "voice_1777439695846_9v33tu",
+      "role": "bot",
+      "text": "I can help you with that. What kind of mixer are you looking for?",
+      "ts": 1777439701.1996741
+    },
+    {
+      "user_id": "voice_1777439695846_9v33tu",
+      "role": "user",
+      "text": "suggest me some products",
+      "ts": 1777439742.37436
+    },
+    {
+      "user_id": "voice_1777439695846_9v33tu",
+      "role": "bot",
+      "text": "Here are some options:\n Mixer | ₹2499 | kitchen. Compact electric mixer with 3-speed motor\n Blender Mixer | ₹4999 | kitchen. 3.5L capacity blender mixer with stainless steel blades\n Stand Mixer | ₹1499 | kitchen. 10-speed motor stand mixer with stainless steel bowl",
+      "ts": 1777439745.048909
+    }
+  ],
+  "voice_1777440720548_zyne2h": [
+    {
+      "user_id": "voice_1777440720548_zyne2h",
+      "role": "user",
+      "text": "I want to buy a Blender mixer",
+      "ts": 1777440726.578563
+    },
+    {
+      "user_id": "voice_1777440720548_zyne2h",
+      "role": "bot",
+      "text": "Here are some options for you:\nBlender Mixer | ₹1499 | kitchen. 600W hand blender with 2-speed control and chopper attachment\nEspresso Coffee Maker | ₹7999 | home_appliance. Automatic espresso and cappuccino maker with stainless steel body\nElectric Toothbrush | ₹2299 | personal_care. Rechargeable electric toothbrush with 3 brushing modes and 2-minute timer",
+      "ts": 1777440726.743171
+    }
+  ],
+  "voice_1777442272360_2668f4": [
+    {
+      "user_id": "voice_1777442272360_2668f4",
+      "role": "user",
+      "text": "I want to buy a Blender mixture",
+      "ts": 1777442279.292855
+    },
+    {
+      "user_id": "voice_1777442272360_2668f4",
+      "role": "bot",
+      "text": "Blender Mixer | ₹1499 | kitchen. 600W hand blender with 2-speed control and chopper attachment",
+      "ts": 1777442279.474229
+    },
+    {
+      "user_id": "voice_1777442272360_2668f4",
+      "role": "user",
+      "text": "can you give me blue jeans",
+      "ts": 1777442294.847264
+    },
+    {
+      "user_id": "voice_1777442272360_2668f4",
+      "role": "bot",
+      "text": "Blue Denim Jeans | ₹1299 | clothing. Regular fit blue jeans with 2% elastane stretch for comfort",
+      "ts": 1777442294.9309871
+    },
+    {
+      "user_id": "voice_1777442272360_2668f4",
+      "role": "user",
+      "text": "I want to buy bluetooth speaker",
+      "ts": 1777442307.14753
+    },
+    {
+      "user_id": "voice_1777442272360_2668f4",
+      "role": "bot",
+      "text": "Bluetooth Speaker | ₹1699 | electronics. 360° portable Bluetooth 5.0 speaker with deep bass and IPX5 splash resistance",
+      "ts": 1777442307.23169
+    },
+    {
+      "user_id": "voice_1777442272360_2668f4",
+      "role": "user",
+      "text": "show me more details about Bluetooth speaker",
+      "ts": 1777442320.245307
+    },
+    {
+      "user_id": "voice_1777442272360_2668f4",
+      "role": "bot",
+      "text": "Bluetooth Speaker | ₹1699 | electronics. 360° portable Bluetooth 5.0 speaker with deep bass and IPX5 splash resistance\nProduct Information:\nWeight: 1.5kg\nDimensions: 20cm x 15cm x 10cm\nBattery Life: 8 hours\nWater Resistance: IPX5\nSpeaker Size: 3.5 inches\nSpeaker Type: 360°\nUser Interface: 1-button control\nUser Interface Language: English\nUser Interface Color: Black\nUser Interface Material: Plastic\nUser Interface Finish: Polished\nUser Interface Weight: 0.5kg\nUser Interface Dimensions: 15cm x 10cm x 5cm\nUser Interface Battery Life: 8 hours\nUser Interface Weight: 0.5kg\nUser Interface Dimensions: 15cm x 10cm x 5cm\nUser Interface Battery Life: 8 hours\nUser Interface Weight: 0.5kg\nUser Interface Dimensions",
+      "ts": 1777442327.2758641
+    },
+    {
+      "user_id": "voice_1777442272360_2668f4",
+      "role": "user",
+      "text": "not available from",
+      "ts": 1777442560.0806751
+    },
+    {
+      "user_id": "voice_1777442272360_2668f4",
+      "role": "bot",
+      "text": "I don't have that product in our catalog.",
+      "ts": 1777442561.256381
+    }
+  ],
+  "voice_1777442859407_jjnb2u": [
+    {
+      "user_id": "voice_1777442859407_jjnb2u",
+      "role": "user",
+      "text": "can you suggest me some mixer blender",
+      "ts": 1777442864.3201668
+    },
+    {
+      "user_id": "voice_1777442859407_jjnb2u",
+      "role": "bot",
+      "text": "Blender Mixer | ₹1499 | kitchen. 600W hand blender with 2-speed control and chopper attachment",
+      "ts": 1777442864.395982
+    },
+    {
+      "user_id": "voice_1777442859407_jjnb2u",
+      "role": "user",
+      "text": "show me some more mixers",
+      "ts": 1777442876.015388
+    },
+    {
+      "user_id": "voice_1777442859407_jjnb2u",
+      "role": "bot",
+      "text": "Blender Mixer | ₹1499 | kitchen. 600W hand blender with 2-speed control and chopper attachment",
+      "ts": 1777442876.070294
+    }
+  ],
+  "voice_1777443010233_fu7k2z": [
+    {
+      "user_id": "voice_1777443010233_fu7k2z",
+      "role": "user",
+      "text": "can you suggest me some mixer grinder",
+      "ts": 1777443015.517478
+    },
+    {
+      "user_id": "voice_1777443010233_fu7k2z",
+      "role": "bot",
+      "text": "Here are some options for you:\nWet Grinder | ₹4299 | home_appliance. 2L table-top wet grinder with 200W motor and stone rollers\nBlender Mixer | ₹1499 | kitchen. 600W hand blender with 2-speed control and chopper attachment\nEspresso Coffee Maker | ₹7999 | home_appliance. Automatic espresso and cappuccino maker with stainless steel body",
+      "ts": 1777443015.7339609
+    }
   ]
 }

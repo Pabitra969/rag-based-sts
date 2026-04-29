@@ -300,30 +300,31 @@ async def search_web(query: str, max_results: int = 3) -> List[WebResult]:
     merged: List[WebResult] = []
     seen = set()
 
-    # loaders = [("gemini lookup", _search_gemini_sync)] if api_key else []
-    loaders = [
-        ("html fallback lookup", _search_html_fallback_sync),
-        ("instant answer lookup", _search_sync),
-        ("wikipedia lookup", _search_wikipedia_sync),
-    ]
-
-    for label, loader in loaders:
-        if len(merged) >= max_results:
-            break
+    # Run all loaders in parallel for speed
+    async def _run_loader(loader, label):
         try:
-            batch = await asyncio.to_thread(loader, query, max_results)
+            return await asyncio.to_thread(loader, query, max_results)
         except Exception as exc:
             print(f"[WEB SEARCH] {label} failed: {exc}")
-            continue
+            return []
 
+    batches = await asyncio.gather(
+        _run_loader(_search_html_fallback_sync, "html fallback lookup"),
+        _run_loader(_search_sync, "instant answer lookup"),
+        _run_loader(_search_wikipedia_sync, "wikipedia lookup"),
+    )
+
+    for batch in batches:
         for item in batch:
+            if len(merged) >= max_results:
+                break
             key = ((item.url or "").lower(), item.title.lower(), item.snippet.lower())
             if key in seen:
                 continue
             seen.add(key)
             merged.append(item)
-            if len(merged) >= max_results:
-                break
+        if len(merged) >= max_results:
+            break
 
     return merged
 
@@ -332,7 +333,7 @@ def compress_web_results(results: List[WebResult], max_chars: int = 560) -> str:
     lines = []
     total = 0
     for idx, item in enumerate(results, start=1):
-        line = f"{idx}. {item.source}: {item.title}. {item.snippet}".strip()
+        line = f"{idx}. {item.title}. {item.snippet}".strip()
         line = line.replace("\n", " ")
         if len(line) > 220:
             line = f"{line[:217].rstrip()}..."
