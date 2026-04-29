@@ -488,7 +488,7 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
 
         # Try deterministic extraction first
         with timed("extract", timings):
-            fact = extract_fact(query, results)
+            fact = extract_fact(query, results, voice_mode=voice_mode)
 
         if fact:
             # Deterministic fact found — return directly (no LLM to avoid drift)
@@ -725,7 +725,7 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
             model_manager.set_product_context(user_id, results)
 
         with timed("extract", timings):
-            fact = extract_fact(query, results)
+            fact = extract_fact(query, results, voice_mode=voice_mode)
 
         if fact:
             reply = fact

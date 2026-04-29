@@ -59,7 +59,7 @@ def _format_item_line(item: Dict[str, Any]) -> str:
     d = item.get("description", "")
     return f"- {t} ₹{p} [{c}] - {d}"
 
-def extract_fact(query: str, results: List[Dict[str, Any]]) -> Optional[str]:
+def extract_fact(query: str, results: List[Dict[str, Any]], voice_mode: bool = False) -> Optional[str]:
     """
     Extract deterministic facts from results only if query matches product-specific intent.
     Returns None if facts are unreliable or query is general knowledge.
@@ -134,7 +134,7 @@ def extract_fact(query: str, results: List[Dict[str, Any]]) -> Optional[str]:
         r"chopping board|tiffin|casserole|idli|grater|rolling pin|roti maker|"
         r"spice rack|mixing bowl|oil dispenser|food storage|container|"
         r"stool|bar stool|recliner|bookshelf|sofa|mattress|pillow|bedsheet|curtain|"
-        r"iron|washing machine|vacuum|air conditioner|ac|tv|television|"
+        r"iron|washing machine|vacuum|air conditioner|ac|tv|television|grinder|mixer grinder|"
         r"product|item|options"
         r")\b"
     )
@@ -148,6 +148,15 @@ def extract_fact(query: str, results: List[Dict[str, Any]]) -> Optional[str]:
     if re.search(product_keywords, q) and not is_detail_query:
         if not results:
             return "I don't have that product in the current catalog."
+        
+        if voice_mode:
+            count = min(len(results), 3)
+            cat = safe_get_meta(results[0], "category", "products")
+            names = [safe_get_meta(r, "title", safe_get_meta(r, "name", "product")) for r in results[:count]]
+            if count == 1:
+                return f"I found the {names[0]} in the {cat} section."
+            return f"I found {count} {cat} items for you: {', '.join(names[:-1])} and {names[-1]}."
+
         lines = ["Here are some options for you:"]
         for r in results[:3]:
             t = safe_get_meta(r, "title", safe_get_meta(r, "name", "Product"))
