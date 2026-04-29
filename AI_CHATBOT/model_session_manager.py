@@ -3,6 +3,7 @@
 
 
 import os, shutil, asyncio, re, threading
+from typing import List, Dict
 from llama_cpp import Llama
 
 
@@ -58,6 +59,8 @@ class ModelSessionManager:
         self.model_path = model_path
         self.session_file = session_file
         self.verbose = verbose
+        # New: store product list per user for the session
+        self.product_context: Dict[str, List[Dict]] = {}
         self._lock = asyncio.Lock()
         runtime_defaults = _default_llama_runtime()
         self.n_threads = _env_int("LLM_N_THREADS", runtime_defaults["n_threads"])
@@ -130,13 +133,18 @@ class ModelSessionManager:
         except Exception as e:
             print(f"⚠️ Context save failed safely: {e}")
 
-    async def save_context_async(self):
-        loop = asyncio.get_running_loop()
-        async with self._lock:
-            await loop.run_in_executor(None, self.save_context)
+    def set_product_context(self, user_id: str, products: List[Dict]):
+        """Store a list of product dicts for the given user session."""
+        self.product_context[user_id] = products
 
-    def get_model(self):
-        return self.llm
+    def get_product_context(self, user_id: str) -> List[Dict]:
+        """Retrieve stored product list for the user (empty list if none)."""
+        return self.product_context.get(user_id, [])
+
+    def clear_product_context(self, user_id: str):
+        """Clear stored product list for the user (not used currently)."""
+        self.product_context.pop(user_id, None)
+
 
     def _build_prompt(self, system_preamble: str, user_query: str,
                       context_text: str = "", history_text: str = "",
