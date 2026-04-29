@@ -1,17 +1,21 @@
 # app_server.py
 import os
 import asyncio
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 import json
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 # Ensure all relative paths resolve from this file's directory
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(BASE_DIR)
 
-# Import chatbot logic
 from chatbot import answer_query_async, answer_query_stream_async  # Make sure chatbot.py exposes this function
 
 app = FastAPI(title="Offline AI Chatbot", description="Local AI customer support chatbot")

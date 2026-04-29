@@ -31,21 +31,25 @@ FAISS_META_PATH = "./faiss_meta.json"
 DATA_CSV = "./data/products2.csv"
 
 N_CTX = 768
-TOP_K = 3
+TOP_K = 5
 DEBUG = True
 
 # System preambles for different intents
 SYSTEM_PREAMBLE_PRODUCT = """You are Aria, a specialized product support chatbot for a shopping catalog.
 Your job is to answer product questions clearly, consistently, and professionally using only the provided product context.
 Rules:
-- Never invent product names, prices, categories, stock, features, delivery times, discounts, or policies.
-- If the requested detail is missing, say: "I don't have that product detail in the current catalog context."
+- Do not invent new products, prices, or categories.
+- If the requested product is completely missing, say: "I don't have that product in the current catalog context."
 - Answer the user's exact product question first.
 - When listing matching products, use one line per product in this exact format:
   Product Name | ₹Price | Category. Short description
 - Show at most 3 products unless the user explicitly asks for more.
-- When the user asks to know more about a product, explain the available details in short plain sentences from the context only.
+- STRICT RULE: When the user asks for details about a specific product, you MUST start your response by outputting its product card on the very first line. Do not say anything before the card. Format it exactly like this:
+  Product Name | ₹Price | Category. Short description
+
+  After the blank line, creatively generate a rich, conversational, and detailed paragraph elaborating on its likely features and benefits to answer their question.
 - Keep the tone calm, helpful, and specialized for product support.
+- Start your response directly. Do not output your own name or prefix, and do not refer to yourself in the third person.
 - Do not repeat abusive or vulgar wording from the user. Refer to it neutrally as "that language" if needed."""
 
 SYSTEM_PREAMBLE_PERSONALIZED = """You are Aria, a specialized customer support chatbot.
@@ -72,11 +76,17 @@ Rules:
 SYSTEM_PREAMBLE_WEB_SEARCH = """You are Aria, a specialized customer support chatbot.
 Answer using only the provided web search results.
 Rules:
-- Write a direct 2 to 4 sentence summary in plain language.
-- Prefer the most concrete and recent-looking result from the provided snippets.
+- STRICT RULE: Limit your entire response to a maximum of 3 to 4 sentences. Do not ramble.
+- STRICT RULE: Summarize the answer in your own words. DO NOT copy-paste the web snippets.
+- STRICT RULE: DO NOT include source links, URLs, or "Wikipedia" in your output. Just give the direct answer.
+- Be concise and direct.
+- Do NOT generate or make up any additional web search results.
+- Answer the user's question immediately.
+- If the web results do not contain the answer, say so.
+- Start your response directly. Do not output your own name or prefix, and do not refer to yourself in the third person.
 - If the snippets are weak, missing, or conflicting, say that briefly instead of guessing.
 - Do not mention any fact that is not supported by the provided web search results.
-- Keep the answer concise, neutral, and useful.
+- Keep the answer neutral and useful.
 - Do not repeat abusive or vulgar wording from the user. Refer to it neutrally as "that language" if needed."""
 
 # ============ TIMING ============
@@ -145,7 +155,7 @@ WEB_FALLBACK_HINT_RE = re.compile(
     r"latest|current|currently|today|recent|news|headline|weather|forecast|temperature|"
     r"stock|score|traffic|time in|date in|search web|"
     r"who is the current|what is the current|"
-    r"who is the (prime minister|president|ceo|governor|mayor)"
+    r"who is the (prime minister|president|ceo|governor|mayor|cm|chief minister)"
     r")\b",
     re.I,
 )
@@ -226,13 +236,29 @@ def _fast_general_reply(user_id: str, query: str, voice_mode: bool) -> str:
 
 
 def should_use_web_search(query: str) -> bool:
-    q = query.lower().strip()
-    if not web_search_enabled():
-        return False
-    return bool(WEB_FALLBACK_HINT_RE.search(q))
+    return web_search_enabled()
 
 
 async def get_web_context(query: str, voice_mode: bool = False) -> str:
+    import urllib.request
+    import json
+    import re
+    import asyncio
+
+    if re.search(r"\b(weather|temperature|forecast|rain|humidity|wind)\b", query, re.I):
+        try:
+            def fetch_loc():
+                with urllib.request.urlopen("http://ip-api.com/json/", timeout=2) as r:
+                    return json.loads(r.read().decode())
+            loc = await asyncio.to_thread(fetch_loc)
+            city = loc.get("city")
+            region = loc.get("regionName")
+            if city:
+                query = f"{query} in {city}, {region}"
+        except Exception as e:
+            if DEBUG:
+                print(f"[GEO IP] Failed to get location: {e}")
+
     max_results = 2 if voice_mode else 3
     max_chars = 360 if voice_mode else 560
     results = await search_web(query, max_results=max_results)
@@ -306,10 +332,19 @@ def get_full_history(user_id: str) -> str:
         lines.append(f"{role}: {msg['text']}")
     return "\n".join(lines)
 
-def build_product_context(results, max_items: int = 4) -> str:
+def build_product_context(results, max_items: int = 5) -> str:
     """Format product retrieval results into context (dominant category to avoid mixing)."""
     if not results:
         return ""
+    
+    def get_price(r):
+        try:
+            return float(r.get("metadata", {}).get("price", 0))
+        except:
+            return 0.0
+            
+    results = sorted(results, key=get_price, reverse=True)
+    
     # Determine dominant category
     cats = []
     for r in results:
@@ -328,7 +363,11 @@ def build_product_context(results, max_items: int = 4) -> str:
         title = m.get("title") or m.get("name") or ""
         price = m.get("price", "")
         desc = m.get("description", "") or (r.get("content") or "")[:160]
-        lines.append(f"- {title} {('₹'+str(price)) if price else ''} [{cat}] - {desc}".strip())
+        
+        price_str = f"₹{price}" if price else ""
+        head = " | ".join([x for x in [title, price_str, cat] if x])
+        lines.append(f"{head}. {desc}".strip())
+        
         if len(lines) >= max_items:
             break
     if not lines:
@@ -337,8 +376,13 @@ def build_product_context(results, max_items: int = 4) -> str:
             m = r.get("metadata", {}) or {}
             title = m.get("title") or m.get("name") or ""
             price = m.get("price", "")
+            cat = m.get("category", "")
             desc = m.get("description", "") or (r.get("content") or "")[:160]
-            lines.append(f"- {title} {('₹'+str(price)) if price else ''} [{m.get('category','')}] - {desc}".strip())
+            
+            price_str = f"₹{price}" if price else ""
+            head = " | ".join([x for x in [title, price_str, cat] if x])
+            lines.append(f"{head}. {desc}".strip())
+            
     return "\n".join(lines) if lines else "No product info found."
 
 # ============ INTENT ROUTING LOGIC ============
@@ -353,10 +397,10 @@ async def answer_query_async(user_id: str, query: str, voice_mode: bool = False)
     timings = {}
     start = time.time()
     retrieval_k = TOP_K
-    product_max_tokens = 110 if voice_mode else 180
-    personalized_max_tokens = 110 if voice_mode else 220
-    general_max_tokens = 72 if voice_mode else 64
-    web_max_tokens = 88 if voice_mode else 120
+    product_max_tokens = 350
+    personalized_max_tokens = 350
+    general_max_tokens = 300
+    web_max_tokens = 300
 
     # ===== PATH 1: QUICK RESPONSES (GREETINGS) =====
     with timed("quick", timings):
@@ -560,10 +604,10 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
     timings = {}
     start = time.time()
     retrieval_k = TOP_K
-    product_max_tokens = 110 if voice_mode else 180
-    personalized_max_tokens = 110 if voice_mode else 220
-    general_max_tokens = 96 if voice_mode else 140
-    web_max_tokens = 100 if voice_mode else 120
+    product_max_tokens = 350
+    personalized_max_tokens = 350
+    general_max_tokens = 300
+    web_max_tokens = 300
 
     with timed("quick", timings):
         quick_reply = quick.get_response(query)
@@ -738,12 +782,7 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
                     web_results_text=web_context,
                     temperature=0.1,
                     max_tokens=web_max_tokens,
-                    top_p=0.85,
-                    stop_tokens=[
-                        "\nCustomer:",
-                        "\nSystem:",
-                        "\nSupport Agent:",
-                    ],
+                    top_p=0.85
                 ):
                     collected.append(chunk)
                     yield chunk
@@ -772,12 +811,7 @@ async def answer_query_stream_async(user_id: str, query: str, voice_mode: bool =
             query,
             temperature=0.10 if voice_mode else 0.15,
             max_tokens=general_max_tokens,
-            top_p=0.9,
-            stop_tokens=[
-                "\nCustomer:",
-                "\nSystem:",
-                "\nSupport Agent:",
-            ],
+            top_p=0.9
         ):
             collected.append(chunk)
             yield chunk

@@ -553,6 +553,9 @@ module.exports = function handleVoiceSession(ws) {
         speechBuffer = bufferedChunks.remaining;
 
         for (const part of bufferedChunks.parts) {
+          if (part.includes("|") || part.includes("₹")) {
+            continue;
+          }
           pushSpeechPart(part);
         }
 
@@ -597,6 +600,9 @@ module.exports = function handleVoiceSession(ws) {
         : ((hasSpokenChunks || hasQueuedSpeechParts) ? [] : [trimmedReply]);
 
       for (const part of speechParts) {
+        if (part.includes("|") || part.includes("₹")) {
+          continue;
+        }
         pushSpeechPart(part);
       }
       closeSpeechQueue();

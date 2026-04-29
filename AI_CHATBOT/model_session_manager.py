@@ -142,21 +142,17 @@ class ModelSessionManager:
                       context_text: str = "", history_text: str = "",
                       web_results_text: str = "") -> str:
         prompt_parts = []
-
         if system_preamble.strip():
             prompt_parts.append(f"System: {system_preamble.strip()}")
-
         if context_text.strip():
             prompt_parts.append(f"\nProduct Information:\n{context_text.strip()}")
-
         if history_text.strip():
             prompt_parts.append(f"\nRecent Conversation:\n{history_text.strip()}")
-
         if web_results_text.strip():
             prompt_parts.append(f"\nWeb Search Results:\n{web_results_text.strip()}")
-
-        prompt_parts.append(f"\nCustomer: {user_query.strip()}")
-        prompt_parts.append("\nSupport Agent:")
+            
+        prompt_parts.append(f"\nUser: {user_query.strip()}")
+        prompt_parts.append("\nAssistant:")
         return "".join(prompt_parts)
 
     async def _generate(self, prompt: str, temperature: float, max_tokens: int,
@@ -177,7 +173,7 @@ class ModelSessionManager:
                 out = await loop.run_in_executor(None, _infer)
             text = out.get("choices", [{}])[0].get("text", "") or ""
             cleaned = text.strip()
-            cleaned = re.sub(r"^(Support Agent:|Agent:|Assistant:|support agent:)", "", cleaned, flags=re.I).strip()
+            cleaned = re.sub(r"^(Support Agent:|Agent:|Assistant:|support agent:|Aria:|aria:)", "", cleaned, flags=re.I).strip()
             cleaned = re.sub(r"\n+", " ", cleaned)
             return cleaned
         except Exception as e:
@@ -205,15 +201,7 @@ class ModelSessionManager:
             temperature=temperature,
             max_tokens=max_tokens,
             top_p=0.85,
-            stop_tokens=[
-                "\nCustomer:", "Customer:",
-                "\nSystem:", "System:",
-                "\nRecent:",
-                "\nProduct:",
-                "\nUser:", "User:",
-                "\nAssistant:", "Assistant:",
-                "\nSupport Agent:", "Support Agent:"
-            ],
+            stop_tokens=["User:", "Assistant:", "System:"],
         )
 
     async def generate_fast_reply(self, system_preamble: str, user_query: str,
@@ -224,11 +212,7 @@ class ModelSessionManager:
             temperature=temperature,
             max_tokens=max_tokens,
             top_p=0.8,
-            stop_tokens=[
-                "\nCustomer:",
-                "\nSystem:",
-                "\nSupport Agent:",
-            ],
+            stop_tokens=["User:", "Assistant:", "System:"],
         )
 
     async def stream_reply(self, system_preamble: str, user_query: str,
@@ -243,15 +227,7 @@ class ModelSessionManager:
             history_text=history_text,
             web_results_text=web_results_text,
         )
-        stop_tokens = stop_tokens or [
-            "\nCustomer:", "Customer:",
-            "\nSystem:", "System:",
-            "\nRecent:",
-            "\nProduct:",
-            "\nUser:", "User:",
-            "\nAssistant:", "Assistant:",
-            "\nSupport Agent:", "Support Agent:"
-        ]
+        stop_tokens = stop_tokens or ["User:", "Assistant:", "System:"]
 
         loop = asyncio.get_running_loop()
         queue = asyncio.Queue()

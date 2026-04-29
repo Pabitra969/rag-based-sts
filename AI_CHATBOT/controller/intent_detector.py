@@ -127,12 +127,12 @@ def detect_intent(query: str) -> Tuple[str, float]:
     # HIGH PRIORITY RULES (Regex)
     # =========================
 
-    # Greetings
-    if re.match(r"^(hi|hello|hey|hlw)\b", q):
+    # Greetings (strict match to avoid intercepting product queries like "hello I want a phone")
+    if re.match(r"^(hi|hello|hey|hlw)[\s.!,?]*$", q):
         regex_intent, regex_conf = "greeting", 0.95
-    elif re.match(r"^(thanks|thank you)\b", q):
+    elif re.match(r"^(thanks|thank you)[\s.!,?]*$", q):
         regex_intent, regex_conf = "thanks", 0.95
-    elif re.fullmatch(r"(bye|goodbye|see you|take care)", q):
+    elif re.match(r"^(bye|goodbye|see you|take care)[\s.!,?]*$", q):
         regex_intent, regex_conf = "farewell", 0.95
     elif re.search(r"\b(my order|order id|track order|track my order|order status|profile|account|purchase)\b", q):
         regex_intent, regex_conf = "personal_query", 0.90
@@ -159,17 +159,11 @@ def detect_intent(query: str) -> Tuple[str, float]:
     # STAGE 2: EMBEDDING FALLBACK (Always run)
     # =========================
     q_vec = _embedder.encode([q])[0]
+    q_norm = np.linalg.norm(q_vec) + 1e-9
     sims = {
-        k: float(np.dot(q_vec, v) / (np.linalg.norm(v) + 1e-9))
+        k: float(np.dot(q_vec, v) / (q_norm * np.linalg.norm(v) + 1e-9))
         for k, v in _INTENT_VECS.items()
     }
-
-    # Restrict intents by domain for safety
-    if domain == "product":
-        allowed = ["product_search", "price_filter", "meta_count"]
-    else:
-        allowed = ["general_knowledge", "greeting", "thanks", "farewell"]
-    sims = {k: v for k, v in sims.items() if k in allowed}
 
     embed_intent = max(sims, key=sims.get) if sims else "general_knowledge"
     embed_score = sims.get(embed_intent, 0.0)

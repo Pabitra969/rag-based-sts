@@ -117,8 +117,10 @@ def extract_fact(query: str, results: List[Dict[str, Any]]) -> Optional[str]:
             lines = "\n".join(_format_item_line(i) for i in related)
             return f"Sorry, we don't have gaming PCs right now. You might like these instead:\n{lines}"
 
-    # === GENERAL PRODUCT DESCRIPTION (Only if query clearly product-related) ===
-    # If query contains product keywords, return best matching result from results list
+
+
+    # === GENERAL PRODUCT LISTING (Zero-latency fallback) ===
+    # If the user just wants to browse products (not asking for details), return a fast deterministic list.
     product_keywords = (
         r"\b("
         r"jeans|t[- ]?shirt|shirt|pants|trouser|shorts|shoes|sneakers|"
@@ -127,29 +129,23 @@ def extract_fact(query: str, results: List[Dict[str, Any]]) -> Optional[str]:
         r"headphones?|headset|earphones?|earbuds|speaker|chair|table|furniture|"
         r"mouse|keyboard|webcam|ssd|tablet|drawing|graphic|plug|charger|router|"
         r"cooler|purifier|heater|fan|geyser|refrigerator|microwave|dishwasher|"
-        r"toothbrush|screen protector|product|item"
+        r"toothbrush|screen protector|product|item|options"
         r")\b"
     )
-    if re.search(product_keywords, q):
+    detail_keywords = r"\b(detail|details|more|about|describe|explain|tell me|information)\b"
+    
+    if re.search(product_keywords, q) and not re.search(detail_keywords, q):
         if not results:
-            return "I don't have that product detail in the current catalog context."
-        # Prefer first result that matches key terms from the query in title/description/category
-        q_terms = re.findall(r"[a-zA-Z-]+", q)
-        chosen = None
-        for r in results or []:
-            m = r.get("metadata") or {}
-            txt = f"{m.get('title','')} {m.get('description','')} {m.get('category','')}".lower()
-            if any(term in txt for term in q_terms):
-                chosen = r
-                break
-        top = chosen or ((results or []) and (results or [])[0])
-        if top:
-            t = safe_get_meta(top, "title", safe_get_meta(top, "name", "Product"))
-            p = safe_get_meta(top, "price", "")
-            c = safe_get_meta(top, "category", "")
-            d = safe_get_meta(top, "description", "") or (top.get("content") or "")[:220]
+            return "I don't have that product in the current catalog."
+        lines = ["Here are some options for you:"]
+        for r in results[:3]:
+            t = safe_get_meta(r, "title", safe_get_meta(r, "name", "Product"))
+            p = safe_get_meta(r, "price", "")
+            c = safe_get_meta(r, "category", "")
+            d = safe_get_meta(r, "description", "") or (r.get("content") or "")[:120]
             head = " | ".join([x for x in [t, (f"₹{p}" if p else None), c] if x])
-            return f"{head}. {d}".strip()
+            lines.append(f"{head}. {d} |".strip())
+        return "\n".join(lines)
 
     # === NO DETERMINISTIC FACT FOUND ===
     # For general knowledge queries, don't force product info

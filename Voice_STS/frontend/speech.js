@@ -83,20 +83,30 @@ const MUTED_WORD_RE = /\b(fuck|fucking|shit|bitch|asshole|bastard|dick|pussy|slu
 
 function parseProductLine(line) {
   const trimmed = String(line || "").trim().replace(/^-+\s*/, "");
-  const pipeMatch = trimmed.match(/^(.*?)\s*\|\s*(₹[\d,]+)\s*\|\s*([^.]+)\.\s*(.+)$/);
-  const dashMatch = trimmed.match(/^(.*?)\s*\|\s*(₹[\d,]+)\s*\|\s*([^.]+)\s*[-:]\s*(.+)$/);
-  const legacyMatch = trimmed.match(/^(.*?)\s*(₹[\d,]+)\s*\[([^\]]+)\]\.\s*(.+)$/);
-  const match = pipeMatch || dashMatch || legacyMatch;
+  const pipeMatch = trimmed.match(/^(.*?)\s*\|\s*(₹[\d,]+)\s*\|\s*([^.]+)\.\s*(.*?)(?:\s*\|)?$/);
+  const dashMatch = trimmed.match(/^(.*?)\s*\|\s*(₹[\d,]+)\s*\|\s*([^.]+)\s*[-:]\s*(.*?)(?:\s*\|)?$/);
+  const legacyMatch = trimmed.match(/^(.*?)\s*(₹[\d,]+)\s*\[([^\]]+)\]\.\s*(.*?)(?:\s*\|)?$/);
+  const fallbackPipeMatch = trimmed.match(/^(.*?)\s*\|\s*(₹[\d,]+)\s*\|\s*(.*?)(?:\s*\|)?$/);
+  
+  let title, price, category = "", description = "";
 
-  if (!match) {
+  if (pipeMatch) {
+    title = pipeMatch[1]; price = pipeMatch[2]; category = pipeMatch[3]; description = pipeMatch[4];
+  } else if (dashMatch) {
+    title = dashMatch[1]; price = dashMatch[2]; category = dashMatch[3]; description = dashMatch[4];
+  } else if (legacyMatch) {
+    title = legacyMatch[1]; price = legacyMatch[2]; category = legacyMatch[3]; description = legacyMatch[4];
+  } else if (fallbackPipeMatch) {
+    title = fallbackPipeMatch[1]; price = fallbackPipeMatch[2]; description = fallbackPipeMatch[3];
+  } else {
     return null;
   }
 
   return {
-    title: match[1].trim(),
-    price: match[2].trim(),
-    category: match[3].trim(),
-    description: match[4].trim(),
+    title: title.trim(),
+    price: price.trim(),
+    category: category.trim(),
+    description: description.trim(),
   };
 }
 
@@ -944,7 +954,7 @@ const voiceModeCallbacks = {
       return;
     }
 
-    startLiveVoiceDraft(turnId, text, voiceConversationId || activeConversationId);
+    startLiveVoiceDraft(turnId, "", voiceConversationId || activeConversationId);
   },
 
   onBotPartial: (payload) => {

@@ -199,56 +199,99 @@ def _search_html_fallback_sync(query: str, max_results: int = 3) -> List[WebResu
     params = urlencode({"q": query, "kl": "us-en"})
     req = Request(
         f"{os.environ.get('WEB_SEARCH_HTML_URL', DEFAULT_SEARCH_HTML_URL)}?{params}",
-        headers={"User-Agent": "AriaLocalBot/1.0"},
+        headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"},
     )
 
-    with urlopen(req, timeout=float(os.environ.get("WEB_SEARCH_TIMEOUT_SEC", "8"))) as res:
-        html = res.read().decode("utf-8", errors="replace")
+    try:
+        with urlopen(req, timeout=float(os.environ.get("WEB_SEARCH_TIMEOUT_SEC", "8"))) as res:
+            html = res.read().decode("utf-8", errors="replace")
+    except Exception as e:
+        print(f"[DDG HTML] Request failed: {e}")
+        return []
 
-    title_matches = list(
-        re.finditer(
-            r'<a[^>]+class="[^"]*result__a[^"]*"[^>]+href="(?P<url>[^"]+)"[^>]*>(?P<title>.*?)</a>',
-            html,
-            flags=re.I | re.S,
-        )
-    )
-    snippet_matches = list(
-        re.finditer(
-            r'<a[^>]+class="[^"]*result__snippet[^"]*"[^>]*>(?P<snippet>.*?)</a>|'
-            r'<td[^>]+class="[^"]*result-snippet[^"]*"[^>]*>(?P<snippet_td>.*?)</td>',
-            html,
-            flags=re.I | re.S,
-        )
-    )
-
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(html, 'html.parser')
+    
     results: List[WebResult] = []
-    for idx, match in enumerate(title_matches):
+    for result_div in soup.find_all('div', class_='result'):
         if len(results) >= max_results:
             break
-        raw_url = match.group("url") or ""
-        raw_title = match.group("title") or ""
-        snippet_match = snippet_matches[idx] if idx < len(snippet_matches) else None
-        raw_snippet = ""
-        if snippet_match:
-            raw_snippet = snippet_match.group("snippet") or snippet_match.group("snippet_td") or ""
+            
+        title_a = result_div.find('a', class_='result__a')
+        snippet_a = result_div.find('a', class_='result__snippet')
+        if not title_a:
+            continue
+            
+        raw_url = title_a.get('href', '')
+        raw_title = title_a.text
+        raw_snippet = snippet_a.text if snippet_a else ''
 
         clean_url = _clean_result_url(raw_url)
         title = _html_to_text(raw_title)[:120]
         snippet = _html_to_text(raw_snippet)[:220]
 
-        if not title:
-            continue
-
-        results.append(
-            WebResult(
-                title=title,
-                snippet=snippet,
-                source=_source_name(clean_url, "DuckDuckGo"),
-                url=clean_url,
+        if title:
+            results.append(
+                WebResult(
+                    title=title,
+                    snippet=snippet,
+                    source=_source_name(clean_url, "DuckDuckGo"),
+                    url=clean_url,
+                )
             )
-        )
 
     return results
+def _search_gemini_sync(query: str, max_results: int = 3) -> List[WebResult]:
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        return []
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+    payload = json.dumps({
+        "contents": [{"parts": [{"text": query}]}],
+        "tools": [{"googleSearch": {}}]
+    }).encode("utf-8")
+    req = Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+
+    try:
+        with urlopen(req, timeout=float(os.environ.get("WEB_SEARCH_TIMEOUT_SEC", "15"))) as res:
+            data = json.loads(res.read().decode("utf-8", errors="replace"))
+    except Exception as e:
+        print(f"[GEMINI SEARCH] Request failed: {e}")
+        return []
+
+    results: List[WebResult] = []
+    try:
+        candidate = data.get("candidates", [])[0]
+        answer_text = candidate.get("content", {}).get("parts", [])[0].get("text", "").strip()
+        
+        if answer_text:
+            results.append(WebResult(
+                title="Google Search Grounded Answer",
+                snippet=answer_text,
+                source="Gemini Search",
+                url="https://google.com"
+            ))
+            
+        chunks = candidate.get("groundingMetadata", {}).get("groundingChunks", [])
+        for chunk in chunks:
+            web = chunk.get("web", {})
+            title = web.get("title", "").strip()
+            uri = web.get("uri", "").strip()
+            if title and uri:
+                results.append(WebResult(
+                    title=title[:120],
+                    snippet="Reference Link",
+                    source=_source_name(uri, "Google Search"),
+                    url=uri,
+                ))
+                if len(results) >= max_results + 1:
+                    break
+    except Exception as e:
+        print(f"[GEMINI SEARCH] Parsing failed: {e}")
+
+    return results
+
 
 
 async def search_web(query: str, max_results: int = 3) -> List[WebResult]:
@@ -257,11 +300,14 @@ async def search_web(query: str, max_results: int = 3) -> List[WebResult]:
     merged: List[WebResult] = []
     seen = set()
 
-    for label, loader in [
-        ("wikipedia lookup", _search_wikipedia_sync),
-        ("instant answer lookup", _search_sync),
+    # loaders = [("gemini lookup", _search_gemini_sync)] if api_key else []
+    loaders = [
         ("html fallback lookup", _search_html_fallback_sync),
-    ]:
+        ("instant answer lookup", _search_sync),
+        ("wikipedia lookup", _search_wikipedia_sync),
+    ]
+
+    for label, loader in loaders:
         if len(merged) >= max_results:
             break
         try:
